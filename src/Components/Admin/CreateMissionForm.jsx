@@ -1,0 +1,335 @@
+import React, { useState } from 'react';
+import useFetchData from '../APIManage/useFetchData';
+import { useAuth } from '../APIManage/AuthContext';
+
+const CreateMissionForm = ({ onClose, onSuccess }) => {
+      const { user } = useAuth();
+  const { createMission, success, error, isLoading } = useFetchData(user?.token);
+
+  const [isConfirmOpen, setIsConfirmOpen] = useState(false); // For confirmation modal visibility
+  const [formData, setFormData] = useState({
+    MISSION_NAME: '',
+    MISSION_TYPE: 'QR',
+    Coin_Reward: 0,
+    Mission_Point: 0,
+    Start_Date: '',
+    Expire_Date: '',
+    Description: '',
+    Is_Limited: false,
+    Accept_limit: 0,
+    Images: [],
+    QRCode: '',
+    Code_Mission_Code: '',
+  });
+
+  const handleChange = (e) => {
+    const { name, value, type, checked } = e.target;
+    setFormData({
+      ...formData,
+      [name]: type === 'checkbox' ? checked : value,
+    });
+  };
+
+  const handleFileChange = (e) => {
+    setFormData({
+      ...formData,
+      Images: Array.from(e.target.files),
+    });
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    setIsConfirmOpen(true); // Open the confirmation modal
+  };
+
+  const handleConfirm = async () => {
+    try {
+      await createMission(formData);
+      alert('Mission created successfully!');
+      setFormData({
+        MISSION_NAME: '',
+        MISSION_TYPE: 'QR',
+        Coin_Reward: 0,
+        Mission_Point: 0,
+        Start_Date: '',
+        Expire_Date: '',
+        Description: '',
+        Is_Limited: false,
+        Accept_limit: '',
+        Images: [],
+        QRCode: '',
+        Code_Mission_Code: '',
+      });
+      onClose(); // Close modal after successful submission
+      onSuccess(); // Trigger page reload callback
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsConfirmOpen(false); // Close the confirmation modal after the action
+    }
+  };
+
+  const handleCancel = () => {
+    setIsConfirmOpen(false); // Close the confirmation modal if cancelled
+  };
+  const handleClear = () => {
+    setFormData((prev) => ({
+      ...prev,
+      Images: [], // Reset Images to an empty array
+    }));
+
+    // Optional: Clear the file input value
+    document.querySelector('input[name="Images"]').value = '';
+  };
+
+
+  return (
+    <div className='text-button-text'>
+      <form onSubmit={handleSubmit} className="space-y-4">
+        {/* Mission Name */}
+        <div className="form-control w-full">
+          <label className="label">
+            <span className="label-text text-button-text">Mission Name</span>
+          </label>
+          <input
+            type="text"
+            name="MISSION_NAME"
+            value={formData.MISSION_NAME}
+            onChange={handleChange}
+            className="input input-bordered w-full bg-bg border-button-text"
+            required
+          />
+        </div>
+
+        {/* Mission Type */}
+        <div className="form-control w-full">
+          <label className="label">
+            <span className="label-text text-button-text">Mission Type</span>
+          </label>
+          <select
+            name="MISSION_TYPE"
+            value={formData.MISSION_TYPE}
+            onChange={handleChange}
+            className="select select-bordered w-full bg-bg border-button-text"
+          >
+            <option value="QR">QR</option>
+            <option value="Code">Code</option>
+            <option value="Photo">Photo</option>
+          </select>
+        </div>
+
+        {/* Coin Reward and Mission Points */}
+        <div className="grid grid-cols-2 gap-4">
+          <div className="form-control">
+            <label className="label">
+              <span className="label-text text-button-text">Coin Reward</span>
+            </label>
+            <input
+              type="number"
+              name="Coin_Reward"
+              value={formData.Coin_Reward}
+              onChange={handleChange}
+              className="input input-bordered bg-bg border-button-text"
+              required
+            />
+          </div>
+
+          <div className="form-control">
+            <label className="label">
+              <span className="label-text text-button-text">Mission Point</span>
+            </label>
+            <input
+              type="number"
+              name="Mission_Point"
+              value={formData.Mission_Point}
+              onChange={handleChange}
+              className="input input-bordered bg-bg border-button-text"
+              required
+            />
+          </div>
+        </div>
+
+        {/* Dates */}
+        <div className="grid grid-cols-2 gap-4">
+          <div className="form-control">
+            <label className="label">
+              <span className="label-text text-button-text">Start Date</span>
+            </label>
+            <input
+              type="datetime-local"
+              name="Start_Date"
+              value={formData.Start_Date}
+              onChange={handleChange}
+              className="input input-bordered bg-bg border-button-text"
+              required
+            />
+          </div>
+
+          <div className="form-control">
+            <label className="label">
+              <span className="label-text text-button-text">Expire Date</span>
+            </label>
+            <input
+              type="datetime-local"
+              name="Expire_Date"
+              value={formData.Expire_Date}
+              onChange={handleChange}
+              className="input input-bordered bg-bg border-button-text"
+              required
+            />
+          </div>
+        </div>
+
+        {/* Description */}
+        <div className="form-control w-full">
+          <label className="label">
+            <span className="label-text text-button-text">Description</span>
+          </label>
+          <textarea
+            name="Description"
+            value={formData.Description}
+            onChange={handleChange}
+            className="textarea textarea-bordered bg-bg border-button-text"
+            required
+          />
+        </div>
+        <div className="form-control">
+          <label className="label">
+            <span className="label-text text-button-text">Participants</span>
+          </label>
+          <input
+            type="number"
+            name="Accept_limit"
+            value={formData.Accept_limit}
+            onChange={handleChange}
+            className="input input-bordered bg-bg border-button-text"
+            required
+          />
+        </div>
+
+        {/* Is Limited */}
+        <div className="form-control">
+          <label className="label cursor-pointer">
+            <span className="label-text text-button-text">Is Limited</span>
+            <input
+              type="checkbox"
+              name="Is_Limited"
+              checked={formData.Is_Limited}
+              onChange={handleChange}
+              className="checkbox checkbox-error bg-bg"
+            />
+          </label>
+        </div>
+
+        {/* Images */}
+        <div className="form-control w-full">
+          <label className="label">
+            <span className="label-text text-button-text">Images</span>
+          </label>
+          <input
+            type="file"
+            name="Images"
+            multiple
+            accept="image/*"
+            onChange={handleFileChange}
+            className="file-input file-input-bordered w-full bg-bg border-button-text"
+          />
+        </div>
+
+        <div className="grid grid-cols-3 gap-2 mt-4">
+          {formData.Images &&
+            Array.from(formData.Images).map((file, index) => (
+              <div key={index} className="relative">
+                <img
+                  src={URL.createObjectURL(file)}
+                  alt={`Preview ${index + 1}`}
+                  className="w-full h-32 object-cover rounded-lg shadow-md"
+                />
+              </div>
+            ))}
+        </div>
+
+        {formData.MISSION_TYPE === 'Code' && (
+          <div className="form-control w-full">
+            <label className="label">
+              <span className="label-text text-button-text">Code Mission Code</span>
+            </label>
+            <input
+              type="text"
+              name="Code_Mission_Code"
+              value={formData.Code_Mission_Code}
+              onChange={handleChange}
+              className="input input-bordered bg-bg border-button-text"
+              required
+            />
+          </div>
+        )}
+
+        {/* Buttons */}
+        <div className="flex justify-end gap-2">
+          {formData.Images && formData.Images.length > 0 && (
+            <div className="flex justify-start">
+              <button
+                onClick={handleClear}
+                className="btn btn-error"
+              >
+                Clear Image
+              </button>
+            </div>
+          )}
+          <button
+            type="button"
+            onClick={onClose}
+            className="btn btn-outline btn-error"
+          >
+            Cancel
+          </button>
+          <button
+            type="submit"
+            disabled={isLoading}
+            className={`btn ${isLoading ? 'btn-disabled' : 'btn-success text-bg'}`}
+          >
+            {isLoading ? 'Creating...' : 'Create Mission'}
+          </button>
+        </div>
+      </form>
+
+      {/* Confirmation Modal */}
+      <dialog id="confirmation_modal" className={`modal ${isConfirmOpen ? 'modal-open' : ''}`}>
+        <div className="modal-box">
+          <h3 className="font-bold text-lg">Are you sure you want to create this mission?</h3>
+
+          {/* Display the first image preview */}
+          {formData.Images.length > 0 && (
+            <img
+              src={URL.createObjectURL(formData.Images[0])}
+              alt="Mission Preview"
+              className="w-full h-40 object-cover rounded-lg mb-4"
+            />
+          )}
+
+          <p className="">Mission Name: {formData.MISSION_NAME}</p>
+          <p className="">Mission Type: {formData.MISSION_TYPE}</p>
+          <p className="">Coin Reward: {formData.Coin_Reward}</p>
+          <p className="">Mission Point: {formData.Mission_Point}</p>
+          <p className="">Start Date: {formData.Start_Date}</p>
+          <p className="">Expire Date: {formData.Expire_Date}</p>
+          <p className="">Description: {formData.Description}</p>
+          <p className="">Is Limited: {formData.Is_Limited ? 'Yes' : 'No'}</p>
+
+          <div className="modal-action">
+            <button className="btn" onClick={() => {
+              handleConfirm(); // Call the confirm logic
+              setIsConfirmOpen(false); // Close the modal
+
+            }} >Yes, Create</button>
+            <button className="btn" onClick={handleCancel}>Cancel</button>
+          </div>
+        </div>
+
+      </dialog>
+    </div>
+  );
+};
+
+export default CreateMissionForm;
