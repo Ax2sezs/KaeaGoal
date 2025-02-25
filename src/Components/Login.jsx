@@ -40,7 +40,7 @@ function Login() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center w-full">
+    <div className="flex min-h-screen items-center justify-center">
       {/* Logo */}
       {/* <div className="absolute top-5 left-0 right-0 flex justify-center z-10">
         <img
@@ -52,7 +52,7 @@ function Login() {
 
       {/* Login Form */}
       <div
-        className="p-6 sm:p-8 border-heavy-color bg-layer-item border-8 shadow-lg rounded-badge max-w-full z-20 mb-16"
+        className="p-6 border-heavy-color bg-layer-item border-8 shadow-lg rounded-badge z-20 mb-16"
         style={{ backgroundImage: "url('./6654537.jpg')", backgroundSize: "cover" }}
       >
         <h2 className="text-2xl font-bold text-center text-white mb-6">Welcome</h2>
@@ -103,7 +103,7 @@ function Login() {
           <div className="flex justify-center mt-4">
             <button
               type="submit"
-              className="px-8 py-3 text-lg font-bold text-white border border-bg rounded-full shadow-lg hover:scale-105 transform transition-all duration-300"
+              className="btn btn-outline bg-bg text-lg font-bold text-layer-item border border-bg rounded-full shadow-lg hover:scale-105 transform transition-all duration-300"
               disabled={isLoading}
             >
               {isLoading ? 'Logging in...' : 'Login'}

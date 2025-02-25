@@ -3,7 +3,7 @@ import useFetchData from '../APIManage/useFetchData';
 import { useAuth } from '../APIManage/AuthContext';
 
 const CreateMissionForm = ({ onClose, onSuccess }) => {
-      const { user } = useAuth();
+  const { user } = useAuth();
   const { createMission, success, error, isLoading } = useFetchData(user?.token);
 
   const [isConfirmOpen, setIsConfirmOpen] = useState(false); // For confirmation modal visibility
@@ -201,10 +201,22 @@ const CreateMissionForm = ({ onClose, onSuccess }) => {
             type="number"
             name="Accept_limit"
             value={formData.Accept_limit}
-            onChange={handleChange}
+            onChange={(e) => {
+              const value = parseInt(e.target.value, 10);
+              if (value > 0 || e.target.value === '') {
+                handleChange(e);
+              }
+            }}
+            onBlur={(e) => {
+              if (e.target.value === '' || parseInt(e.target.value, 10) <= 0) {
+                // If the input is empty or 0 on blur, set it to 1 as default
+                handleChange({ target: { name: 'Accept_limit', value: 1 } });
+              }
+            }}
             className="input input-bordered bg-bg border-button-text"
             required
           />
+
         </div>
 
         {/* Is Limited */}

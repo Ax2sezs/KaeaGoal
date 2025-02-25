@@ -64,8 +64,8 @@ function Leaderboard() {
           <div className='flex flex-col items-center col-start-1 row-start-2 mt-16 sm:col-start-1 sm:row-start-2 sm:mt-16'>
             <div className='relative'>
               <img
-                className='w-24 h-24 rounded-full mb-3 border-4 border-gray-400'
-                src={leaderItem[0]?.imageUrls}
+                className='w-24 h-24 rounded-full mb-3 border-4 border-gray-400 object-cover'
+                src={leaderItem[1]?.imageUrls}
                 alt={`Profile 2`}
               />
               <img
@@ -83,7 +83,7 @@ function Leaderboard() {
           <div className='flex flex-col items-center col-start-3 row-start-2 mt-16 sm:col-start-3 sm:row-start-2 sm:mt-16'>
             <div className='relative'>
               <img
-                className='w-24 h-24 rounded-full mb-3 border-4 border-gray-400'
+                className='w-24 h-24 rounded-full mb-3 border-4 border-gray-400 object-cover'
                 src={leaderItem[3]?.imageUrls}
                 alt={`Profile 3`}
               />
@@ -115,10 +115,10 @@ function Leaderboard() {
                 <tr key={index + 3} className="border-b border-orange-300">
                   <td className='text-xl text-gray-700'>#{index + 4}</td>
                   <td>
-                    <p className='text-lg text-gray-600'>{leaderItem[3]?.displayName || 'Anonymous'}</p>
+                    <p className='text-lg text-gray-600'>{item?.displayName || 'Anonymous'}</p>
 
                   </td>
-                  <td className='text-xl text-gray-800'>{item.point}</td>
+                  <td className='text-xl text-gray-800'>{item?.point}</td>
                   {/* Display name or placeholder */}
                 </tr>
               ))}

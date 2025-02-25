@@ -703,6 +703,99 @@ const editDisplayName = async (displayName) => {
       throw err;
   }
 };
+const resetPassword = async (a_USER_ID) => {
+  try {
+      // Send userId as a query parameter instead of in the body
+      const response = await api.put(
+          `/Auth/Admin-Reset-Password?userId=${a_USER_ID}`,
+          {}, // Empty body since the ID is in the query
+          {
+              headers: {
+                  "Authorization": `Bearer ${token}`,
+                  "Content-Type": "application/json",
+              },
+          }
+      );
+
+      console.log("API Response:", response.data); // Log response to inspect it
+
+      if (response.status === 200) {
+          setSuccess("Password reset successfully!");
+          return true;
+      } else {
+          setError("Failed to reset password.");
+          return false;
+      }
+  } catch (err) {
+      console.error("Error resetting password:", err.response?.data || err.message);
+      setError(`Failed to reset password. ${err.response?.data?.message || ""}`);
+      throw err; // Rethrow error for handling in the caller function
+  }
+};
+
+
+
+const changePassword = async (currentPassword, newPassword, confirmPassword) => {
+  try {
+    // Make API call with JSON payload (no userId if not required)
+    const response = await api.put(
+      "/Auth/Change-Password",
+      { 
+        currenT_PASSWORD: currentPassword, // Current password
+        password: newPassword,             // New password
+        confirM_PASSWORD: confirmPassword  // Confirm new password
+      },
+      {
+        headers: {
+          "Authorization": `Bearer ${token}`,
+          "Content-Type": "application/json", // Correct Content-Type
+        },
+      }
+    );
+
+    console.log("API Response:", response.data);
+    setSuccess("Password changed successfully!");
+    return response.data; // Return API response
+  } catch (err) {
+    console.error("Error changing password:", err);
+    setError("Failed to change password.");
+    throw err;
+  }
+};
+
+
+const editUserDetail = async (userData) => {
+  try {
+      if (!userData || !userData.a_USER_ID) {
+          throw new Error("User ID is required");
+      }
+
+      if (!token) {
+          throw new Error("Authorization token is missing");
+      }
+
+      const response = await api.put(
+          "/Auth/Admin-Update-User-Detail",
+          userData, // Sending JSON object
+          {
+              headers: {
+                  "Authorization": `Bearer ${token}`,
+                  "Content-Type": "application/json",
+              },
+          }
+      );
+
+      console.log("API Response:", response.data);
+      setSuccess("User details updated successfully!");
+      return response.data;
+  } catch (err) {
+      console.error("Error updating user details:", err);
+      setError("Failed to update user details.");
+      throw err;
+  }
+};
+
+
 
 
 
@@ -731,6 +824,9 @@ const editDisplayName = async (displayName) => {
     refetch,
     editProfileImg,
     editDisplayName,
+    editUserDetail,
+    resetPassword,
+    changePassword,
     completeMission,
     allMission,
     ApproveQR,

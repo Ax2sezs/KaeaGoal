@@ -9,24 +9,24 @@ function MyReward() {
 
     const getStepClasses = (status, step) => {
         const statusMap = {
-            Pending: 1,
-            Approved: 2,
-            Rejected: 3,
+            Approve: 1,
+            OnDelivery: 2,
+            Delivered: 3,
         };
         return statusMap[status] >= step ? 'step step-warning' : 'step';
     };
 
     const getCurrentStepLabel = (status) => {
         const stepLabels = {
-            Pending: 'Pending',
-            Approved: 'Confirmed',
-            Rejected: 'On Delivery',
+            Approve: 'Ordered',
+            OnDelivery: 'On Delivery',
+            Delivered: 'Delivered',
         };
         return stepLabels[status] || 'Redeemed';
     };
 
     return (
-        <div className="bg-bg w-full rounded-2xl min-h-screen p-3">
+        <div className="p-2 bg-bg w-full rounded-2xl min-h-screen">
             {isLoading ? (
                 <div className="text-center text-gray-500">
                     <span className="loading loading-dots loading-lg"></span>
@@ -41,7 +41,7 @@ function MyReward() {
                         {userReward.map((item, index) => (
                             <div
                                 key={index}
-                                className="bg-white rounded-xl shadow p-4 flex flex-col gap-4"
+                                className="bg-bg rounded-xl shadow p-4 flex flex-col gap-4 hover:bg-zinc-100 transition-transform duration-300 ease-in-out cursor-pointer"
                                 onClick={() => setExpandedIndex(expandedIndex === index ? null : index)}
                             >
                                 <div className="flex items-center justify-between">
@@ -55,11 +55,16 @@ function MyReward() {
                                         ) : (
                                             'No Image'
                                         )}
-                                        <span className="font-semibold truncate w-28">{item.reward_Name}</span>
+                                        <span className="font-semibold truncate w-28 text-button-text">{item.reward_Name}</span>
                                     </div>
+                                    <ul className="hidden sm:steps steps-horizontal w-full ">
+                                                <li className={getStepClasses(item.reward_Status, 1)}>Ordered</li>
+                                                <li className={getStepClasses(item.reward_Status, 2)}>On Delivery</li>
+                                                <li className={getStepClasses(item.reward_Status, 3)}>Delivered</li>
+                                            </ul>
                                     <div className="text-center font-bold">
                                         <div className='flex flex-col'>
-                                            <p>{getCurrentStepLabel(item.reward_Status)}</p>
+                                            <p className='text-button-text'>{getCurrentStepLabel(item.reward_Status)}</p>
                                             <p>
                                             </p>
                                         </div>
@@ -71,10 +76,10 @@ function MyReward() {
                                     <div className="bg-gray-100 mt-4 p-4 rounded-xl">
                                         <strong className='text-button-text'>Detailed Steps:</strong>
                                         <div className="text-xs sm:text-sm text-gray-700">
-                                            <ul className="steps steps-vertical md:steps-horizontal md:w-full">
-                                                <li className={getStepClasses(item.reward_Status, 1)}>Ordered</li>
-                                                <li className={getStepClasses(item.reward_Status, 2)}>Confirmed</li>
-                                                <li className={getStepClasses(item.reward_Status, 3)}>On Delivery</li>
+                                            <ul className="steps steps-horizontal w-full sm:hidden">
+                                            <li className={getStepClasses(item.reward_Status, 1)}>Ordered</li>
+                                                <li className={getStepClasses(item.reward_Status, 2)}>On Delivery</li>
+                                                <li className={getStepClasses(item.reward_Status, 3)}>Delivered</li>
                                             </ul>
                                             <div className="mt-4">
                                                 <strong>Date:</strong> {item.redeem_Date ? new Date(item.redeem_Date).toLocaleDateString() : 'N/A'}

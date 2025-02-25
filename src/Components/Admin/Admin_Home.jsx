@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom'; // Import useNavigate
 
 function Admin_Home() {
     const sidebarItems = [
-        { label: 'Get User', icon: <People />, route: '/admin_list' },
+        { label: 'Get User', icon: <People />, route: '/alluser' },
         { label: 'Approve Mission', icon: <Article />, route: '/getmission' }, // Link to QRCode
         { label: 'All Mission', icon: <Update />, route: '/updatemission' },
         { label: 'Order', icon: <LocalShipping />, route: '/order' }, // Link to KAEcoin

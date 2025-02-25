@@ -1,6 +1,13 @@
 import React, { useEffect, useState, useRef } from "react";
 import { Html5QrcodeScanner } from "html5-qrcode";
+import { Swiper, SwiperSlide } from "swiper/react";
+import { Navigation, Pagination } from "swiper/modules";
 import CheckIcon from '@mui/icons-material/Check';
+import CloseOutlinedIcon from '@mui/icons-material/CloseOutlined';
+import "swiper/css";
+import "swiper/css/navigation";
+import "swiper/css/pagination";
+
 
 const ModalMyMission = ({
   mission,
@@ -110,14 +117,26 @@ const ModalMyMission = ({
 
   return (
     <dialog ref={dialogRef} className="modal modal-middle">
-      <div className="modal-box bg-bg">
+      <div className="modal-box bg-bg text-button-text">
         <div className="mb-5">
-          <img
-            src={mission.mission_Image[0]}
-            className="h-48 w-full object-cover rounded-2xl cursor-pointer"
-            alt="Mission"
-            onClick={() => setSelectedImage(mission.mission_Image[0])}
-          />
+          <Swiper
+            modules={[Navigation, Pagination]}
+            navigation
+            pagination={{ clickable: true }}
+            style={{ "--swiper-pagination-color": "#FFFFFF", "--swiper-navigation-color": "#FFFFFF"  }} // ✅ เปลี่ยนสี Pagination
+            className="w-full h-48 rounded-2xl"
+          >
+            {mission.mission_Image.map((image, index) => (
+              <SwiperSlide key={index} className="flex items-center justify-center">
+                <img
+                  src={image}
+                  className="h-48 w-full object-cover rounded-2xl cursor-pointer"
+                  alt={`Mission Image ${index + 1}`}
+                  onClick={() => setSelectedImage(image)}
+                />
+              </SwiperSlide>
+            ))}
+          </Swiper>
         </div>
         <div className="mb-5">
           <div className="flex flex-col">
@@ -136,7 +155,7 @@ const ModalMyMission = ({
             {isScannerActive && <div id="reader" className="mb-4"></div>}
             {qrCode && (
               <div className="mt-4">
-                <strong className="text-green-500">Scanned <CheckIcon/></strong>
+                <strong className="text-green-500">Scanned <CheckIcon /></strong>
               </div>
             )}
           </>
@@ -190,7 +209,7 @@ const ModalMyMission = ({
                 id="missionCode"
                 value={missionCode}
                 onChange={(e) => setMissionCode(e.target.value)}
-                className="input input-bordered w-full mt-2"
+                className="input input-bordered w-full mt-2 bg-bg border-layer-item rounded-badge focus:border-heavy-color"
                 required
               />
             </div>
@@ -227,14 +246,14 @@ const ModalMyMission = ({
 
         {/* Buttons aligned in a row */}
         <div className="modal-action flex justify-end">
-        
+
           <button
             onClick={
               missionType === "QR"
                 ? handleQRCodeSubmit
                 : missionType === "Photo"
-                ? handleImageSubmit
-                : handleMissionCodeSubmit
+                  ? handleImageSubmit
+                  : handleMissionCodeSubmit
             }
             className="btn rounded-badge btn-success text-white"
             disabled={isSubmitting}

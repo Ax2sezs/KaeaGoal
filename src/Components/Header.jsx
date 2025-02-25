@@ -13,31 +13,17 @@ function Header() {
     navigate('/');  // Navigate to home after logout
   };
 
-  // Refetch data whenever the token changes or user details change
   useEffect(() => {
     if (user?.token) {
-      refetch();  // Trigger the refetch whenever the token or user details change
+      console.log('Refetch triggered by token change');
+      refetch();
     }
   }, [user?.token, refetch]);
 
-  // Optionally, set an interval to check and refetch every X minutes (if needed)
-  useEffect(() => {
-    const interval = setInterval(() => {
-      if (user?.token) {
-        refetch();  // Periodic refetch, e.g., every 5 minutes
-      }
-    }, 5 * 60 * 1000);  // 5 minutes interval, you can adjust as needed
-
-    // Clean up the interval on component unmount
-    return () => clearInterval(interval);
-  }, [user?.token, refetch]);
-
   if (isLoading) {
-    return <div>Loading...</div>;
-  }
-
-  if (error) {
-    return <div className="text-red-500">{error}</div>;
+    return <div className="text-center text-gray-500">
+      <span className="loading loading-dots loading-lg"></span>
+    </div>
   }
 
   return (
@@ -45,7 +31,7 @@ function Header() {
       <div className="flex items-center gap-4">
         <div className="avatar hover:scale-105 transition-transform duration-300 ease-in-out">
           <Link to="/profile">
-            <div className="ring-heavy-color ring-offset-base-100 w-10 sm:w-11 h-10 sm:h-11 rounded-full ring ring-offset-2 overflow-hidden">
+            <div className="ring-heavy-color ring-offset-bg w-10 sm:w-11 h-10 sm:h-11 rounded-full ring ring-offset-2 overflow-hidden">
               <img src={userDetails?.imageUrls} alt="User Avatar" className="w-full h-full object-cover" />
             </div>
           </Link>

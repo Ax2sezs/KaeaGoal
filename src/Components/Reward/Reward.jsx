@@ -2,6 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../APIManage/AuthContext';
 import useFetchData from '../APIManage/useFetchData';
 import { LocalShippingOutlined } from '@mui/icons-material';
+import CheckIcon from '@mui/icons-material/Check';
+import CloseOutlinedIcon from '@mui/icons-material/CloseOutlined';
+import { Swiper, SwiperSlide } from "swiper/react";
+import { Navigation, Pagination } from "swiper/modules";
+import "swiper/css";
+import "swiper/css/navigation";
+import "swiper/css/pagination";
 
 const RewardCard = ({ item, onClick }) => {
   const isOutOfStock = item?.reward_quantity === 0;
@@ -51,6 +58,7 @@ function Reward() {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [modalMessage, setModalMessage] = useState('');
   const [isSuccess, setIsSuccess] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
 
   useEffect(() => {
     const userId = user?.a_USER_ID || localStorage.getItem('a_USER_ID');
@@ -73,42 +81,67 @@ function Reward() {
       setModalMessage('Missing reward ID or user ID');
       return;
     }
+
     try {
       await acceptReward(selectedReward.reward_Id, user.a_USER_ID);
       setIsSuccess(true);
+      document.getElementById('reward_modal').close();
       setTimeout(() => {
-        document.getElementById('reward_modal').close();
-        alert('Reward accepted successfully!');
-        refetch();
-      }, 500);
+        const successModal = document.getElementById("success_modal");
+        if (successModal) {
+          successModal.showModal();
+        }
+      }, 500, refetch());
     } catch (err) {
-      setModalMessage('Failed to accept reward');
+      console.error("API Error:", err.response?.data?.message);
+      if (err.response?.data?.message === "Insufficient Coin") {
+        setErrorMessage("Not enough coin!");
+        document.getElementById("error_modal").showModal();
+      } else {
+        setModalMessage("Failed to accept reward");
+      }
     }
   };
 
-  if (isLoading) return <div className="text-center text-gray-500"><span className="loading loading-dots loading-lg"></span></div>;
-  if (error) return <div className="text-red-500 text-center">{error}</div>;
-
   return (
     <div className="bg-bg w-full min-h-screen rounded-2xl mb-16 sm:mb-0">
-      <div className="grid grid-cols-2 lg:grid-cols-2 xl:grid-cols-4 gap-5 items-center p-3 h-auto bg-bg rounded-xl">
-        {Reward.sort((a, b) => (a.reward_quantity === 0 ? 1 : -1)).map((item, index) => (
-          <RewardCard key={index} item={item} onClick={() => handleOpenModal(item)} />
-        ))}
-      </div>
+      {isLoading ? (
+        <div className="text-center text-gray-500">
+          <span className="loading loading-dots loading-lg"></span>
+        </div>
+      ) : Array.isArray(Reward) && Reward.length === 0 ? (
+        <p>No rewards found</p>
+      ) : (
+        <div className="grid grid-cols-2 lg:grid-cols-2 xl:grid-cols-4 gap-5 items-center p-3 h-auto bg-bg rounded-xl">
+          {Reward.sort((a, b) => (a.reward_quantity === 0 ? 1 : -1)).map((item, index) => (
+            <RewardCard key={index} item={item} onClick={() => handleOpenModal(item)} />
+          ))}
+        </div>
+      )}
 
+      {/* Reward Modal */}
       <dialog id="reward_modal" className="modal">
         <div className="modal-box bg-bg text-button-text">
           {selectedReward && (
             <>
               <div className="relative w-full h-48 rounded-2xl">
-                <img
-                  src={selectedReward.reward_Image[currentImageIndex] || 'fallback-image.jpg'}
-                  alt="Slide"
-                  className="w-full h-full object-cover rounded-2xl"
-                />
-                <button onClick={() => setCurrentImageIndex(prev => (prev === 0 ? selectedReward.reward_Image.length - 1 : prev - 1))} className="absolute left-4 top-1/2 transform -translate-y-1/2 text-white">◀</button>
-                <button onClick={() => setCurrentImageIndex(prev => (prev === selectedReward.reward_Image.length - 1 ? 0 : prev + 1))} className="absolute right-4 top-1/2 transform -translate-y-1/2 text-white">▶</button>
+                <Swiper
+                  modules={[Navigation, Pagination]}
+                  navigation
+                  pagination={{ clickable: true }}
+                  loop={true}
+                  className="w-full h-full"
+                >
+                  {selectedReward.reward_Image.map((img, index) => (
+                    <SwiperSlide key={index} className="flex justify-center items-center">
+                      <img
+                        src={img}
+                        alt={`Slide ${index + 1}`}
+                        className="w-full h-full object-cover rounded-2xl"
+                      />
+                    </SwiperSlide>
+                  ))}
+                </Swiper>
               </div>
               <div className="flex flex-col gap-3 mt-5">
                 <h3 className="text-xl font-bold break-words whitespace-normal">
@@ -118,7 +151,6 @@ function Reward() {
                   Description: {selectedReward.reward_Description}
                 </p>
               </div>
-
             </>
           )}
           <div className="flex justify-between mt-4">
@@ -133,8 +165,38 @@ function Reward() {
           </div>
         </div>
       </dialog>
+
+      {/* Error Modal */}
+      <dialog id="error_modal" className="modal">
+        <div className="modal-box bg-red-500 text-white text-center">
+          <h1 className='text-bg'><CloseOutlinedIcon fontSize='large' className='animate-bounce' /></h1>
+          <h3 className="text-xl font-bold">Not enough coin</h3>
+          <button
+            className="btn border-bg bg-bg rounded-badge text-red-500 mt-3 hover:bg-bg"
+            onClick={() => document.getElementById("error_modal").close()}
+          >
+            Close
+          </button>
+        </div>
+      </dialog>
+
+      {/* Success Modal */}
+      <dialog id="success_modal" className="modal">
+        <div className="modal-box bg-green-500 text-white text-center">
+          <h1 className='text-bg'><CheckIcon fontSize='large' className='animate-bounce' /></h1>
+          <h3 className="text-xl font-bold">{selectedReward?.reward_Name}. Redeemed Successfully!</h3>
+          <p>You have successfully redeemed...</p>
+          <button
+            className="btn border-bg bg-bg rounded-badge text-green-500 mt-3 hover:bg-bg"
+            onClick={() => document.getElementById("success_modal").close()}
+          >
+            Close
+          </button>
+        </div>
+      </dialog>
     </div>
   );
 }
 
 export default Reward;
+

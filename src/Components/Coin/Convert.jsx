@@ -1,85 +1,104 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import useFetchData from '../APIManage/useFetchData';
 import { useNavigate } from 'react-router-dom';
+import CheckIcon from '@mui/icons-material/Check';
+import CloseOutlinedIcon from '@mui/icons-material/CloseOutlined';
+import ExpandMoreOutlinedIcon from '@mui/icons-material/ExpandMoreOutlined';
+import ChevronRightOutlinedIcon from '@mui/icons-material/ChevronRightOutlined';
 
 const Convert = () => {
   const [thankCoinAmount, setThankCoinAmount] = useState(0);
-  const [kaeaCoinAmount, setKaeaCoinAmount] = useState(0); // จำนวน Kaea Coin ที่ได้จากการคำนวณ
-  const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false); // เปิด/ปิด Success Modal
-  const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false); // เปิด/ปิด Confirm Modal
-  const { convertCoin, error, isLoading } = useFetchData(localStorage.getItem('token'));
+  const [kaeaCoinAmount, setKaeaCoinAmount] = useState(0);
+  const [currentThankCoinBalance, setCurrentThankCoinBalance] = useState(0); // เก็บค่าจำนวนเหรียญที่แสดง
+  const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
+  const { coinDetails, convertCoin, error, isLoading } = useFetchData(localStorage.getItem('token'));
   const navigate = useNavigate();
 
-  // คำนวณจำนวน Kaea Coin
+  const confirmModalRef = useRef(null);
+  const successModalRef = useRef(null);
+  const errorModalRef = useRef(null)
+
+  // ตรวจสอบว่า coinDetails พร้อมใช้งานหรือยัง
+  useEffect(() => {
+    if (coinDetails) {
+      setCurrentThankCoinBalance(coinDetails.thankCoinBalance);
+    }
+  }, [coinDetails]);
+
   const calculateKaeaCoins = (thankCoinAmount) => {
     const exchangeRate = 10;
     return thankCoinAmount / exchangeRate;
   };
 
-  // เมื่อเปลี่ยนค่าใน Input
   const handleCoinAmountChange = (e) => {
     const amount = e.target.value;
-
-    // ตรวจสอบว่าเลขที่กรอกลงท้ายด้วย 0 หรือไม่
     if (amount === '' || /^[0-9]*0$/.test(amount)) {
       setThankCoinAmount(Number(amount));
       setKaeaCoinAmount(calculateKaeaCoins(Number(amount)));
     }
   };
 
-  // ฟังก์ชันเปิด Confirm Modal
+  const isDisabled = thankCoinAmount <= 0; // ตรวจสอบว่าค่าที่ใส่มาเป็น 0 หรือติดลบ
+
+
   const handleOpenConfirmModal = () => {
-    if (thankCoinAmount <= 0) {
-      alert('Please enter a valid amount.');
-      return;
-    }
-    setIsConfirmModalOpen(true); // เปิด Confirm Modal
+
+    confirmModalRef.current.showModal();
   };
 
-  // ฟังก์ชันยืนยันการแลกเปลี่ยนเหรียญ
   const handleConfirmConversion = async () => {
     try {
       await convertCoin(thankCoinAmount);
-      setIsConfirmModalOpen(false); // ปิด Confirm Modal
-      setIsSuccessModalOpen(true);  // เปิด Success Modal
+      confirmModalRef.current.close();
+      setIsSuccessModalOpen(true);
+      setTimeout(() => {
+        successModalRef.current.showModal();
+      }, 500);
     } catch (err) {
-      alert(error); // แสดงข้อผิดพลาด
+      confirmModalRef.current.close();
+      errorModalRef.current.showModal();
     }
   };
 
-  // เพิ่มจำนวนเหรียญ
   const increaseCoinAmount = () => {
     setThankCoinAmount((prevAmount) => prevAmount + 10);
     setKaeaCoinAmount(calculateKaeaCoins(thankCoinAmount + 10));
+
+    // ลดจำนวนเหรียญใน `currentThankCoinBalance` เท่านั้น
+    setCurrentThankCoinBalance((prevBalance) => prevBalance - 10);
   };
 
-  // ลดจำนวนเหรียญ
   const decreaseCoinAmount = () => {
     if (thankCoinAmount > 0) {
       setThankCoinAmount((prevAmount) => prevAmount - 10);
       setKaeaCoinAmount(calculateKaeaCoins(thankCoinAmount - 10));
+
+      // เพิ่มจำนวนเหรียญใน `currentThankCoinBalance` เท่านั้น
+      setCurrentThankCoinBalance((prevBalance) => prevBalance + 10);
     }
   };
+
+  if (isLoading) {
+    return <div>Loading...</div>;  // หรือแสดง UI บอกว่ากำลังโหลด
+  }
 
   return (
     <div>
       <div className="bg-bg w-full min-h-full rounded-2xl p-3 sm:p-10">
-        <h1 className="text-2xl text-layer-item font-bold mb-5">CONVERT.</h1>
         <div className="flex flex-col justify-center items-center gap-10">
-          {/* Display Coins */}
-          <div className="flex flex-row items-center justify-center w-full">
-            <div className="flex flex-col items-center w-full">
-              <img src="src/assets/2.png" alt="Green Coin" className="w-16 h-16 sm:w-32 sm:h-32" />
-              <p className="text-xs sm:text-lg text-gray-700 mt-3">{thankCoinAmount} Thanks Coin</p>
-            </div>
-            <img src="src/assets/icons8-right-arrow-26.png" className="invert w-10 h-10 mx-4" />
-            <div className="flex flex-col items-center w-full">
-              <img src="src/assets/1.png" alt="Yellow Coin" className="w-16 h-16 sm:w-32 sm:h-32" />
-              <p className="text-xs sm:text-lg text-gray-700 mt-3">{kaeaCoinAmount} Kaea Coin</p>
-            </div>
+          <div className="flex flex-row items-center justify-between w-full gap-5">
+            <img src="src/assets/2.png" alt="Green Coin" className="w-16 h-16 sm:w-32 sm:h-32" />
+            <p className="text-xl sm:text-lg text-green-500 font-bold mt-3">{currentThankCoinBalance}</p> {/* ใช้สถานะ currentThankCoinBalance */}
+            <p className="text-xl sm:text-lg text-green-500 font-bold mt-3">Thank Coin</p>
+          </div>
+          <div className="divider"><ExpandMoreOutlinedIcon /></div>
+          <div className="flex flex-row items-center justify-between w-full">
+            <img src="src/assets/1.png" alt="Yellow Coin" className="w-16 h-16 sm:w-32 sm:h-32" />
+            <p className="text-xl sm:text-lg text-yellow-500 font-bold mt-3">{kaeaCoinAmount}</p>
+            <p className="text-xl sm:text-lg text-yellow-500 font-bold mt-3">Kaea Coin</p>
           </div>
 
-          {/* Input & Buttons */}
+          {/* ส่วนของปุ่มและอินพุต */}
           <div className="flex flex-col gap-10 w-full sm:w-auto">
             <div className="flex items-center gap-5">
               <button
@@ -108,7 +127,7 @@ const Convert = () => {
             <div className="flex justify-center">
               <button
                 onClick={handleOpenConfirmModal}
-                disabled={isLoading}
+                disabled={isLoading||isDisabled}
                 className="btn bg-layer-item border-hidden w-28 rounded-badge text-white hover:bg-heavy-color"
               >
                 {isLoading ? 'Converting...' : 'Convert Coin'}
@@ -119,50 +138,75 @@ const Convert = () => {
       </div>
 
       {/* Confirm Modal */}
-      {isConfirmModalOpen && (
-        <div className="fixed inset-0 bg-gray-500 bg-opacity-50 flex justify-center items-center z-50">
-          <div className="modal-box bg-bg p-6 rounded-lg shadow-lg w-80 sm:w-96">
-            <h3 className="font-bold text-xl text-yellow-600">Confirm Conversion</h3>
-            <p className="py-4 text-gray-800">
-              Are you sure you want to convert <b>{thankCoinAmount} Thanks Coin</b> to <b>{kaeaCoinAmount} Kaea Coin?</b>
-            </p>
-            <div className="modal-action flex justify-end gap-4">
-              <button
-                className="btn btn-error rounded-badge"
-                onClick={() => setIsConfirmModalOpen(false)}
-              >
-                Cancel
-              </button>
-              <button
-                className="btn btn-success text-bg rounded-badge"
-                onClick={handleConfirmConversion}
-              >
-                Confirm
-              </button>
+      <dialog ref={confirmModalRef} className="modal">
+        <div className="modal-box bg-bg p-6 rounded-lg shadow-lg w-80 sm:w-96">
+          <h3 className="font-bold text-xl text-button-text">Confirm Conversion</h3>
+          <div className='flex flex-col'>
+            <div className='flex flex-row justify-between items-center'>
+              <div className=''>
+                <img src='./2.png' className='w-20 h-20' />
+                <p className='text-center text-green-500 mt-3'>{thankCoinAmount}</p>
+              </div>
+              <div>
+                <ChevronRightOutlinedIcon />
+              </div>
+              <div className=''>
+                <img src='./1.png' className='w-20 h-20' />
+                <p className='text-center text-yellow-500 mt-3'>{kaeaCoinAmount}</p>
+              </div>
             </div>
           </div>
+          <div className="divider"></div>
+
+          <p className="py-4 text-button-text text-center">
+            Are you sure you want to convert <br /><b className='text-green-500'>{thankCoinAmount} Thanks Coin</b> to <b className='text-yellow-500'>{kaeaCoinAmount} Kaea Coin?</b>
+          </p>
+          <div className="modal-action flex justify-end gap-4">
+            <button
+              className="btn btn-success text-bg rounded-badge"
+              onClick={handleConfirmConversion}
+            >
+              Confirm
+            </button>
+            <button
+              className="btn btn-error btn-outline rounded-badge"
+              onClick={() => confirmModalRef.current.close()}
+            >
+              Cancel
+            </button>
+
+          </div>
         </div>
-      )}
+      </dialog>
 
       {/* Success Modal */}
-      {isSuccessModalOpen && (
-        <div className="fixed inset-0 bg-gray-500 bg-opacity-50 flex justify-center items-center z-50">
-          <div className="modal-box bg-bg p-6 rounded-lg shadow-lg w-80 sm:w-96">
-            <h3 className="font-bold text-xl text-green-600">Conversion Successful</h3>
-            <p className="py-4 text-gray-800">
-              You have successfully converted <b>{thankCoinAmount}</b> Thanks Coin to <b>{kaeaCoinAmount}</b> Kaea Coin.
-            </p>
-            <div className="modal-action flex justify-end">
-              <button
-                className="btn bg-layer-item border-hidden w-28 rounded-badge text-white hover:bg-heavy-color"
-                onClick={() => setIsSuccessModalOpen(false)}
-              >
-                Close
-              </button>
-            </div>
-          </div>
+      <dialog ref={successModalRef} className="modal">
+        <div className="modal-box bg-green-500 text-white text-center">
+          <h1 className='text-bg'><CheckIcon fontSize='large' className='animate-bounce' /></h1>
+          <h3 className="text-xl font-bold">Converted Successfully!</h3>
+          <p>You have successfully converted coin...</p>
+          <button
+            className="btn border-bg bg-bg rounded-badge text-green-500 mt-3 hover:bg-bg"
+            onClick={() => successModalRef.current.close()}
+          >
+            Close
+          </button>
         </div>
-      )}
+      </dialog>
+
+      {/* Error Modal */}
+      <dialog ref={errorModalRef} className="modal">
+        <div className="modal-box bg-red-500 text-white text-center">
+          <h1 className='text-bg'><CloseOutlinedIcon fontSize='large' className='animate-bounce' /></h1>
+          <h3 className="text-xl font-bold">Not enough Thanks coin</h3>
+          <button
+            className="btn border-bg bg-bg rounded-badge text-red-500 mt-3 hover:bg-bg"
+            onClick={() => errorModalRef.current.close()}
+          >
+            Close
+          </button>
+        </div>
+      </dialog>
     </div>
   );
 };

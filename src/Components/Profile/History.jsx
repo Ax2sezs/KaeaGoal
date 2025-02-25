@@ -65,8 +65,8 @@ function History() {
   };
 
   return (
-    <div className="flex flex-col justify-center items-center p-4 bg-layer-background rounded-xl">
-      <div className="w-full bg-bg rounded-xl p-4">
+    <div className="flex flex-col justify-center items-center p-2 bg-layer-background rounded-xl">
+      <div className="w-full bg-bg rounded-xl p-3">
         {/* Rows */}
         {data.map((item, index) => (
           <div

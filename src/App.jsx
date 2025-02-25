@@ -46,11 +46,11 @@ function App() {
 
   // Determine layout styles based on route
   const layoutStyles = location.pathname === '/'
-    ? 'min-h-screen bg-layer-background' // No margin for LandingPage
+    ? '' // No margin for LandingPage
     : 'min-h-screen bg-layer-background mt-16 sm:ml-64';
 
-  const loginlayout = location.pathname === '/' ? 'p-0' : 'p-1';
-  const pdlayout = location.pathname === '/' ? "flex flex-col lg:flex-row justify-center items-center bg-layer-background p-0"
+  const loginlayout = location.pathname === '/' ? '' : 'p-1';
+  const pdlayout = location.pathname === '/' ? ""
     : "flex flex-col lg:flex-row justify-center items-center bg-layer-background p-2";
 
   return (

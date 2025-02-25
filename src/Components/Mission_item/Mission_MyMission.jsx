@@ -2,6 +2,8 @@ import React, { useState } from "react";
 import { useAuth } from "../APIManage/AuthContext";
 import useFetchData from "../APIManage/useFetchData";
 import ModalMission from "./Modal/ModalMyMission";
+import CheckIcon from '@mui/icons-material/Check';
+import CloseOutlinedIcon from '@mui/icons-material/CloseOutlined';
 
 const MissionCard = ({ mission, onClick }) => {
   const isWaiting = mission.verification_Status === "Waiting for Confirmation.";
@@ -79,13 +81,16 @@ function Mission_MyMission({ isTableLayout }) {
       const { missioN_ID } = selectedMission;
       await executeCodeMission(missioN_ID, missionCode);
       console.log("Mission code executed successfully!");
+      setTimeout(() => handleModalClose(), 100);
+
       setModalError("");
-      setModalSuccess("Mission code executed successfully!");
+      setModalSuccess(document.getElementById('success_modal').showModal()
+      );
+
       refetch()
-      setTimeout(() => handleModalClose(), 1000);
     } catch (err) {
       console.error("Failed to execute mission code", err);
-      setModalError("Failed to execute mission code. Please try again.");
+      setModalError(document.getElementById('error_modal').showModal())
     }
   };
 
@@ -96,13 +101,14 @@ function Mission_MyMission({ isTableLayout }) {
       const { missioN_ID, useR_MISSION_ID } = selectedMission;
       await executeQRMission(missioN_ID, useR_MISSION_ID, qrCode);
       console.log("QR Code mission executed successfully!");
+      setTimeout(() => handleModalClose(), 100);
       setModalError("");
+      setModalSuccess(document.getElementById('success_modal').showModal())
+
       refetch()
-      setModalSuccess("QR Code mission executed successfully!");
-      setTimeout(() => handleModalClose(), 1000);
     } catch (err) {
       console.error("Failed to execute QR code mission", err);
-      setModalError("Failed to execute QR code mission. Please try again.");
+      setModalError(document.getElementById('error_modal').showModal())
     }
   };
 
@@ -117,9 +123,9 @@ function Mission_MyMission({ isTableLayout }) {
       await executePhotoMission(missioN_ID, useR_MISSION_ID, imageFiles); // Pass array
       console.log("Photo mission executed successfully!");
       setModalError("");
+      setTimeout(() => handleModalClose());
+      setModalSuccess(document.getElementById('success_modal').showModal())
       refetch()
-      setModalSuccess("Photo mission executed successfully!");
-      setTimeout(() => handleModalClose(), 1000);
     } catch (err) {
       console.error("Failed to execute Photo mission", err);
       setModalError("Failed to execute Photo mission. Please try again.");
@@ -128,7 +134,7 @@ function Mission_MyMission({ isTableLayout }) {
 
   const sortedMissions = userMission
     .slice()
-    .sort((a, b) => (a.verification_Status === "Waiting for Confirmation" ? 1 : -1));
+    .sort((a, b) => (a.verification_Status === "Waiting for Confirmation." ? 1 : -1));
 
   return (
     <div>
@@ -136,7 +142,6 @@ function Mission_MyMission({ isTableLayout }) {
         <div className="text-center text-gray-500">
           <span className="loading loading-dots loading-lg"></span>
         </div>}
-      {error && <p className="text-red-500">{error}</p>}
 
       {/* Display missions in grid layout */}
       {!isTableLayout ? (
@@ -208,6 +213,34 @@ function Mission_MyMission({ isTableLayout }) {
           </table>
         </div>
       )}
+
+      <dialog id="error_modal" className="modal">
+        <div className="modal-box bg-red-500 text-white text-center">
+          <h1 className='text-bg'><CloseOutlinedIcon fontSize='large' className='animate-bounce' /></h1>
+
+          <h3 className="text-xl font-bold">Incorrect Code</h3>
+          <button
+            className="btn border-bg bg-bg rounded-badge text-red-500 mt-3 hover:bg-bg"
+            onClick={() => document.getElementById("error_modal").close()}  // ปิด modal
+          >
+            Close
+          </button>
+        </div>
+      </dialog>
+      {/* Success Modal - เมื่อแลกของรางวัลสำเร็จ */}
+      <dialog id="success_modal" className="modal">
+        <div className="modal-box bg-green-500 text-white text-center">
+          <h1 className='text-bg'><CheckIcon fontSize='large' className='animate-bounce' /></h1>
+          <h3 className="text-xl font-bold"> Redeemed Successfully!</h3>
+          <p>You have successfully redeemed. . . </p>
+          <button
+            className="btn border-bg bg-bg rounded-badge text-green-500 mt-3 hover:bg-bg"
+            onClick={() => document.getElementById("success_modal").close()} // ปิด modal
+          >
+            Close
+          </button>
+        </div>
+      </dialog>
 
       {isModalOpen && (
         <ModalMission

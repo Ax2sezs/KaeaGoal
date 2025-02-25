@@ -6,14 +6,36 @@ function Admin_User_Reward() {
   const { user } = useAuth();
   const { adminReward = [], error, isLoading, rewardStatus, refetch } = useFetchData(user?.token || '');
 
+  const [selectedReward, setSelectedReward] = useState(""); // State สำหรับเลือก Reward
+
   const handleStatusChange = async (userRewardId, newStatus) => {
     try {
-      // Call the rewardStatus function to update the reward status
       await rewardStatus(userRewardId, newStatus);
-      // After the status is updated, refetch the rewards to reflect the change
       refetch();
     } catch (error) {
       console.error("Error updating reward status:", error);
+    }
+  };
+
+  // ดึง reward_Name ที่ไม่ซ้ำกันเพื่อใส่ในตัวเลือกของ Select
+  const uniqueRewards = [...new Set(adminReward.map(reward => reward.reward_Name))];
+
+  // กรองข้อมูลตาม Reward ที่เลือก
+  const filteredRewards = selectedReward
+    ? adminReward.filter(reward => reward.reward_Name === selectedReward)
+    : adminReward;
+
+  // ฟังก์ชันสำหรับการเลือกสีพื้นหลังตาม status
+  const getSelectBackgroundColor = (status) => {
+    switch (status) {
+      case 'Approve':
+        return 'bg-green-500';
+      case 'OnDelivery':
+        return 'bg-yellow-500';
+      case 'Delivered':
+        return 'bg-blue-500';
+      default:
+        return 'bg-white'; // Default color if no valid status
     }
   };
 
@@ -21,13 +43,30 @@ function Admin_User_Reward() {
     <div className="bg-bg w-full rounded-2xl min-h-screen p-3">
       <h2 className="text-2xl font-bold mb-6 text-button-text">Admin User Rewards</h2>
 
+      {/* Dropdown Filter */}
+      <div className="mb-4">
+        <label className="text-button-text font-medium mr-2">Filter by Reward:</label>
+        <select
+          className="border border-gray-300 p-2 rounded"
+          value={selectedReward}
+          onChange={(e) => setSelectedReward(e.target.value)}
+        >
+          <option value="">All Rewards</option>
+          {uniqueRewards.map((rewardName) => (
+            <option key={rewardName} value={rewardName}>
+              {rewardName}
+            </option>
+          ))}
+        </select>
+      </div>
+
       {isLoading ? (
-        <div className="text-center text-gray-500">    
-        <span className="loading loading-dots loading-lg"></span>
+        <div className="text-center text-gray-500">
+          <span className="loading loading-dots loading-lg"></span>
         </div>
       ) : error ? (
         <p className="text-red-500">Error: {error.message || 'An error occurred'}</p>
-      ) : adminReward && adminReward.length === 0 ? (
+      ) : filteredRewards.length === 0 ? (
         <p>No rewards found</p>
       ) : (
         <table className="min-w-full table-fixed border-collapse border border-gray-300 text-button-text">
@@ -41,10 +80,11 @@ function Admin_User_Reward() {
               <th className="border border-gray-300 p-2">Redeem Date</th>
               <th className="border border-gray-300 p-2">Collect Date</th>
               <th className="border border-gray-300 p-2">Image</th>
+              <th className="border border-gray-300 p-2">Action</th>
             </tr>
           </thead>
           <tbody>
-            {adminReward.map((reward) => (
+            {filteredRewards.map((reward) => (
               <tr key={reward.user_reward_Id || Math.random()} className="hover:bg-gray-50">
                 <td className="border border-gray-300 p-2">{reward.reward_Name}</td>
                 <td className="border border-gray-300 p-2">{reward.useR_NAME}</td>
@@ -72,13 +112,13 @@ function Admin_User_Reward() {
                 </td>
                 <td className="border border-gray-300 p-2">
                   <select
-                    className="border border-gray-300 p-1 rounded"
+                    className={`border border-gray-300 p-1 rounded ${getSelectBackgroundColor(reward.reward_Status)}`}
                     value={reward.reward_Status}
-                    onChange={(e) => handleStatusChange(reward.user_reward_Id, e.target.value)} // Handle status change
+                    onChange={(e) => handleStatusChange(reward.user_reward_Id, e.target.value)}
                   >
-                    <option value="Pending">Pending</option>
-                    <option value="Approved">Approved</option>
-                    <option value="Rejected">Rejected</option>
+                    <option value="Approve" className="bg-green-500 text-white">Approve</option>
+                    <option value="OnDelivery" className="bg-yellow-500 text-black">On Delivery</option>
+                    <option value="Delivered" className="bg-blue-500 text-white">Delivered</option>
                   </select>
                 </td>
               </tr>

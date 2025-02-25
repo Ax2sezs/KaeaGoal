@@ -45,6 +45,14 @@ export default {
         'heavy-color':'#a27557',
         'bg':'#FFFFFF'
       },
+      doodle_colors: {
+        'layer-background':'#f0f0f0',
+        'layer-item':'#181818',
+        'button-text':'#000000',
+        'light-color':'#dcdcdc',
+        'heavy-color':'#111111',
+        'bg':'#FFFFFF'
+      },
 
       fontFamily: {
         sans: ['"Baloo 2"', 'sans-serif'], // Set Baloo as default

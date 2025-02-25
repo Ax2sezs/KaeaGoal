@@ -5,11 +5,11 @@ import HistoryIcon from '@mui/icons-material/History';
 import { useAuth } from './APIManage/AuthContext'; 
 import useFetchData from './APIManage/useFetchData';
 import Mission_Main from './Mission_item/Mission_Main';
-import MyReward from './Reward/MyReward';
+import Reward from './Reward/Reward';
 
-function Home({ openModal }) {
+function Home() {
     const { user } = useAuth();
-    const { missions = [], Reward = [], error, isLoading, acceptMission } = useFetchData(user?.token);
+    const { missions = [], error, isLoading, acceptMission } = useFetchData(user?.token);
     const [selectedIndex, setSelectedIndex] = useState(null);
 
     const img = [
@@ -17,7 +17,6 @@ function Home({ openModal }) {
         'src/assets/poster.jpg',
         'src/assets/ms.jpg',
         'src/assets/durian.jpg',
-        'src/assets/Pha.jpg',
     ];
 
     const sidebarItems = [
@@ -25,40 +24,35 @@ function Home({ openModal }) {
         { label: 'QRCode', icon: <QrCode2 />, route: '/qr' },
         { label: 'Wheel', icon: <CropFree />, route: '/wheel' },
         { label: 'Transfer', icon: <SwapHoriz />, route: '/kaecoin' },
-        { label: 'Order', icon: <LocalShipping />, route: '/order' },
+        { label: 'My Reward', icon: <LocalShipping />, route: '/myreward' },
     ];
 
-    const medalImages = [
-        'src/assets/1st.png',
-        'src/assets/2nd.png',
-        'src/assets/3rd.png',
-    ];
-
-    const leaderItem = [
-        { profileImg: 'https://img.daisyui.com/images/stock/photo-1534528741775-53994a69daeb.webp', Point: '999' },
-        { profileImg: 'https://img.daisyui.com/images/stock/photo-1534528741775-53994a69daeb.webp', Point: '850' },
-        { profileImg: 'https://img.daisyui.com/images/stock/photo-1534528741775-53994a69daeb.webp', Point: '750' },
-    ];
-
-    const [activeIndex, setActiveIndex] = useState(1); 
+    const [activeIndex, setActiveIndex] = useState(0); 
     const carouselRef = useRef(null);
     const navigate = useNavigate(); 
 
     useEffect(() => {
         const interval = setInterval(() => {
-            setActiveIndex((prevIndex) => (prevIndex + 1) % (img.length + 1));
+            setActiveIndex((prevIndex) => (prevIndex + 1) % img.length); // Loop the images
         }, 3000); 
 
         return () => clearInterval(interval);
     }, []);
 
-    useEffect(() => {
-        if (activeIndex === img.length) {
-            setTimeout(() => {
-                setActiveIndex(1);
-            }, 500);
-        }
-    }, [activeIndex]);
+    // Function to go to the next slide
+    const nextSlide = () => {
+        setActiveIndex((prevIndex) => (prevIndex + 1) % img.length);
+    };
+
+    // Function to go to the previous slide
+    const prevSlide = () => {
+        setActiveIndex((prevIndex) => (prevIndex === 0 ? img.length - 1 : prevIndex - 1));
+    };
+
+    // Function to go to a specific slide
+    const goToSlide = (index) => {
+        setActiveIndex(index);
+    };
 
     const handleButtonClick = (route) => {
         navigate(route);
@@ -87,12 +81,13 @@ function Home({ openModal }) {
                     </div>
                 </div>
 
+                {/* Dots Navigation */}
                 <div className="flex w-full justify-center gap-2 py-2">
                     {img.map((_, index) => (
                         <div
                             key={index}
-                            onClick={() => setActiveIndex(index + 1)}
-                            className={`w-4 h-4 rounded-full border transition-all cursor-pointer ${activeIndex === index + 1
+                            onClick={() => goToSlide(index)}
+                            className={`w-4 h-4 rounded-full border transition-all cursor-pointer ${activeIndex === index
                                 ? 'bg-layer-item border-bg'
                                 : 'bg-layer-background border-white hover:bg-bg hover:border-bg'
                                 }`}
@@ -147,22 +142,6 @@ function Home({ openModal }) {
                         <span className="loading loading-dots loading-lg"></span>
                       </div>
                     ) : (
-                        // <div
-                        //     ref={carouselRef}
-                        //     className="carousel carousel-center bg-bg h-40 p-2 rounded-box w-full space-x-4 overflow-x-auto overflow-y-hidden scrollbar-hidden justify-around snap-x"
-                        //     style={{ scrollBehavior: 'smooth' }}
-                        // >
-                        //     {missions.concat(missions[0]).map((item, index) => (
-                        //         <div key={index} className="carousel-item items-center">
-                        //             <img
-                        //                 src={item?.missionImages?.[0]}
-                        //                 alt={`Image ${index + 1}`}
-                        //                 className="rounded-box w-36 h-36 object-cover"
-                        //             />
-                                    
-                        //         </div>
-                        //     ))}
-                        // </div>
                         <Mission_Main/>
                     )}
                 </div>
@@ -175,22 +154,7 @@ function Home({ openModal }) {
                         <span className="loading loading-dots loading-lg"></span>
                       </div>
                     ) : (
-                        // <div
-                        //     ref={carouselRef}
-                        //     className="carousel carousel-center bg-bg h-40 p-2 rounded-box w-full space-x-4 overflow-x-auto overflow-y-hidden scrollbar-hidden justify-around snap-x"
-                        //     style={{ scrollBehavior: 'smooth' }}
-                        // >
-                        //     {Reward.concat(Reward[0]).map((item, index) => (
-                        //         <div key={index} className="carousel-item items-center">
-                        //             <img
-                        //                 src={item?.reward_Image}
-                        //                 alt={`Image ${index + 1}`}
-                        //                 className="rounded-box w-44 h-36 object-cover"
-                        //             />
-                        //         </div>
-                        //     ))}
-                        // </div>
-                        <MyReward/>
+                        <Reward/>
                     )}
                 </div>
             </div>

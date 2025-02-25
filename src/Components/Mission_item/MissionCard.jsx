@@ -21,7 +21,7 @@ const MissionCard = ({ item, onClick }) => {
           className="w-full h-full object-cover"
         />
       </div>
-      {item?.is_Limited === true && (
+      {item?.is_Limited&& (
         <div className='absolute top-2 left-2 flex items-center'>
           <span className="flex flex-row text-sm justify-center items-center gap-2 bg-bg rounded-badge px-2 py-1 text-red-500 font-bold">
             <WorkspacePremiumIcon />
@@ -58,7 +58,7 @@ const MissionCard = ({ item, onClick }) => {
         <div className='flex flex-col'>
           <p className="text-lg text-button-text">Type : {item?.missioN_TYPE || 'N/A'}</p>
           <div className={`text-xs ${isExpired ? 'text-red-600' : 'text-gray-600'}`}>
-            Expire: {item?.expire_Date ? new Date(item.expire_Date).toLocaleDateString() : 'No Date'}
+            Exp: {item?.expire_Date ? new Date(item.expire_Date).toLocaleDateString() : 'No Date'}
           </div>
         </div>
       </div>

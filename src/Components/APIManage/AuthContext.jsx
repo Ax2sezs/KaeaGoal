@@ -11,10 +11,9 @@ export const AuthProvider = ({ children }) => {
 
     return token && a_USER_ID && logoN_NAME
       ? { token, a_USER_ID, logoN_NAME }
-      : null; // Return user object with all properties if they exist in localStorage
+      : null;
   });
 
-  // Handle login process and storing data in localStorage
   const login = (token, a_USER_ID, logoN_NAME) => {
     localStorage.setItem('token', token);
     localStorage.setItem('a_USER_ID', a_USER_ID);  // Store a_USER_ID in localStorage
