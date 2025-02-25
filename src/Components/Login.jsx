@@ -12,7 +12,6 @@ function Login() {
 
   const { login } = useFetchData(null);
 
-
   const handleLogin = async () => {
     if (!logoN_NAME || !useR_PASSWORD) {
       setError('Username and password are required');

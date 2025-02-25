@@ -18,14 +18,15 @@ function Sidebar() {
     { label: 'Profile', link: '/profile', icon: <AccountCircle /> },
   ];
 
-  // Add "Admin Mode" to sidebarItems if the user is an admin
-  if (userDetails && userDetails?.isAdmin === 9) {
-    sidebarItems.push({
-      label: 'Admin',
-      link: '/admin',
-      icon: <AdminPanelSettings />,
-    });
-  }
+ // Add "Admin Mode" to sidebarItems if the user is an admin with isAdmin 9 or 4
+if (userDetails && (userDetails?.isAdmin === 9 || userDetails?.isAdmin === 4)) {
+  sidebarItems.push({
+    label: 'Admin',
+    link: '/admin',
+    icon: <AdminPanelSettings />,
+  });
+}
+
 
   // Check if current path is within the "/admin" route
   const isAdminActive = location.pathname.startsWith('/admin');

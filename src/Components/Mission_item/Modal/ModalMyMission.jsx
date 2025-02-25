@@ -123,7 +123,7 @@ const ModalMyMission = ({
             modules={[Navigation, Pagination]}
             navigation
             pagination={{ clickable: true }}
-            style={{ "--swiper-pagination-color": "#FFFFFF", "--swiper-navigation-color": "#FFFFFF"  }} // ✅ เปลี่ยนสี Pagination
+            style={{ "--swiper-pagination-color": "#FFFFFF", "--swiper-navigation-color": "#FFFFFF" }} // ✅ เปลี่ยนสี Pagination
             className="w-full h-48 rounded-2xl"
           >
             {mission.mission_Image.map((image, index) => (
@@ -256,7 +256,12 @@ const ModalMyMission = ({
                   : handleMissionCodeSubmit
             }
             className="btn rounded-badge btn-success text-white"
-            disabled={isSubmitting}
+            disabled={
+              isSubmitting ||
+              (missionType === "QR" && !qrCode) ||
+              (missionType === "Photo" && imageFiles.length === 0) || // Fixed here
+              (missionType !== "QR" && missionType !== "Photo" && !missionCode)
+            }
           >
             {isSubmitting ? "Sending..." : "Submit"}
           </button>

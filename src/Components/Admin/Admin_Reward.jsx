@@ -90,15 +90,15 @@ const Admin_Reward = () => {
           <dialog className="modal modal-open bg-bg">
             <div className="modal-box bg-bg text-button-text">
               <h3 className="font-bold text-lg">Create Reward</h3>
-              <CreateRewardForm onCreateReward={createReward} onSuccess={handleMissionCreationSuccess} />
-              <div className="modal-action">
-                <button className="btn btn-error" onClick={closeCreateModal}>
-                  Close
-                </button>
-              </div>
+              <CreateRewardForm
+                onCreateReward={createReward}
+                onSuccess={handleMissionCreationSuccess}
+                onClose={closeCreateModal} // <-- Pass it here
+              />
             </div>
           </dialog>
         )}
+
 
         {/* ModalPreview for rewards */}
         {isPreviewOpen && (

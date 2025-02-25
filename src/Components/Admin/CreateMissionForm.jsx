@@ -10,17 +10,21 @@ const CreateMissionForm = ({ onClose, onSuccess }) => {
   const [formData, setFormData] = useState({
     MISSION_NAME: '',
     MISSION_TYPE: 'QR',
-    Coin_Reward: 0,
-    Mission_Point: 0,
+    Coin_Reward: '',
+    Mission_Point: '',
     Start_Date: '',
     Expire_Date: '',
     Description: '',
     Is_Limited: false,
-    Accept_limit: 0,
+    Accept_limit: '',
     Images: [],
     QRCode: '',
     Code_Mission_Code: '',
+    Participate_Type: 'All',  // Set a default value
+    Department: '',
+    Site: ''
   });
+
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -29,6 +33,7 @@ const CreateMissionForm = ({ onClose, onSuccess }) => {
       [name]: type === 'checkbox' ? checked : value,
     });
   };
+
 
   const handleFileChange = (e) => {
     setFormData({
@@ -44,13 +49,16 @@ const CreateMissionForm = ({ onClose, onSuccess }) => {
 
   const handleConfirm = async () => {
     try {
+      console.log('Sending the following data to the API:', formData); // Log to see the data being sent
+  
       await createMission(formData);
       alert('Mission created successfully!');
+  
       setFormData({
         MISSION_NAME: '',
         MISSION_TYPE: 'QR',
-        Coin_Reward: 0,
-        Mission_Point: 0,
+        Coin_Reward: '',
+        Mission_Point: '',
         Start_Date: '',
         Expire_Date: '',
         Description: '',
@@ -59,15 +67,20 @@ const CreateMissionForm = ({ onClose, onSuccess }) => {
         Images: [],
         QRCode: '',
         Code_Mission_Code: '',
+        Participate_Type: 'All', // Reset to default
+        Department: '',
+        Site: ''
       });
+  
       onClose(); // Close modal after successful submission
       onSuccess(); // Trigger page reload callback
     } catch (err) {
-      console.error(err);
+      console.error('Error:', err);
     } finally {
       setIsConfirmOpen(false); // Close the confirmation modal after the action
     }
   };
+  
 
   const handleCancel = () => {
     setIsConfirmOpen(false); // Close the confirmation modal if cancelled
@@ -218,6 +231,21 @@ const CreateMissionForm = ({ onClose, onSuccess }) => {
           />
 
         </div>
+        {/* <select
+          name="Participate_Type"
+          value={formData.Participate_Type}
+          onChange={handleChange}
+          className="select select-bordered w-full bg-bg border-button-text"
+          required
+        >
+          <option value="All">All</option>
+          <option value="Office">Office</option>
+          <option value="Factory">Factory</option>
+          <option value="Branch">Branch</option>
+        </select> */}
+
+
+
 
         {/* Is Limited */}
         <div className="form-control">
@@ -328,6 +356,8 @@ const CreateMissionForm = ({ onClose, onSuccess }) => {
           <p className="">Expire Date: {formData.Expire_Date}</p>
           <p className="">Description: {formData.Description}</p>
           <p className="">Is Limited: {formData.Is_Limited ? 'Yes' : 'No'}</p>
+          <p className="">Participate Type: {formData.Participate_Type || 'N/A'}</p>
+
 
           <div className="modal-action">
             <button className="btn" onClick={() => {

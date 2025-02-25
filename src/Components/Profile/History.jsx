@@ -1,109 +1,61 @@
-import React from 'react';
+import React from "react";
+import { useAuth } from "../APIManage/AuthContext";
+import useFetchData from "../APIManage/useFetchData";
 
 function History() {
-  // Sample data
-  const data = [
-    {
-      title: 'Received KAEA Coin',
-      status: 'get',
-      coin: 'k',
-      description: 'Mission : Running',
-      date: '2023-12-06',
-      time: '10:00 AM',
-      points: '50',
-    },
-    {
-      title: 'Give Thanks Coin',
-      status: 'give',
-      coin: 't',
-      description: 'To : Test Test',
-      date: '2023-12-05',
-      time: '3:30 PM',
-      points: '40',
-    },
-    {
-      title: 'Received Thanks Coin',
-      status: 'get',
-      coin: 't',
-      description: 'From : Test123',
-      date: '2023-12-04',
-      time: '2:15 PM',
-      points: '60',
-    },
-    {
-      title: 'Received KAEA Coin',
-      status: 'get',
-      coin: 'k',
-      description: 'Mission : Running',
-      date: '2023-12-06',
-      time: '10:00 AM',
-      points: '50',
-    },
-    {
-      title: 'Give Thanks Coin',
-      status: 'give',
-      coin: 't',
-      description: 'To : Test Test',
-      date: '2023-12-05',
-      time: '3:30 PM',
-      points: '40',
-    },
-    {
-      title: 'Received Thanks Coin',
-      status: 'get',
-      coin: 't',
-      description: 'From : Test123',
-      date: '2023-12-04',
-      time: '2:15 PM',
-      points: '60',
-    },
-  ];
+  const { user } = useAuth();
+  const { history = [], error, isLoading } = useFetchData(user?.token);
 
   const coinIcons = {
-    k: 'src/assets/1.png',  // KAEA Coin
-    t: 'src/assets/2.png',  // Thanks Coin
+    2: './1.png', // KAEA Coin
+    1: './2.png', // Thanks Coin
   };
 
   return (
     <div className="flex flex-col justify-center items-center p-2 bg-layer-background rounded-xl">
       <div className="w-full bg-bg rounded-xl p-3">
-        {/* Rows */}
-        {data.map((item, index) => (
-          <div
-            key={index}
-            className="flex items-center space-x-4 border-b border-gray-200 py-2"
-          >
-            {/* <div className="flex justify-center items-center w-4">
-              <div
-                className={`w-2 h-16 rounded-badge ${item.status === 'get' ? 'bg-green-500' : 'bg-red-500'
-                  }`}
-              >
+        {isLoading ? (
+          <div className="text-center text-gray-500">Loading...</div>
+        ) : error ? (
+          <div className="text-center text-red-500">Error fetching history</div>
+        ) : history.length === 0 ? (
+          <div className="text-center text-gray-500">No history</div>
+        ) : (
+          history.map((item, index) => (
+            <div key={index} className="flex items-center space-x-4 border-b border-gray-200 py-2">
+              {/* Title and Description */}
+              <div className="flex flex-col flex-grow">
+                <span className="text-xs font-bold text-gray-900 lg:text-sm">
+                  {item.transaction_Type}
+                </span>
+                <span className="text-xs text-gray-600">{item.description}</span>
               </div>
-            </div> */}
-            {/* Title and Description */}
-            <div className="flex flex-col flex-grow">
-              <span className="text-xs font-bold text-gray-900 lg:text-sm">{item.title}</span>
-              <span className="text-xs text-gray-600">{item.description}</span>
+
+              {/* Date and Points */}
+              <div className="flex flex-col items-end relative">
+                <div className="flex flex-col justify-end text-xs text-gray-700">
+                  {item.transaction_Date ? (
+                    <div className="flex flex-row justify-end gap-1">
+                      <span>{new Date(item.transaction_Date).toLocaleDateString()}</span>
+                      <span>{new Date(item.transaction_Date).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</span>
+                    </div>
+                  ) : (
+                    <span>No Date</span>
+                  )}
+                </div>
+
+                <span
+                  className={`relative flex flex-row ${item.amount < 0 ? 'text-red-500' : 'text-green-500'} font-bold gap-2`}
+                >
+                  {item.amount}
+                  {item.coin_Type && coinIcons[item.coin_Type] && (
+                    <img src={coinIcons[item.coin_Type]} alt="coin-icon" className="w-5 h-5" />
+                  )}
+                </span>
+              </div>
             </div>
-            {/* Date and Points */}
-            <div className="flex flex-col items-end relative">
-              <span className="text-xs text-gray-700">{item.date}</span>
-              <span className="text-xs text-gray-700">{item.time}</span>
-              <span
-                className={`relative flex flex-row ${item.status === 'get' ? 'text-green-500' : 'text-red-500'
-                  } font-bold gap-2`}
-              >
-                {/* Add coin icon behind points */}
-                {item.status === 'get' ? '+' : '-'} {item.points}
-                <img
-                  src={coinIcons[item.coin]}
-                  alt="coin-icon"
-                  className=" w-5 h-5 "
-                />
-              </span>
-            </div>
-          </div>
-        ))}
+          ))
+        )}
       </div>
     </div>
   );

@@ -61,22 +61,21 @@ const Convert = () => {
   };
 
   const increaseCoinAmount = () => {
-    setThankCoinAmount((prevAmount) => prevAmount + 10);
-    setKaeaCoinAmount(calculateKaeaCoins(thankCoinAmount + 10));
-
-    // ลดจำนวนเหรียญใน `currentThankCoinBalance` เท่านั้น
-    setCurrentThankCoinBalance((prevBalance) => prevBalance - 10);
+    if (thankCoinAmount + 10 <= currentThankCoinBalance) {  // ตรวจสอบว่าไม่เกินจำนวนเหรียญที่มี
+      setThankCoinAmount((prevAmount) => prevAmount + 10);
+      setKaeaCoinAmount(calculateKaeaCoins(thankCoinAmount + 10));
+      setCurrentThankCoinBalance((prevBalance) => prevBalance - 10);
+    }
   };
 
   const decreaseCoinAmount = () => {
-    if (thankCoinAmount > 0) {
+    if (thankCoinAmount > 0) {  // ตรวจสอบว่าไม่ติดลบ
       setThankCoinAmount((prevAmount) => prevAmount - 10);
       setKaeaCoinAmount(calculateKaeaCoins(thankCoinAmount - 10));
-
-      // เพิ่มจำนวนเหรียญใน `currentThankCoinBalance` เท่านั้น
       setCurrentThankCoinBalance((prevBalance) => prevBalance + 10);
     }
   };
+
 
   if (isLoading) {
     return <div>Loading...</div>;  // หรือแสดง UI บอกว่ากำลังโหลด
@@ -87,13 +86,13 @@ const Convert = () => {
       <div className="bg-bg w-full min-h-full rounded-2xl p-3 sm:p-10">
         <div className="flex flex-col justify-center items-center gap-10">
           <div className="flex flex-row items-center justify-between w-full gap-5">
-            <img src="src/assets/2.png" alt="Green Coin" className="w-16 h-16 sm:w-32 sm:h-32" />
+            <img src="src/assets/2.png" alt="Green Coin" className="w-16 h-16 sm:w-24 sm:h-24" />
             <p className="text-xl sm:text-lg text-green-500 font-bold mt-3">{currentThankCoinBalance}</p> {/* ใช้สถานะ currentThankCoinBalance */}
             <p className="text-xl sm:text-lg text-green-500 font-bold mt-3">Thank Coin</p>
           </div>
           <div className="divider"><ExpandMoreOutlinedIcon /></div>
           <div className="flex flex-row items-center justify-between w-full">
-            <img src="src/assets/1.png" alt="Yellow Coin" className="w-16 h-16 sm:w-32 sm:h-32" />
+            <img src="src/assets/1.png" alt="Yellow Coin" className="w-16 h-16 sm:w-24 sm:h-24" />
             <p className="text-xl sm:text-lg text-yellow-500 font-bold mt-3">{kaeaCoinAmount}</p>
             <p className="text-xl sm:text-lg text-yellow-500 font-bold mt-3">Kaea Coin</p>
           </div>
@@ -118,16 +117,18 @@ const Convert = () => {
                 placeholder="Enter Green Coins (ends with 0)"
               />
               <button
-                className="btn bg-layer-item border-hidden w-16 rounded-badge text-white hover:bg-heavy-color"
+                className="btn bg-layer-item border-hidden w-16 rounded-badge text-white hover:bg-heavy-color disabled:opacity-50 disabled:cursor-not-allowed"
                 onClick={increaseCoinAmount}
+                disabled={thankCoinAmount + 10 > currentThankCoinBalance} // ปิดใช้งานถ้าจำนวนเหรียญติดลบ
               >
                 +10
               </button>
+
             </div>
             <div className="flex justify-center">
               <button
                 onClick={handleOpenConfirmModal}
-                disabled={isLoading||isDisabled}
+                disabled={isLoading || isDisabled}
                 className="btn bg-layer-item border-hidden w-28 rounded-badge text-white hover:bg-heavy-color"
               >
                 {isLoading ? 'Converting...' : 'Convert Coin'}

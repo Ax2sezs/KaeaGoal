@@ -7,12 +7,13 @@ import CloseOutlinedIcon from '@mui/icons-material/CloseOutlined';
 
 const MissionCard = ({ mission, onClick }) => {
   const isWaiting = mission.verification_Status === "Waiting for Confirmation.";
+  const currentDate = new Date();
+  const isExpired = mission.expire_Date && new Date(mission.expire_Date) < currentDate;
 
   return (
     <div
-      className={`relative w-full h-auto flex flex-col justify-center items-center bg-bg rounded-xl shadow-lg ${isWaiting ? "" : "hover:scale-105 transition-transform duration-300 ease-in-out"
-        }`}
-      onClick={() => !isWaiting && onClick(mission)}
+      className={`relative w-full h-auto flex flex-col justify-center items-center bg-bg rounded-xl shadow-lg ${isWaiting || isExpired ? "" : "hover:scale-105 transition-transform duration-300 ease-in-out"}`}
+      onClick={() => !(isWaiting || isExpired) && onClick(mission)}
       style={{ position: "relative" }}
     >
       {/* Image */}
@@ -35,24 +36,34 @@ const MissionCard = ({ mission, onClick }) => {
           </p>
         </div>
         <div className="flex flex-col">
-          <p className="text-ls text-gray-600">
-            <strong>Status: </strong>
-          </p>
-          <p className="">
+          <p className="text-lg text-gray-600">
             {mission.verification_Status}
+          </p>
+          <p className="text-sm text-gray-600">
+            <strong>Exp:</strong> {mission.expire_Date ? new Date(mission.expire_Date).toLocaleDateString() : 'No Date'}
           </p>
         </div>
       </div>
 
       {/* Overlay for "Waiting for confirmation" */}
-      {isWaiting && (
+      {isWaiting && !isExpired && (
         <div className="absolute top-0 left-0 w-full h-full bg-black bg-opacity-50 flex justify-center items-center rounded-xl">
           <span className="text-white font-bold text-xl">Waiting for Admin</span>
+        </div>
+      )}
+
+      {/* Overlay for "Expired" */}
+      {isExpired && (
+        <div className="absolute top-0 left-0 w-full h-full bg-black bg-opacity-70 flex justify-center items-center rounded-xl">
+          <span className="text-white font-bold text-xl">
+            {isWaiting ? "EXPIRED, Waiting for Admin" : "EXPIRED"}
+          </span>
         </div>
       )}
     </div>
   );
 };
+
 
 function Mission_MyMission({ isTableLayout }) {
   const { user } = useAuth();
@@ -133,8 +144,32 @@ function Mission_MyMission({ isTableLayout }) {
   };
 
   const sortedMissions = userMission
-    .slice()
-    .sort((a, b) => (a.verification_Status === "Waiting for Confirmation." ? 1 : -1));
+  .slice()
+  .sort((a, b) => {
+    const aIsWaiting = a.verification_Status === "Waiting for Confirmation.";
+    const bIsWaiting = b.verification_Status === "Waiting for Confirmation.";
+
+    const aIsExpired = a.expire_Date && new Date(a.expire_Date) < new Date();
+    const bIsExpired = b.expire_Date && new Date(b.expire_Date) < new Date();
+
+    // Normal comes first
+    if (!aIsWaiting && !aIsExpired && (bIsWaiting || bIsExpired)) return -1;
+    if (!bIsWaiting && !bIsExpired && (aIsWaiting || aIsExpired)) return 1;
+
+    // Waiting for Confirmation comes second
+    if (aIsWaiting && !bIsWaiting) return -1;
+    if (bIsWaiting && !aIsWaiting) return 1;
+
+    // Expired comes last
+    if (aIsExpired && !bIsExpired) return 1;
+    if (bIsExpired && !aIsExpired) return -1;
+
+    // If all conditions are the same, maintain the original order
+    return 0;
+  });
+
+
+
 
   return (
     <div>
@@ -187,6 +222,9 @@ function Mission_MyMission({ isTableLayout }) {
                       <span className="text-xs text-button-text mt-1 font-bold md:text-sm">
                         Status: {item.verification_Status}
                       </span>
+                      <span className="text-xs text-button-text mt-1 font-bold md:text-sm">
+                        Exp: {item.expire_Date ? new Date(item.expire_Date).toLocaleDateString() : 'No Date'}
+                      </span>
                     </div>
                   </td>
                   <td className="px-3 py-2 text-center truncate" style={{ width: "8rem" }}>
@@ -218,7 +256,7 @@ function Mission_MyMission({ isTableLayout }) {
         <div className="modal-box bg-red-500 text-white text-center">
           <h1 className='text-bg'><CloseOutlinedIcon fontSize='large' className='animate-bounce' /></h1>
 
-          <h3 className="text-xl font-bold">Incorrect Code</h3>
+          <h3 className="text-xl font-bold">Incorrect</h3>
           <button
             className="btn border-bg bg-bg rounded-badge text-red-500 mt-3 hover:bg-bg"
             onClick={() => document.getElementById("error_modal").close()}  // ปิด modal
@@ -231,8 +269,8 @@ function Mission_MyMission({ isTableLayout }) {
       <dialog id="success_modal" className="modal">
         <div className="modal-box bg-green-500 text-white text-center">
           <h1 className='text-bg'><CheckIcon fontSize='large' className='animate-bounce' /></h1>
-          <h3 className="text-xl font-bold"> Redeemed Successfully!</h3>
-          <p>You have successfully redeemed. . . </p>
+          <h3 className="text-xl font-bold">Successfully!</h3>
+          <p>You have successfully mission. . . </p>
           <button
             className="btn border-bg bg-bg rounded-badge text-green-500 mt-3 hover:bg-bg"
             onClick={() => document.getElementById("success_modal").close()} // ปิด modal

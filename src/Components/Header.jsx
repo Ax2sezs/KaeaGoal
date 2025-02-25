@@ -13,6 +13,7 @@ function Header() {
     navigate('/');  // Navigate to home after logout
   };
 
+  // Refetch on token change
   useEffect(() => {
     if (user?.token) {
       console.log('Refetch triggered by token change');
@@ -20,10 +21,39 @@ function Header() {
     }
   }, [user?.token, refetch]);
 
+  // Auto refetch when coin balances change
+  useEffect(() => {
+    let interval;
+    if (user?.token) {
+      interval = setInterval(() => {
+        if (
+          userDetails &&
+          coinDetails &&
+          (userDetails.kaeaCoinBalance !== coinDetails.kaeaCoinBalance ||
+            userDetails.thankCoinBalance !== coinDetails.thankCoinBalance)
+        ) {
+          console.log('Refetch triggered by coin balance change');
+          refetch();
+        }
+      }, 5000); // Check every 5 seconds
+    }
+
+    return () => clearInterval(interval); // Cleanup on component unmount
+  }, [
+    user?.token,
+    userDetails?.kaeaCoinBalance,
+    userDetails?.thankCoinBalance,
+    coinDetails?.kaeaCoinBalance,
+    coinDetails?.thankCoinBalance,
+    refetch
+  ]);
+
   if (isLoading) {
-    return <div className="text-center text-gray-500">
-      <span className="loading loading-dots loading-lg"></span>
-    </div>
+    return (
+      <div className="text-center text-gray-500">
+        <span className="loading loading-dots loading-lg"></span>
+      </div>
+    );
   }
 
   return (

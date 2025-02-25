@@ -110,9 +110,9 @@ function Leaderboard() {
                 <th className='text-2xl text-orange-700'>Points</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody className='bg-bg'>
               {leaderItem.slice(3).map((item, index) => (
-                <tr key={index + 3} className="border-b border-orange-300">
+                <tr key={index + 3} className="">
                   <td className='text-xl text-gray-700'>#{index + 4}</td>
                   <td>
                     <p className='text-lg text-gray-600'>{item?.displayName || 'Anonymous'}</p>

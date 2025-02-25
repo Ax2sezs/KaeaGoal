@@ -19,6 +19,7 @@ function EditUserDetail({ userData, onClose }) {
         isAdmin: userData?.isAdmin || 5, // Default value 5
         isshop: userData?.isshop || false,
         issup: userData?.issup || false,
+        site: userData?.site || "", // This will be used for the select dropdown
     };
 
     const [formData, setFormData] = useState(initialState);
@@ -41,20 +42,20 @@ function EditUserDetail({ userData, onClose }) {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        console.log("Form Submitted", formData);
-
-        const result = await editUserDetail(formData);
-        console.log("Edit result:", result);
-
-        if (success) {
-            console.log("Update successful, calling refetch...");
-            alert("Update User Detail Successful.")
-            refetch();
-            onClose();
-        } else if (error) {
-            console.error("Error during submission:", error);
+        
+        console.log("Form Data Before Submit:", formData);  // Log form data before sending
+        
+        try {
+          const result = await editUserDetail(formData);
+          if (result) {
+            console.log("Edit result:", result);
+            alert("Update User Detail Successful.");
+          }
+        } catch (err) {
+          console.error("Error during form submission:", err);
         }
-    };
+      };
+      
 
     const handlePasswordReset = async () => {
         if (!userData?.a_USER_ID) {
@@ -76,15 +77,12 @@ function EditUserDetail({ userData, onClose }) {
             setPasswordResetSuccess(false);
         }
     };
-    
-    
 
     return (
         <dialog open className="modal">
             <div className="modal-box w-1/2 max-w-2xl">
                 <h2 className="text-xl font-semibold mb-4">Edit {userData.logoN_NAME} Detail.</h2>
 
-                
                 {passwordResetSuccess && (
                     <p className="text-green-600">Password reset successfully!</p>
                 )}
@@ -140,28 +138,34 @@ function EditUserDetail({ userData, onClose }) {
                             <label>{label}</label>
                         </div>
                     ))}
+
+                    {/* Select for Site */}
+                    <div className="flex flex-col">
+                        <label className="font-medium">Site</label>
+                        <select
+                            name="site"
+                            value={formData.site}
+                            onChange={handleChange}
+                            className="input input-bordered w-full"
+                        >
+                            <option value="">Select Site</option>
+                            <option value="Office">Office</option>
+                            <option value="Factory">Factory</option>
+                            <option value="Branch">Branch</option>
+                        </select>
+                    </div>
                 </form>
 
                 <div className="modal-action justify-between">
-                <button
-                        onClick={handlePasswordReset}
-                        className="btn btn-secondary"
-                    >
+                    <button onClick={handlePasswordReset} className="btn btn-secondary">
                         Reset Password
                     </button>
                     <div className="flex gap-5">
-                    <button
-                        onClick={handleSubmit} // Trigger handleSubmit manually
-                        className="btn btn-primary"
-                    >
-                        {isLoading ? "Updating..." : "Update"}
-                    </button>
-
-                    <button onClick={onClose} className="btn btn-error">Close</button>
+                        <button onClick={handleSubmit} className="btn btn-primary">
+                            {isLoading ? "Updating..." : "Update"}
+                        </button>
+                        <button onClick={onClose} className="btn btn-error">Close</button>
                     </div>
-                    
-                    {/* Add Reset Password button */}
-                    
                 </div>
             </div>
         </dialog>

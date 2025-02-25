@@ -11,7 +11,7 @@ import MyReward from './Reward/MyReward';
 function Profile() {
     const [activeTab, setActiveTab] = useState('history');
     const { user } = useAuth();
-    const { userDetails = [], refetch, editProfileImg, editDisplayName, changePassword, isLoading } = useFetchData(user?.token);
+    const { userDetails = [], refetch, editProfileImg, editDisplayName, changePassword, isLoading,error } = useFetchData(user?.token);
     const [selectedFile, setSelectedFile] = useState(null);
     const [preview, setPreview] = useState(null);
     const [newDisplayName, setNewDisplayName] = useState("");
@@ -79,11 +79,7 @@ function Profile() {
         <div className="bg-bg w-full min-h-screen rounded-2xl p-3 mb-16 sm:mb-0">
             <div className="flex flex-row justify-between">
                 <h1 className="text-2xl text-layer-item font-bold">Profile.</h1>
-                <Link to="/">
-                    <button className="bg-layer-item hover:bg-heavy-color transition duration-300 border-hidden text-bg rounded-badge w-14 h-8">
-                        <LogoutIcon />
-                    </button>
-                </Link>
+                
             </div>
 
             {isLoading ? (
@@ -247,7 +243,6 @@ function Profile() {
                         >
                             Change Password
                         </button>
-
                     </form>
                 </div>
             </dialog>

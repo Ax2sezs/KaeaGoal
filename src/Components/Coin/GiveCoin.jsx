@@ -33,18 +33,31 @@ function GiveCoin() {
       setError("Please enter a valid amount and select a recipient.");
       return;
     }
+  
     try {
       await giveCoin(recipientId, coinValue);
       setCoinValue("");
       setIsConfirmed(false);
-        const successModal = document.getElementById("success_modal");
-        if (successModal) {
-          successModal.showModal(); // เปิด Modal Success
+      
+      // เปิด Modal Success เมื่อให้เหรียญสำเร็จ
+      const successModal = document.getElementById("success_modal");
+      if (successModal) {
+        successModal.showModal();
+      }
+    } catch (err) {
+      // ตรวจสอบข้อผิดพลาดจาก API
+      if (err.message === 'Insufficient ThankCoin balance.') {
+        const errorModal = document.getElementById("error_modal");
+        if (errorModal) {
+          errorModal.showModal(); // เปิด Modal Error ถ้าเหรียญไม่พอ
         }
-      } catch (err) {
-      setError("Failed to give coin. Please try again.");
+      } else {
+        setError("Failed to give coin. Please try again.");
+      }
     }
   };
+  
+  
 
   const openModal = (idx, receiverId) => {
     setRecipientId(receiverId);
@@ -133,24 +146,32 @@ function GiveCoin() {
       {/* Modals */}
       {filteredUsers.map((item, idx) => (
         <dialog id={`modal-${idx}`} className="modal" key={`modal-${idx}`}>
-          <div className="modal-box bg-bg">
-            <div className="flex flex-col items-center"> {/* Center content horizontally */}
-              <div className="relative w-40 h-40 flex justify-center items-center"> {/* Center image */}
-                <img
-                  src={item?.imageUrls}
-                  className="w-full h-full rounded-full object-cover"
-                />
-              </div>
-              <h3 className="font-bold text-lg text-center mt-5 text-button-text">To {item.logoN_NAME}</h3> {/* Center text */}
-            </div>
-            <div className="py-4">
-              <label className="block mb-2 font-medium text-center text-btn">Enter Coin Amount (1-50)</label> {/* Center text */}
-              <input
-                type="number"
-                className="input input-bordered w-full bg-bg border-heavy-color"
-                value={coinValue}
-                onChange={handleCoinChange}
+        <div className="modal-box bg-bg">
+          <div className="flex flex-col items-center"> {/* Center content horizontally */}
+            <div className="relative w-40 h-40 flex justify-center items-center"> {/* Center image */}
+              <img
+                src={item?.imageUrls}
+                className="w-full h-full rounded-full object-cover"
               />
+            </div>
+            <h3 className="font-bold text-lg text-center mt-5 text-button-text">To {item.logoN_NAME}</h3> {/* Center text */}
+          </div>
+          <div className="py-4">
+            <label className="block mb-2 font-medium text-center text-btn">Enter Coin Amount (1-50)</label> {/* Center text */}
+            <input
+              type="number"
+              className="input input-bordered w-full bg-bg border-heavy-color"
+              value={coinValue}
+              onChange={handleCoinChange}
+            />
+            
+            {/* แสดงข้อความถ้าเหรียญไม่พอ */}
+            {coinDetails?.thankCoinBalance < coinValue && (
+              <p className="text-red-500 text-center mt-4">Not Enough Coin</p>
+            )}
+      
+            {/* ซ่อน checkbox ถ้าเหรียญไม่พอ */}
+            {coinDetails?.thankCoinBalance >= coinValue && (
               <div className="mt-4 flex items-center justify-center"> {/* Center checkbox and label */}
                 <input
                   type="checkbox"
@@ -163,24 +184,27 @@ function GiveCoin() {
                   Coin given to {item.logoN_NAME}: {coinValue} coins!
                 </label>
               </div>
-            </div>
-            <div className="modal-action">
-              <button
-                className="btn bg-[#54d376] border-none w-24 rounded-badge text-white hover:bg-[#43af60]"
-                disabled={!isConfirmed || !coinValue}
-                onClick={handleGiveCoin}
-              >
-                Confirm
-              </button>
-              <button
-                className="btn bg-[#ff6060] border-none w-24 rounded-badge text-white hover:bg-[#d44141]"
-                onClick={() => closeModal(idx)}
-              >
-                Close
-              </button>
-            </div>
+            )}
           </div>
-        </dialog>
+          <div className="modal-action">
+            <button
+              className="btn bg-[#54d376] border-none w-24 rounded-badge text-white hover:bg-[#43af60]"
+              disabled={!isConfirmed || !coinValue || coinDetails?.thankCoinBalance < coinValue}
+              onClick={handleGiveCoin}
+            >
+              Confirm
+            </button>
+            <button
+              className="btn bg-[#ff6060] border-none w-24 rounded-badge text-white hover:bg-[#d44141]"
+              onClick={() => closeModal(idx)}
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      </dialog>
+      
+      
       ))}
        {/* Error Modal */}
        <dialog id="error_modal" className="modal">
@@ -200,8 +224,8 @@ function GiveCoin() {
       <dialog id="success_modal" className="modal">
         <div className="modal-box bg-green-500 text-white text-center">
           <h1 className='text-bg'><CheckIcon fontSize='large' className='animate-bounce' /></h1>
-          <h3 className="text-xl font-bold">Redeemed Successfully!</h3>
-          <p>You have successfully redeemed...</p>
+          <h3 className="text-xl font-bold">Give coin Successfully!</h3>
+          <p>You have successfully give coin...</p>
           <button
             className="btn border-bg bg-bg rounded-badge text-green-500 mt-3 hover:bg-bg"
             onClick={() => document.getElementById("success_modal").close()}

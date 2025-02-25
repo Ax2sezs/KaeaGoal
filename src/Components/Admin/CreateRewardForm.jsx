@@ -3,7 +3,7 @@ import useFetchData from '../APIManage/useFetchData';
 import { useAuth } from '../APIManage/AuthContext';
 import PreviewModal from './PreviewModal'; // Import the PreviewModal component
 
-const CreateRewardForm = ({ onCreateReward, onSuccess }) => {
+const CreateRewardForm = ({ onCreateReward, onSuccess, onClose }) => {
   const { user } = useAuth();
   const { createReward, success, error, isLoading } = useFetchData(user?.token);
 
@@ -40,11 +40,16 @@ const CreateRewardForm = ({ onCreateReward, onSuccess }) => {
       await createReward(rewardData);
       onCreateReward();
       onSuccess(); // Trigger page reload callback
-      setShowPreviewModal(false); // Close the modal after confirmation
+      setShowPreviewModal(false); // Close the preview modal
+      alert("Create Reward Successfully")
+      onClose(); // Close the Create Form modal
     } catch (err) {
       console.error('Error creating reward:', err);
+      alert("Create reward Fail")
+      setShowPreviewModal(false)
     }
   };
+  
 
   const handleCloseModal = () => {
     setShowPreviewModal(false); // Close the modal without confirming
@@ -109,12 +114,24 @@ const CreateRewardForm = ({ onCreateReward, onSuccess }) => {
           />
         </div>
 
-        <button type="submit" disabled={isLoading} className='btn btn-success text-bg'>
-          {isLoading ? 'Submitting...' : 'Create Reward'}
-        </button>
+        <div className="flex justify-end gap-4 mt-4">
+          <button
+            type="button"
+            className="btn btn-error text-bg"
+            onClick={onClose}  // <-- Call the passed function here
+          >
+            Close
+          </button>
 
-        {success && <div className="success">{success}</div>}
-        {error && <div className="error">{error}</div>}
+
+          <button
+            type="submit"
+            disabled={isLoading}
+            className="btn btn-success text-bg"
+          >
+            {isLoading ? 'Submitting...' : 'Create Reward'}
+          </button>
+        </div>
       </form>
 
       {showPreviewModal && (

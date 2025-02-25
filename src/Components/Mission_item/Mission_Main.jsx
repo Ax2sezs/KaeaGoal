@@ -247,11 +247,12 @@ function Mission_Main({ isTableLayout }) {
       <dialog id="success_modal" className="modal">
         <div className="modal-box bg-green-500 text-white text-center">
           <h1 className='text-bg'><CheckIcon fontSize='large' className='animate-bounce' /></h1>
-          <h3 className="text-xl font-bold">{sortedMissions[selectedIndex]?.missioN_NAME} Accepted</h3>
-          <p>You have successfully redeemed. . . </p>
+          <h3 className="text-xl font-bold">Mission Accepted</h3>
+          <p>You have successfully accept mission. . . </p>
           <button
             className="btn border-bg bg-bg rounded-badge text-green-500 mt-3 hover:bg-bg"
             onClick={() => document.getElementById("success_modal").close()} // ปิด modal
+            
           >
             Close
           </button>

@@ -6,6 +6,8 @@ const api = axios.create({
   baseURL: 'http://192.168.2.19/KaeaGoal-api/api/', // Change this to your base URL
   headers: {
     'Content-Type': 'application/json',
+    withCredentials: true, // สำคัญ: ส่ง HttpOnly Cookie ไปด้วย
+
   },
 });
 
