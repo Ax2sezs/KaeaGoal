@@ -84,7 +84,7 @@ function Leaderboard() {
             <div className='relative'>
               <img
                 className='w-24 h-24 rounded-full mb-3 border-4 border-gray-400 object-cover'
-                src={leaderItem[3]?.imageUrls}
+                src={leaderItem[2]?.imageUrls}
                 alt={`Profile 3`}
               />
               <img

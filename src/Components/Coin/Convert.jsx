@@ -11,7 +11,7 @@ const Convert = () => {
   const [kaeaCoinAmount, setKaeaCoinAmount] = useState(0);
   const [currentThankCoinBalance, setCurrentThankCoinBalance] = useState(0); // เก็บค่าจำนวนเหรียญที่แสดง
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
-  const { coinDetails, convertCoin, error, isLoading } = useFetchData(localStorage.getItem('token'));
+  const { coinDetails, convertCoin, error, isLoading,refetch} = useFetchData(localStorage.getItem('token'));
   const navigate = useNavigate();
 
   const confirmModalRef = useRef(null);
@@ -21,7 +21,7 @@ const Convert = () => {
   // ตรวจสอบว่า coinDetails พร้อมใช้งานหรือยัง
   useEffect(() => {
     if (coinDetails) {
-      setCurrentThankCoinBalance(coinDetails.thankCoinBalance);
+      setCurrentThankCoinBalance(coinDetails.thankCoinConvert);
     }
   }, [coinDetails]);
 
@@ -38,7 +38,7 @@ const Convert = () => {
     }
   };
 
-  const isDisabled = thankCoinAmount <= 0; // ตรวจสอบว่าค่าที่ใส่มาเป็น 0 หรือติดลบ
+  const isDisabled = currentThankCoinBalance < 0; // ตรวจสอบว่าค่าที่ใส่มาเป็น 0 หรือติดลบ
 
 
   const handleOpenConfirmModal = () => {
@@ -51,6 +51,8 @@ const Convert = () => {
       await convertCoin(thankCoinAmount);
       confirmModalRef.current.close();
       setIsSuccessModalOpen(true);
+      setThankCoinAmount("")
+      refetch()
       setTimeout(() => {
         successModalRef.current.showModal();
       }, 500);
@@ -85,6 +87,12 @@ const Convert = () => {
     <div>
       <div className="bg-bg w-full min-h-full rounded-2xl p-3 sm:p-10">
         <div className="flex flex-col justify-center items-center gap-10">
+        <div className="flex flex-col">
+          <div className="flex flex-row justify-center items-center gap-2">
+            <p className="text-4xl text-green-500 font-bold">{coinDetails.thankCoinConvert}</p>
+            <img src="./2.png" className="w-10 h-10" />
+          </div>
+        </div>
           <div className="flex flex-row items-center justify-between w-full gap-5">
             <img src="src/assets/2.png" alt="Green Coin" className="w-16 h-16 sm:w-24 sm:h-24" />
             <p className="text-xl sm:text-lg text-green-500 font-bold mt-3">{currentThankCoinBalance}</p> {/* ใช้สถานะ currentThankCoinBalance */}

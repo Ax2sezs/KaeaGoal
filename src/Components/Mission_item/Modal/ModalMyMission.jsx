@@ -8,19 +8,20 @@ import "swiper/css";
 import "swiper/css/navigation";
 import "swiper/css/pagination";
 
-
 const ModalMyMission = ({
   mission,
   missionType,
   onSubmitCode,
   onSubmitQRCode,
   onSubmitPhoto,
+  onSubmitText,
   onClose,
   modalError,
   modalSuccess,
 }) => {
   const [missionCode, setMissionCode] = useState("");
   const [qrCode, setQrCode] = useState("");
+  const [inputText, setInputText] = useState("")
   const [imageFiles, setImageFiles] = useState([]);
   const [isScannerActive, setIsScannerActive] = useState(false);
   const [selectedImage, setSelectedImage] = useState(null);
@@ -102,6 +103,24 @@ const ModalMyMission = ({
       setIsSubmitting(false); // Reset submitting state
     }
   };
+  const handleTextSubmit = async (e) => {
+    e.preventDefault();
+    
+    if (!inputText.trim()) {
+      console.log('Input text is empty');
+      return; // ถ้าเป็นค่าว่างหรือมีแค่ช่องว่าง จะไม่ทำอะไร
+    }
+  
+    setIsSubmitting(true); // ตั้งสถานะการกำลังส่งเป็น true
+    try {
+      await onSubmitText(inputText); // เรียกฟังก์ชัน onSubmitText ที่ส่งข้อความ
+      console.log("Submission successful"); // เพิ่มการแสดงผลเมื่อสำเร็จ
+    } catch (error) {
+      console.error("Submission error:", error);
+    } finally {
+      setIsSubmitting(false); // รีเซ็ตสถานะการกำลังส่ง
+    }
+  };  
 
   const handleClose = () => {
     if (dialogRef.current) {
@@ -163,7 +182,7 @@ const ModalMyMission = ({
           <>
             <div className="mb-4">
               <label htmlFor="uploadImage" className="block text-sm font-bold">
-                Upload Images
+                Upload Images (Max: 3)
               </label>
               <input
                 type="file"
@@ -171,12 +190,17 @@ const ModalMyMission = ({
                 multiple
                 accept="image/*"
                 onChange={(e) => {
-                  const files = Array.from(e.target.files);
+                  let files = Array.from(e.target.files);
+                  if (files.length > 3) {
+                    alert("You can upload a maximum of 3 images.");
+                    files = files.slice(0, 3); // ตัดไฟล์ให้เหลือ 3 รูป
+                  }
                   setImageFiles(files);
                 }}
                 className="file-input file-input-bordered w-full mt-2"
               />
             </div>
+
             {imageFiles.length > 0 && (
               <div className="mt-4">
                 <strong>Selected Images:</strong>
@@ -195,6 +219,26 @@ const ModalMyMission = ({
               </div>
             )}
           </>
+        ) : missionType === "Text" ? ( // เพิ่มเงื่อนไขตรงนี้
+          <form onSubmit={handleMissionCodeSubmit}>
+            <div className="mb-4">
+              <label
+                htmlFor="inputText"
+                className="block text-sm font-bold"
+              >
+                Enter Text
+              </label>
+              <textarea
+                type="text"
+                id="inputText"
+                value={inputText}
+                onChange={(e) => setInputText(e.target.value)}
+                className="textarea textarea-warning w-full mt-2 bg-bg border-layer-item rounded-badge focus:border-heavy-color"
+                required
+                maxLength={255}
+              />
+            </div>
+          </form>
         ) : (
           <form onSubmit={handleMissionCodeSubmit}>
             <div className="mb-4">
@@ -216,13 +260,14 @@ const ModalMyMission = ({
           </form>
         )}
 
+
         {modalError && <p className="text-red-500 mt-2">{modalError}</p>}
         {modalSuccess && <p className="text-green-500 mt-2">{modalSuccess}</p>}
 
         {/* Full-Size Image Preview */}
         {selectedImage && (
           <div
-            className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50"
+            className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50 p-5"
             onClick={handleFullScreenClose}
           >
             <div
@@ -232,7 +277,7 @@ const ModalMyMission = ({
               <img
                 src={selectedImage}
                 alt="Full-size preview"
-                className="max-w-full max-h-full object-contain"
+                className="max-w-full max-h-full object-contain rounded-2xl"
               />
               <button
                 onClick={handleFullScreenClose}
@@ -253,18 +298,22 @@ const ModalMyMission = ({
                 ? handleQRCodeSubmit
                 : missionType === "Photo"
                   ? handleImageSubmit
-                  : handleMissionCodeSubmit
+                  : missionType === "Text"
+                    ? handleTextSubmit  // เรียกใช้ handleTextSubmit สำหรับ missionType เป็น "Text"
+                    : handleMissionCodeSubmit
             }
             className="btn rounded-badge btn-success text-white"
-            disabled={
-              isSubmitting ||
-              (missionType === "QR" && !qrCode) ||
-              (missionType === "Photo" && imageFiles.length === 0) || // Fixed here
-              (missionType !== "QR" && missionType !== "Photo" && !missionCode)
-            }
+            // disabled={
+            //   isSubmitting || // ถ้ากำลังส่งข้อมูลจะไม่สามารถกดได้
+            //   (missionType === "QR" && !qrCode) ||  // สำหรับ QR ต้องมี qrCode
+            //   (missionType === "Photo" && imageFiles.length === 0) || // สำหรับ Photo ต้องเลือกไฟล์ภาพ
+            //   (missionType !== "QR" && missionType !== "Photo" && !missionCode) || // สำหรับ Mission Code ต้องกรอกโค้ด
+            //   (missionType === "Text" && !inputText.trim()) // สำหรับ Text ต้องกรอกข้อความที่ไม่ใช่ช่องว่าง
+            // }
           >
             {isSubmitting ? "Sending..." : "Submit"}
           </button>
+
           <button
             onClick={handleClose}
             className="btn rounded-badge btn-error btn-outline"

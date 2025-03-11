@@ -7,8 +7,8 @@ function Coin({ isTableLayout }) {
   const { completeMission = [], error, isLoading } = useFetchData(user?.token);
 
   if (isLoading) {
-    return <div className="text-center text-gray-500">    
-    <span className="loading loading-dots loading-lg"></span>
+    return <div className="text-center text-gray-500">
+      <span className="loading loading-dots loading-lg"></span>
     </div>;
   }
 
@@ -44,7 +44,7 @@ function Coin({ isTableLayout }) {
                     <img src={mission.mission_Image[0]} className="w-full h-16 object-cover rounded-2xl md:h-32"
                     /></td>
                   <td className="px-4 py-2 truncate">{mission.mission_Name}</td>
-                  <td className="px-4 py-2 text-green-600 font-bold">Collected</td>
+                  <td className="px-4 py-2 text-green-600 font-bold">Collected{mission.coin_Reward}</td>
                 </tr>
               ))}
             </tbody>
@@ -75,9 +75,16 @@ function Coin({ isTableLayout }) {
                   <p className="text-sm truncate text-left">
                     Mission Type : {mission.mission_Type}
                   </p>
+                  <p>Complete Date: {mission.completed_Date ? new Date(mission.completed_Date).toLocaleDateString() : 'No Date'}</p>
+
                 </div>
                 <div className="flex justify-center mt-4 sm:mt-0">
-                  <strong className="text-green-600">Collected</strong>
+                  <div>
+                    <strong className="text-green-600">Collected {mission.coin_Reward}</strong>
+                  </div>
+                  <div>
+                    <img src="./1.png" alt="Coin Icon" className="w-6 h-6" />
+                  </div>
                 </div>
               </div>
             </div>

@@ -29,7 +29,7 @@ const MissionCard = ({ item, onClick }) => {
           </span>
         </div>
       )}
-      <div className='absolute bottom-20 right-2 flex items-center'>
+      <div className='absolute bottom-16 right-2 flex items-center'>
         <span className={`flex flex-row text-sm justify-center items-center gap-2 bg-bg rounded-badge px-2 py-1 ${isFull ? 'text-red-600' : 'text-green-600'}`}>
           <GroupIcon /> {item?.current_Accept}/{item?.accept_limit}
         </span>
@@ -50,8 +50,8 @@ const MissionCard = ({ item, onClick }) => {
 
       <div className="p-2 w-full flex flex-row justify-between">
         <div className='flex flex-col'>
-          <h2 className="text-lg text-black font-bold truncate text-left">
-            Mission : {item?.missioN_NAME || 'N/A'}
+          <h2 className="text-lg text-black font-bold truncate text-left w-52">
+            {item?.missioN_NAME || 'N/A'}
           </h2>
           <p className="text-xs truncate text-left w-52">{item?.description || 'No description available.'}</p>
         </div>

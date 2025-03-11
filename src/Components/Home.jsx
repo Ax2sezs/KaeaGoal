@@ -36,8 +36,8 @@ function Home() {
 
     const sidebarItems = [
         { label: 'Home', icon: <AcUnit />, route: '/home' },
-        { label: 'QRCode', icon: <QrCode2 />, route: '/qr' },
-        { label: 'Wheel', icon: <CropFree />, route: '/wheel' },
+        { label: 'Mission', icon: <QrCode2 />, route: '/mission' },
+        // { label: 'Wheel', icon: <CropFree />, route: '/wheel' },
         { label: 'Transfer', icon: <SwapHoriz />, route: '/kaecoin' },
         { label: 'My Reward', icon: <LocalShipping />, route: '/myreward' },
     ];
@@ -62,6 +62,7 @@ function Home() {
                                         className="w-full h-full object-cover rounded-2xl"
                                     />
                                 </div>
+
                             ))
                         ) : (
                             <div className="w-full h-48 md:h-72 flex items-center justify-center bg-gray-300 rounded-2xl">
@@ -101,9 +102,8 @@ function Home() {
                     ))}
                 </div>
 
-                {/* History Section */}
-                <div className='flex flex-row bg-transparent w-full h-24 rounded-2xl border-dashed border-4 p-2 items-center'>
-                    {/* <div className='flex justify-center items-center rounded-2xl bg-button-text opacity-50 text-bg w-16 h-16 mr-4'>
+                {/* <div className='flex flex-row bg-transparent w-full h-24 rounded-2xl border-dashed border-4 p-2 items-center'>
+                    <div className='flex justify-center items-center rounded-2xl bg-button-text opacity-50 text-bg w-16 h-16 mr-4'>
                         <HistoryIcon />
                     </div>
                     <div className='grid grid-cols-3 gap-2 justify-center'>
@@ -119,12 +119,12 @@ function Home() {
                             </div>
                         </div>
                         <div className='w-20 text-green-500'>+ 50 Pts</div>
-                    </div> */}
+                    </div>
 
-                </div>
+                </div> */}
 
                 {/* New Mission Section */}
-                {/* <div className="bg-layer-background w-full h-auto rounded-2xl p-3 mt-4">
+                <div className="bg-layer-background w-full h-auto rounded-2xl p-3 mt-4">
                     <span className='text-2xl text-layer-item font-bold'>NEW MISSION !</span>
                     {isLoading ? (
                         <div className="text-center text-gray-500">
@@ -133,7 +133,7 @@ function Home() {
                     ) : (
                         <Mission_Main />
                     )}
-                </div> */}
+                </div>
 
                 {/* Big Deal Section */}
                 <div className="bg-layer-background w-full h-auto rounded-2xl p-3 mt-4">

@@ -48,7 +48,7 @@ const ModalPreview = ({ isOpen, onClose, mission }) => {
                     <div className="p-2 w-full flex flex-row justify-between">
                         <div className='flex flex-col'>
                             <h2 className="text-lg text-black font-bold truncate text-left">Mission: {mission.missioN_NAME}</h2>
-                            <p className="text-sm truncate text-left text-button-text">Description: {mission.description}</p>
+                            <p className="text-sm truncate w-52 text-left text-button-text">Description: {mission.description}</p>
                         </div>
                         <div className='flex flex-col'>
                             <p className='text-lg text-button-text'>Type: {mission.missioN_TYPE}</p>

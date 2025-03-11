@@ -3,7 +3,7 @@ import React from 'react';
 const PreviewModal = ({ rewardData, onConfirm, onClose }) => {
   return (
     <div className="modal modal-open">
-      <div className="modal-box">
+      <div className="modal-box bg-bg">
         <h3 className="font-bold text-lg">Preview Reward</h3>
         <div className="py-4">
           <p><strong>Name:</strong> {rewardData.REWARD_NAME}</p>

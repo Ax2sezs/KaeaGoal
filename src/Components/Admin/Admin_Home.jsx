@@ -14,17 +14,17 @@ function Admin_Home() {
         { label: 'Get User', icon: <People />, route: '/alluser' },
         { label: 'Approve Mission', icon: <Article />, route: '/getmission' },
         { label: 'All Mission', icon: <Update />, route: '/updatemission' },
-        { label: 'Order', icon: <LocalShipping />, route: '/order' },
+        // { label: 'Order', icon: <LocalShipping />, route: '/order' },
         { label: 'Reward', icon: <CardGiftcard />, route: '/admingetreward' },
         { label: 'Update Reward', icon: <Update />, route: '/adminreward' },
     ];
 
     // Filter sidebar items if isAdmin === 4
-    if (userDetails && userDetails.isAdmin === 4) {
-        sidebarItems = sidebarItems.filter(item =>
-            item.label === 'Approve Mission' || item.label === 'All Mission'
-        );
-    }
+    // if (userDetails && userDetails.isAdmin === 4) {
+    //     sidebarItems = sidebarItems.filter(item =>
+    //         item.label === 'Approve Mission' || item.label === 'All Mission'
+    //     );
+    // }
 
     const handleButtonClick = (route) => {
         navigate(route); // Navigate to the specified route

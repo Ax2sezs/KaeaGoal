@@ -67,17 +67,19 @@ const CreateRewardForm = ({ onCreateReward, onSuccess, onClose }) => {
             name="REWARD_NAME"
             value={rewardData.REWARD_NAME}
             onChange={handleChange}
+            required
           />
         </div>
 
         <div className='form-control w-full'>
-          <label className='label-text text-button-text'>Reward Price</label>
+          <label className='label-text text-button-text'>Reward Coin</label>
           <input
             className='input input-bordered bg-bg border-button-text'
             type="number"
             name="REWARD_PRICE"
             value={rewardData.REWARD_PRICE}
             onChange={handleChange}
+            required
           />
         </div>
 
@@ -89,6 +91,7 @@ const CreateRewardForm = ({ onCreateReward, onSuccess, onClose }) => {
             name="QUANTITY"
             value={rewardData.QUANTITY}
             onChange={handleChange}
+            required
           />
         </div>
 
@@ -99,6 +102,7 @@ const CreateRewardForm = ({ onCreateReward, onSuccess, onClose }) => {
             name="DESCRIPTION"
             value={rewardData.DESCRIPTION}
             onChange={handleChange}
+            required
           />
         </div>
 
@@ -111,6 +115,7 @@ const CreateRewardForm = ({ onCreateReward, onSuccess, onClose }) => {
             accept="image/*"
             onChange={handleFileChange}
             className="file-input file-input-bordered w-full bg-bg border-button-text"
+            required
           />
         </div>
 

@@ -50,10 +50,10 @@ const CreateMissionForm = ({ onClose, onSuccess }) => {
   const handleConfirm = async () => {
     try {
       console.log('Sending the following data to the API:', formData); // Log to see the data being sent
-  
+
       await createMission(formData);
       alert('Mission created successfully!');
-  
+
       setFormData({
         MISSION_NAME: '',
         MISSION_TYPE: 'QR',
@@ -71,7 +71,7 @@ const CreateMissionForm = ({ onClose, onSuccess }) => {
         Department: '',
         Site: ''
       });
-  
+
       onClose(); // Close modal after successful submission
       onSuccess(); // Trigger page reload callback
     } catch (err) {
@@ -80,7 +80,7 @@ const CreateMissionForm = ({ onClose, onSuccess }) => {
       setIsConfirmOpen(false); // Close the confirmation modal after the action
     }
   };
-  
+
 
   const handleCancel = () => {
     setIsConfirmOpen(false); // Close the confirmation modal if cancelled
@@ -126,16 +126,32 @@ const CreateMissionForm = ({ onClose, onSuccess }) => {
             className="select select-bordered w-full bg-bg border-button-text"
           >
             <option value="QR">QR</option>
+            <option value="Text">Text</option>
             <option value="Code">Code</option>
             <option value="Photo">Photo</option>
           </select>
         </div>
+        {formData.MISSION_TYPE === 'Code' && (
+          <div className="form-control w-full">
+            <label className="label">
+              <span className="label-text text-button-text">Code Mission Code <strong className='text-red-500 text-xl'>*</strong></span>
+            </label>
+            <input
+              type="text"
+              name="Code_Mission_Code"
+              value={formData.Code_Mission_Code}
+              onChange={handleChange}
+              className="input input-bordered bg-bg border-button-text"
+              required
+            />
+          </div>
+        )}
 
         {/* Coin Reward and Mission Points */}
         <div className="grid grid-cols-2 gap-4">
           <div className="form-control">
             <label className="label">
-              <span className="label-text text-button-text">Coin Reward</span>
+              <span className="label-text text-button-text">Kae Coin</span>
             </label>
             <input
               type="number"
@@ -289,21 +305,7 @@ const CreateMissionForm = ({ onClose, onSuccess }) => {
             ))}
         </div>
 
-        {formData.MISSION_TYPE === 'Code' && (
-          <div className="form-control w-full">
-            <label className="label">
-              <span className="label-text text-button-text">Code Mission Code</span>
-            </label>
-            <input
-              type="text"
-              name="Code_Mission_Code"
-              value={formData.Code_Mission_Code}
-              onChange={handleChange}
-              className="input input-bordered bg-bg border-button-text"
-              required
-            />
-          </div>
-        )}
+        
 
         {/* Buttons */}
         <div className="flex justify-end gap-2">
@@ -336,7 +338,7 @@ const CreateMissionForm = ({ onClose, onSuccess }) => {
 
       {/* Confirmation Modal */}
       <dialog id="confirmation_modal" className={`modal ${isConfirmOpen ? 'modal-open' : ''}`}>
-        <div className="modal-box">
+        <div className="modal-box bg-bg">
           <h3 className="font-bold text-lg">Are you sure you want to create this mission?</h3>
 
           {/* Display the first image preview */}
@@ -354,7 +356,11 @@ const CreateMissionForm = ({ onClose, onSuccess }) => {
           <p className="">Mission Point: {formData.Mission_Point}</p>
           <p className="">Start Date: {formData.Start_Date}</p>
           <p className="">Expire Date: {formData.Expire_Date}</p>
-          <p className="">Description: {formData.Description}</p>
+          <p className="w-full max-h-32 overflow-auto break-words whitespace-pre-line">
+            Description: {formData.Description}
+          </p>
+
+
           <p className="">Is Limited: {formData.Is_Limited ? 'Yes' : 'No'}</p>
           <p className="">Participate Type: {formData.Participate_Type || 'N/A'}</p>
 

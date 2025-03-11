@@ -35,8 +35,6 @@ const AdminUserReward = lazy(()=>import('./Components/Admin/Admin_User_Reward'))
 const TabReward = lazy(()=>import('./Components/Reward_Tab'))
 const AllUser = lazy(()=>import('./Components/Admin/Admin_All_User'))
 
-
-
 function App() {
   const location = useLocation(); // Get the current route
 

@@ -19,8 +19,6 @@ function Mission_Main({ isTableLayout }) {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isModalSuccess, setIsModalSuccess] = useState(false);
 
-
-
   useEffect(() => {
     const userId = user?.a_USER_ID || localStorage.getItem('a_USER_ID');
     if (!userId || userId === 'undefined') {
@@ -32,7 +30,6 @@ function Mission_Main({ isTableLayout }) {
   const sortedMissions = missions.sort((a, b) => {
     const isFullA = a?.current_Accept >= a?.accept_limit;
     const isFullB = b?.current_Accept >= b?.accept_limit;
-
     const isLimitedA = a?.is_Limited ? -1 : 1;
     const isLimitedB = b?.is_Limited ? -1 : 1;
 
@@ -73,7 +70,6 @@ function Mission_Main({ isTableLayout }) {
           successModal.showModal(); // เปิด Modal Success
         }
       }, 200);
-
 
     } catch (err) {
       console.error('Failed to accept mission', err);
@@ -211,7 +207,9 @@ function Mission_Main({ isTableLayout }) {
                   )}
                   Mission : {sortedMissions[selectedIndex]?.missioN_NAME}
                 </h3>
-                <p>Description : {sortedMissions[selectedIndex]?.description}</p>
+                <p className="w-full max-h-32 overflow-auto break-words whitespace-pre-line">
+                  <strong>Description : </strong>{sortedMissions[selectedIndex]?.description}
+                </p>
               </div>
 
               {/* คะแนน & จำนวนคน */}
@@ -232,7 +230,7 @@ function Mission_Main({ isTableLayout }) {
                     Confirm
                   </button>
                   <button className="btn btn-outline btn-error rounded-badge" onClick={() => {
-                    setSelectedIndex(null); // ✅ เคลียร์ค่า selectedIndex
+                    setSelectedIndex(null);
                     document.getElementById('my_modal_5').close();
                   }}>
                     Close
@@ -252,7 +250,7 @@ function Mission_Main({ isTableLayout }) {
           <button
             className="btn border-bg bg-bg rounded-badge text-green-500 mt-3 hover:bg-bg"
             onClick={() => document.getElementById("success_modal").close()} // ปิด modal
-            
+
           >
             Close
           </button>

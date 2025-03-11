@@ -39,7 +39,15 @@ function Login() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center">
+    <div
+      className="flex min-h-screen items-center justify-center"
+      style={{
+        backgroundImage: "url('./wallpaper001.jpg')",
+        backgroundSize: "cover",  // ครอบคลุมทั้งพื้นหลัง
+        backgroundPosition: "center",  // จัดให้อยู่กลาง
+        backgroundAttachment: "fixed"  // ภาพจะไม่เลื่อนเมื่อเลื่อนหน้าจอ
+      }}
+    >
       {/* Logo */}
       {/* <div className="absolute top-5 left-0 right-0 flex justify-center z-10">
         <img

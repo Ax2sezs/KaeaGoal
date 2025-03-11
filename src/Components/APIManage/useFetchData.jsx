@@ -13,6 +13,7 @@ const useFetchData = (token) => {
   const [ApproveQR, setApproveQR] = useState([]);
   const [adminUserMissions, setAdminUserMissions] = useState([]);
   const [ApprovePhoto, setApprovePhoto] = useState([]);
+  const [ApproveText, setApproveText] = useState([])
   const [Reward, setReward] = useState([]);
   const [adminReward, setAdminReward] = useState([]);
   const [userReward, setUserReward] = useState([]);
@@ -39,7 +40,7 @@ const useFetchData = (token) => {
       const userResponse = await api.get('/Auth/me', {
         headers: { Authorization: `Bearer ${token}` },
       });
-      console.log('Fetched user data:', userResponse.data);
+      // console.log('Fetched user data:', userResponse.data);
       const { a_USER_ID, logoN_NAME } = userResponse.data;
 
       // Store data in localStorage
@@ -157,6 +158,23 @@ const useFetchData = (token) => {
         } else if (err.response?.status === 404) {
           console.warn('Mission not found.');
           setApprovePhoto([]);
+        } else {
+          throw err; // Rethrow unexpected errors
+        }
+      }
+      try {
+        const ApproveText = await api.get('Mission/Get-All-Approve-Text-Mission', {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        setApproveText(ApproveText.data || [])
+      } catch (err) {
+        if (err.response?.status === 403) {
+          console.warn('Access forbidden for this user. Skipping error.');
+          setApproveText([]); // Gracefully handle the case by setting a default state
+        } else if (err.response?.status === 404) {
+          console.warn('Mission not found.');
+          setApproveText([]);
         } else {
           throw err; // Rethrow unexpected errors
         }
@@ -283,32 +301,32 @@ const useFetchData = (token) => {
       setIsLoading(true);
       setError('');
       setSuccess('');
-  
+
       // ส่งข้อมูล login ไปที่ API
       const response = await api.post('/Auth/login', { logoN_NAME, useR_PASSWORD });
-  
+
       // ดึง token, a_USER_ID, และ logoN_NAME จาก response
       const { token: { accessToken: token }, a_USER_ID, logoN_NAME: fetchedUserName } = response.data;
-  
+
       // เก็บ token และข้อมูลผู้ใช้ใน localStorage
       localStorage.setItem('token', token);
       localStorage.setItem('a_USER_ID', a_USER_ID);
       localStorage.setItem('logoN_NAME', fetchedUserName);
-  
+
       // อัปเดตข้อมูลผู้ใช้ใน state
       setUserDetails({ a_USER_ID, logoN_NAME: fetchedUserName });
       setSuccess('Login successful!');
-  
+
       // แสดง Loading หรือ Logo ก่อนที่จะไปหน้า Home
       setIsLoading(true); // Set isLoading to true for loading screen
-  
+
       // Add a small delay to show loading
       setTimeout(() => {
         // นำทางไปหน้า Home
         navigate('/home');
         window.location.reload();  // Refresh หน้าเมื่อ Login สำเร็จ
-      }, 1500); // Delay of 1.5 seconds (adjust as needed)
-  
+      }); // Delay of 1.5 seconds (adjust as needed)
+
       return response.data; // คืนค่าข้อมูลเพื่อใช้งานต่อ
     } catch (err) {
       setError(
@@ -462,6 +480,38 @@ const useFetchData = (token) => {
       throw err;
     }
   };
+  const executeTextMission = async (missionId, userMissionId, text) => {
+    try {
+      // Log payload for debugging
+      console.log("🔹 Sending payload:", { mission_id: missionId, user_mission_id: userMissionId, text });
+
+      // Ensure text is not empty before sending
+      if (!text || text.trim() === "") {
+        throw new Error("Text cannot be empty");
+      }
+
+      const response = await api.post(
+        "/Mission/Execute-Text-Mission", // API Endpoint
+        { mission_id: missionId, user_mission_id: userMissionId, text }, // JSON Body with correct field names
+        { headers: { Authorization: `Bearer ${token}` } } // Auth Header
+      );
+
+      if (setSuccess) setSuccess("✅ Text mission executed successfully!");
+      console.log("✅ API Response:", response.data);
+      return response.data;
+    } catch (err) {
+      if (setError) setError("❌ Failed to execute text mission");
+      console.error("❌ API Error:", err.response?.data || err.message || err);
+      console.log("Sending missionId", missionId, "userMissionId", userMissionId, "text", text)
+
+      // Handle API-specific error response
+      if (err.response?.data) {
+        setError(err.response.data.message || "Failed to execute text mission");
+      }
+
+      throw err; // Rethrow error for higher-level handling
+    }
+  };
 
   const createMission = async (missionData) => {
     try {
@@ -580,9 +630,6 @@ const useFetchData = (token) => {
     }
   };
 
-
-
-
   const approveMission = async (userQRCodeMissionId, approve) => {
     try {
       console.log('Payload:', { userQRCodeMissionId, approve });
@@ -619,6 +666,31 @@ const useFetchData = (token) => {
     }
 
   };
+  const approveText = async (useR_TEXT_MISSION_ID, approve) => {
+    try {
+      console.log('Payload:', { useR_TEXT_MISSION_ID, approve });
+
+      if (!useR_TEXT_MISSION_ID || typeof approve === 'undefined') {
+        console.error('Invalid parameters:', { useR_TEXT_MISSION_ID, approve });
+        return;
+      }
+
+      const response = await api.post(
+        '/Mission/Admin-Approve-Text-Mission',
+        { useR_TEXT_MISSION_ID, approve },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      console.log('API Response:', response.data);
+      setSuccess('Mission approval processed successfully!');
+      return response.data; // Return the API response for further use
+    } catch (err) {
+      console.error('Approve Mission Error:', err.response?.data || err);
+      setError(err.response?.data?.message || 'Failed to process mission approval.');
+      throw err; // Re-throw for error handling in the calling component
+    }
+  };
+
   const convertCoin = async (thankCoinAmount) => {
     try {
       console.log('Converting ThankCoin to another type:', { thankCoinAmount });
@@ -666,6 +738,105 @@ const useFetchData = (token) => {
       setError(err.response?.data?.message || 'Failed to give coin.');
 
       // Throw the error so it can be handled by the caller
+      throw err;
+    }
+  };
+  // const addWinnerCoinPhoto = async (a_USER_ID, missioN_ID, amount) => {
+  //   try {
+  //     console.log("Adding Winner Coin Reward:", { a_USER_ID, missioN_ID, amount });
+
+  //     const response = await api.post(
+  //       "/Mission/Missioner-Add-Winners-Coin-Reward-Photo",
+  //       { a_USER_ID, missioN_ID, amount }, // JSON Body ที่ API ต้องการ
+  //       { headers: { Authorization: `Bearer ${token}` } } // ใช้ Token Authentication
+  //     );
+
+  //     console.log("Winner Coin Reward Added Successfully:", response.data);
+  //     setSuccess("Winner coin reward added successfully!");
+
+  //     return response.data; // คืนค่าให้ใช้ใน component อื่น ๆ
+  //   } catch (err) {
+  //     console.error("Add Winner Coin Photo Error:", err.response?.data || err);
+  //     setError(err.response?.data?.message || "Failed to add winner coin reward.");
+  //     throw err; // ส่งต่อ error ให้ handle ใน component ที่เรียกใช้
+  //   }
+  // };
+  const addAllCoinPhoto = async (mission_ID, amount) => {
+    try {
+      console.log("Coin Amount:", amount);
+      console.log("Mission ID:", mission_ID);
+
+      const response = await api.post(
+        `/Mission/Missioner-Add-Batch-Coin-Reward-Photo?Amount=${amount}`, // ส่ง Amount ใน Query
+        mission_ID, // ส่ง Mission_ID ใน body ตามที่ Swagger กำหนด
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json", // เปลี่ยนจาก multipart/form-data เป็น JSON
+          },
+        }
+      );
+
+      console.log("Winner Coin Reward Added Successfully:", response.data);
+      setSuccess("Give Coin Reward to All User Successful");
+      setError(null);
+      return response.data;
+    } catch (err) {
+      console.error("Error adding coin reward:", err);
+      setError("Failed to give coin reward");
+      throw err;
+    }
+  };
+
+  const addAllCoinText = async (mission_ID, amount) => {
+    try {
+      console.log("Coin Amount:", amount);
+      console.log("Mission ID:", mission_ID);
+
+      const response = await api.post(
+        `/Mission/Missioner-Add-Batch-Coin-Reward-Text?Amount=${amount}`, // ส่ง Amount ใน Query
+        mission_ID, // ส่ง Mission_ID ใน body ตามที่ Swagger กำหนด
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json", // เปลี่ยนจาก multipart/form-data เป็น JSON
+          },
+        }
+      );
+
+      console.log("Winner Coin Reward Added Successfully:", response.data);
+      setSuccess("Give Coin Reward to All User Successful");
+      setError(null);
+      return response.data;
+    } catch (err) {
+      console.error("Error adding coin reward:", err);
+      setError("Failed to give coin reward");
+      throw err;
+    }
+  };
+  const addAllCoinQR = async (mission_ID, amount) => {
+    try {
+      console.log("Coin Amount:", amount);
+      console.log("Mission ID:", mission_ID);
+
+      const response = await api.post(
+        `/Mission/Missioner-Add-Batch-Coin-Reward-QRCode?Amount=${amount}`, // ส่ง Amount ใน Query
+        mission_ID, // ส่ง Mission_ID ใน body ตามที่ Swagger กำหนด
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json", // เปลี่ยนจาก multipart/form-data เป็น JSON
+          },
+        }
+      );
+
+      console.log("Winner Coin Reward Added Successfully:", response.data);
+      setSuccess("Give Coin Reward to All User Successful");
+      setError(null);
+      return response.data;
+    } catch (err) {
+      console.error("Error adding coin reward:", err);
+      setError("Failed to give coin reward");
       throw err;
     }
   };
@@ -839,13 +1010,13 @@ const useFetchData = (token) => {
       if (!userData || !userData.a_USER_ID) {
         throw new Error("User ID is required");
       }
-  
+
       if (!token) {
         throw new Error("Authorization token is missing");
       }
-  
+
       console.log("UserData to be sent to API:", userData);  // Log userData before the API call
-  
+
       const response = await api.put(
         "/Auth/Admin-Update-User-Detail",
         userData, // Sending JSON object
@@ -856,7 +1027,7 @@ const useFetchData = (token) => {
           },
         }
       );
-  
+
       console.log("API Response:", response.data);  // Log API response
       setSuccess("User details updated successfully!");
       return response.data;
@@ -866,7 +1037,7 @@ const useFetchData = (token) => {
       throw err;
     }
   };
-  
+
 
   return {
     userDetails,
@@ -881,8 +1052,13 @@ const useFetchData = (token) => {
     executeCodeMission,
     executeQRMission,
     executePhotoMission,
+    executeTextMission,
     createMission,
     approveMission,
+    approveText,
+    addAllCoinPhoto,
+    addAllCoinText,
+    addAllCoinQR,
     convertCoin,
     approvePhoto,
     giveCoin,
@@ -900,6 +1076,7 @@ const useFetchData = (token) => {
     allMission,
     ApproveQR,
     ApprovePhoto,
+    ApproveText,
     adminUserMissions,
     alluserDetail,
     Reward,

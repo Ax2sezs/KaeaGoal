@@ -27,7 +27,7 @@ const RewardCard = ({ item, onClick }) => {
       <img
         src={item?.reward_Image[0]}
         alt={item?.reward_Name || ''}
-        className="w-full h-32 sm:h-40 rounded-t-2xl object-cover"
+        className="w-full h-40 rounded-t-2xl object-cover"
       />
 
       <div className="p-2 w-full flex flex-row justify-between">
@@ -147,14 +147,14 @@ function Reward() {
                 <h3 className="text-xl font-bold break-words whitespace-normal">
                   Reward: {selectedReward.reward_Name}
                 </h3>
-                <p className="break-words whitespace-normal">
+                <p className="w-full max-h-32 overflow-auto break-words whitespace-pre-line">
                   Description: {selectedReward.reward_Description}
                 </p>
               </div>
             </>
           )}
           <div className="flex justify-between mt-4">
-            <div className="flex flex-row gap-3">
+            <div className="flex flex-row gap-3 text-green-500">
               <img src="./1.png" alt="Coin Icon" className="w-6 h-6" />
               {selectedReward?.reward_price || 0} Pts
             </div>

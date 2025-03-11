@@ -4,7 +4,7 @@ import { useAuth } from "../APIManage/AuthContext";
 
 function EditUserDetail({ userData, onClose }) {
     const { user } = useAuth();
-    const { editUserDetail, resetPassword, success, error, isLoading, refetch } = useFetchData(user?.token);
+    const { userDetails, editUserDetail, resetPassword, success, error, isLoading, refetch } = useFetchData(user?.token);
 
     const initialState = {
         a_USER_ID: userData?.a_USER_ID || "",
@@ -26,36 +26,47 @@ function EditUserDetail({ userData, onClose }) {
     const [passwordResetSuccess, setPasswordResetSuccess] = useState(false); // State to track password reset success
 
     const handleChange = (e) => {
-        const { name, value, type, checked } = e.target;
-        if (name === "isAdmin") {
-            setFormData({
-                ...formData,
-                [name]: checked ? 9 : 5,
+        const { name, type, checked, value } = e.target;
+
+        if (name === "isAdmin" || name === "isMissioner") {
+            setFormData((prev) => {
+                let newIsAdmin = prev.isAdmin;
+
+                if (name === "isAdmin") {
+                    newIsAdmin = checked ? 9 : prev.isMissioner ? 4 : 5;
+                } else if (name === "isMissioner") {
+                    newIsAdmin = checked ? 4 : prev.isAdmin === 9 ? 9 : 5;
+                }
+
+                return { ...prev, [name]: checked, isAdmin: newIsAdmin };
             });
         } else {
-            setFormData({
-                ...formData,
+            setFormData((prev) => ({
+                ...prev,
                 [name]: type === "checkbox" ? checked : value,
-            });
+            }));
         }
     };
 
+
+
     const handleSubmit = async (e) => {
         e.preventDefault();
-        
+
         console.log("Form Data Before Submit:", formData);  // Log form data before sending
-        
+
         try {
-          const result = await editUserDetail(formData);
-          if (result) {
-            console.log("Edit result:", result);
-            alert("Update User Detail Successful.");
-          }
+            const result = await editUserDetail(formData);
+            if (result) {
+                console.log("Edit result:", result);
+                alert("Update User Detail Successful.");
+                refetch()
+            }
         } catch (err) {
-          console.error("Error during form submission:", err);
+            console.error("Error during form submission:", err);
         }
-      };
-      
+    };
+
 
     const handlePasswordReset = async () => {
         if (!userData?.a_USER_ID) {
@@ -63,10 +74,10 @@ function EditUserDetail({ userData, onClose }) {
             setError("User ID is missing.");
             return;
         }
-        
+
         try {
             console.log("Initiating password reset for user with ID:", userData.a_USER_ID);  // Log user ID
-            const result = await resetPassword(userData.a_USER_ID); 
+            const result = await resetPassword(userData.a_USER_ID);
             if (result) {
                 setPasswordResetSuccess(true);
                 console.log("Password reset successful for user:", userData.a_USER_ID);
@@ -88,7 +99,7 @@ function EditUserDetail({ userData, onClose }) {
                 )}
 
                 <form onSubmit={handleSubmit} className="grid grid-cols-2 gap-4">
-                    {[ 
+                    {[
                         { name: "firstName", type: "text", label: "First Name" },
                         { name: "lastName", type: "text", label: "Last Name" },
                         { name: "branchCode", type: "text", label: "Branch Code" },
@@ -110,20 +121,35 @@ function EditUserDetail({ userData, onClose }) {
                         </div>
                     ))}
 
-                    {/* isAdmin Checkbox */}
-                    <div className="flex items-center gap-2">
-                        <input
-                            type="checkbox"
-                            name="isAdmin"
-                            checked={formData.isAdmin === 9} // Check if isAdmin is 9
-                            onChange={handleChange}
-                            className="checkbox"
-                        />
-                        <label>Is Admin</label>
-                    </div>
+                    {/* isAdmin and isMissioner Checkboxes (Hidden if userDetails.isAdmin === 4) */}
+                    {userDetails?.isAdmin !== 4 && (
+                        <>
+                            <div className="flex items-center gap-2">
+                                <input
+                                    type="checkbox"
+                                    name="isAdmin"
+                                    checked={formData.isAdmin === 9} // Check if isAdmin is 9
+                                    onChange={handleChange}
+                                    className="checkbox"
+                                />
+                                <label>Is Admin</label>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <input
+                                    type="checkbox"
+                                    name="isMissioner"
+                                    checked={formData.isAdmin === 4} // Check if isAdmin is 4
+                                    onChange={handleChange}
+                                    className="checkbox"
+                                />
+                                <label>Is Missioner</label>
+                            </div>
+                        </>
+                    )}
+
 
                     {/* Checkboxes for other options */}
-                    {[ 
+                    {[
                         { name: "isshop", label: "Is Shop" },
                         { name: "issup", label: "Is Supplier" },
                     ].map(({ name, label }) => (

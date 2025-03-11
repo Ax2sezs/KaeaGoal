@@ -29,11 +29,11 @@ function Admin_User_Reward() {
   const getSelectBackgroundColor = (status) => {
     switch (status) {
       case 'Approve':
-        return 'bg-green-500';
+        return 'bg-white';
       case 'OnDelivery':
-        return 'bg-yellow-500';
+        return 'bg-white';
       case 'Delivered':
-        return 'bg-blue-500';
+        return 'bg-white';
       default:
         return 'bg-white'; // Default color if no valid status
     }
@@ -116,7 +116,7 @@ function Admin_User_Reward() {
                     value={reward.reward_Status}
                     onChange={(e) => handleStatusChange(reward.user_reward_Id, e.target.value)}
                   >
-                    <option value="Approve" className="bg-green-500 text-white">Approve</option>
+                    <option value="Approve" className="text-white">Approve</option>
                     <option value="OnDelivery" className="bg-yellow-500 text-black">On Delivery</option>
                     <option value="Delivered" className="bg-blue-500 text-white">Delivered</option>
                   </select>

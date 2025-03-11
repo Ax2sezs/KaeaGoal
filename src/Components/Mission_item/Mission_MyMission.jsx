@@ -6,14 +6,15 @@ import CheckIcon from '@mui/icons-material/Check';
 import CloseOutlinedIcon from '@mui/icons-material/CloseOutlined';
 
 const MissionCard = ({ mission, onClick }) => {
-  const isWaiting = mission.verification_Status === "Waiting for Confirmation.";
+  const isWaiting = mission.verification_Status.toLowerCase() === "waiting for confirmation.";
+  const isReject = mission.verification_Status === "Rejected";
   const currentDate = new Date();
   const isExpired = mission.expire_Date && new Date(mission.expire_Date) < currentDate;
 
   return (
     <div
-      className={`relative w-full h-auto flex flex-col justify-center items-center bg-bg rounded-xl shadow-lg ${isWaiting || isExpired ? "" : "hover:scale-105 transition-transform duration-300 ease-in-out"}`}
-      onClick={() => !(isWaiting || isExpired) && onClick(mission)}
+      className={`relative w-full h-auto flex flex-col justify-center items-center bg-bg rounded-xl shadow-lg ${isWaiting || isExpired || isReject ? "" : "hover:scale-105 transition-transform duration-300 ease-in-out"}`}
+      onClick={() => !(isWaiting || isExpired || isReject) && onClick(mission)}
       style={{ position: "relative" }}
     >
       {/* Image */}
@@ -24,20 +25,26 @@ const MissionCard = ({ mission, onClick }) => {
           className="w-full h-full object-cover"
         />
       </div>
+      <div className='absolute top-2 right-2 flex items-center'>
+        <span className={`flex flex-row text-sm justify-center items-center gap-2 bg-bg rounded-badge px-2 py-1 font-bold text-green-500`}>
+          <img src="./1.png" alt="Coin Icon" className="w-6 h-6" />
+          {mission.coin_Reward || 0} Pts
+        </span>
+      </div >
 
       {/* Content */}
       <div className="p-3 w-full flex flex-row justify-between">
         <div className="flex flex-col">
-          <h3 className="font-bold text-lg text-gray-800 truncate">
+          <h3 className="font-bold text-lg text-gray-800 truncate w-48 lg:w-52">
             {mission.mission_Name}
           </h3>
           <p className="text-sm text-gray-600">
-            <strong>Type: </strong> {mission.mission_Type}
+            {mission.mission_Type}
           </p>
         </div>
         <div className="flex flex-col">
           <p className="text-lg text-gray-600">
-            {mission.verification_Status}
+            {mission.verification_Status.toLowerCase() === "waiting for confirmation." ? "Waiting" : mission.verification_Status}
           </p>
           <p className="text-sm text-gray-600">
             <strong>Exp:</strong> {mission.expire_Date ? new Date(mission.expire_Date).toLocaleDateString() : 'No Date'}
@@ -48,7 +55,13 @@ const MissionCard = ({ mission, onClick }) => {
       {/* Overlay for "Waiting for confirmation" */}
       {isWaiting && !isExpired && (
         <div className="absolute top-0 left-0 w-full h-full bg-black bg-opacity-50 flex justify-center items-center rounded-xl">
-          <span className="text-white font-bold text-xl">Waiting for Admin</span>
+          <div className="flex flex-col text-center">
+            <span className="text-white font-bold text-xl">Waiting for Admin</span>
+            <span className="text-white text-xl">
+              Send Date: {mission.submitted_At ? new Date(mission.submitted_At).toLocaleDateString() : 'No Date'}
+            </span>
+          </div>
+
         </div>
       )}
 
@@ -60,6 +73,13 @@ const MissionCard = ({ mission, onClick }) => {
           </span>
         </div>
       )}
+      {isReject && (
+        <div className="absolute top-0 left-0 w-full h-full bg-black bg-opacity-70 flex justify-center items-center rounded-xl">
+          <span className="text-white font-bold text-xl">
+            {isReject ? "Rejected" : "EXPIRED"}
+          </span>
+        </div>
+      )}
     </div>
   );
 };
@@ -67,7 +87,7 @@ const MissionCard = ({ mission, onClick }) => {
 
 function Mission_MyMission({ isTableLayout }) {
   const { user } = useAuth();
-  const { userMission = [], error, isLoading, executeCodeMission, executeQRMission, executePhotoMission, refetch } = useFetchData(user?.token);
+  const { userMission = [], error, isLoading, executeCodeMission, executeQRMission, executePhotoMission, executeTextMission, refetch } = useFetchData(user?.token);
   const [selectedMission, setSelectedMission] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalError, setModalError] = useState("");
@@ -142,34 +162,70 @@ function Mission_MyMission({ isTableLayout }) {
       setModalError("Failed to execute Photo mission. Please try again.");
     }
   };
+  const handleSubmitText = async (inputText) => {
+    if (!selectedMission || !inputText.trim()) {
+      setModalError("Invalid mission or empty text. Please try again.");
+      return;
+    }
+  
+    try {
+      const { missioN_ID, useR_MISSION_ID } = selectedMission;
+  
+      // Log ข้อมูลที่ถูกส่งไป
+      console.log("Sending the following data to API:");
+      console.log({
+        missioN_ID, 
+        useR_MISSION_ID, 
+        inputText
+      });
+  
+      await executeTextMission(missioN_ID, useR_MISSION_ID, inputText);
+      console.log("Text mission executed successfully!");
+  
+      setModalError("");
+      setTimeout(() => handleModalClose(), 100);
+      setModalSuccess(document.getElementById('success_modal').showModal());
+  
+      refetch();
+    } catch (err) {
+      console.error("Failed to execute text mission", err);
+      setModalError(document.getElementById('error_modal').showModal());
+    }
+  };
+  
+
 
   const sortedMissions = userMission
-  .slice()
-  .sort((a, b) => {
-    const aIsWaiting = a.verification_Status === "Waiting for Confirmation.";
-    const bIsWaiting = b.verification_Status === "Waiting for Confirmation.";
+    .slice()
+    .sort((a, b) => {
+      const aIsWaiting = a.verification_Status.toLowerCase() === "waiting for confirmation.";
+      const bIsWaiting = b.verification_Status.toLowerCase() === "waiting for confirmation.";
 
-    const aIsExpired = a.expire_Date && new Date(a.expire_Date) < new Date();
-    const bIsExpired = b.expire_Date && new Date(b.expire_Date) < new Date();
+      const aIsRejected = a.verification_Status === "Rejected";
+      const bIsRejected = b.verification_Status === "Rejected";
 
-    // Normal comes first
-    if (!aIsWaiting && !aIsExpired && (bIsWaiting || bIsExpired)) return -1;
-    if (!bIsWaiting && !bIsExpired && (aIsWaiting || aIsExpired)) return 1;
+      const aIsExpired = a.expire_Date && new Date(a.expire_Date) < new Date();
+      const bIsExpired = b.expire_Date && new Date(b.expire_Date) < new Date();
 
-    // Waiting for Confirmation comes second
-    if (aIsWaiting && !bIsWaiting) return -1;
-    if (bIsWaiting && !aIsWaiting) return 1;
+      // Normal comes first (ไม่ใช่ Waiting, Rejected, Expired)
+      if (!aIsWaiting && !aIsRejected && !aIsExpired && (bIsWaiting || bIsRejected || bIsExpired)) return -1;
+      if (!bIsWaiting && !bIsRejected && !bIsExpired && (aIsWaiting || aIsRejected || aIsExpired)) return 1;
 
-    // Expired comes last
-    if (aIsExpired && !bIsExpired) return 1;
-    if (bIsExpired && !aIsExpired) return -1;
+      // Waiting for Confirmation comes second
+      if (aIsWaiting && !bIsWaiting) return -1;
+      if (bIsWaiting && !aIsWaiting) return 1;
 
-    // If all conditions are the same, maintain the original order
-    return 0;
-  });
+      // Rejected comes third
+      if (aIsRejected && !bIsRejected) return -1;
+      if (bIsRejected && !aIsRejected) return 1;
 
+      // Expired comes last
+      if (aIsExpired && !bIsExpired) return 1;
+      if (bIsExpired && !aIsExpired) return -1;
 
-
+      // If all conditions are the same, maintain the original order
+      return 0;
+    });
 
   return (
     <div>
@@ -287,10 +343,13 @@ function Mission_MyMission({ isTableLayout }) {
           onSubmitCode={handleSubmitCode}
           onSubmitQRCode={handleSubmitQRCode}
           onSubmitPhoto={handleSubmitPhoto}
+          onSubmitText={handleSubmitText}
+          executeTextMission={handleSubmitText}  // ส่งผ่าน executeTextMission
           onClose={handleModalClose}
           modalError={modalError}
           modalSuccess={modalSuccess}
         />
+
       )}
     </div>
   );

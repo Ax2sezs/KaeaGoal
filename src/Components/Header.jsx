@@ -16,7 +16,6 @@ function Header() {
   // Refetch on token change
   useEffect(() => {
     if (user?.token) {
-      console.log('Refetch triggered by token change');
       refetch();
     }
   }, [user?.token, refetch]);
@@ -32,7 +31,6 @@ function Header() {
           (userDetails.kaeaCoinBalance !== coinDetails.kaeaCoinBalance ||
             userDetails.thankCoinBalance !== coinDetails.thankCoinBalance)
         ) {
-          console.log('Refetch triggered by coin balance change');
           refetch();
         }
       }, 5000); // Check every 5 seconds
