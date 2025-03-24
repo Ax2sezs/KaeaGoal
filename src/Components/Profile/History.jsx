@@ -1,10 +1,16 @@
-import React from "react";
+import {React,useEffect} from "react";
 import { useAuth } from "../APIManage/AuthContext";
 import useFetchData from "../APIManage/useFetchData";
 
 function History() {
   const { user } = useAuth();
-  const { history = [], error, isLoading } = useFetchData(user?.token);
+  const { history = [], error, isLoading, fetchHistory } = useFetchData(user?.token);
+
+  useEffect(() => {
+      if (user?.token) {
+        fetchHistory();
+      }
+    }, [user?.token, fetchHistory]);
 
   // Define coin icons
   const coinIcons = {
@@ -16,7 +22,7 @@ function History() {
     <div className="flex flex-col justify-center items-center p-2 bg-layer-background rounded-xl">
       <div className="w-full bg-bg rounded-xl p-3">
         {isLoading ? (
-          <div className="text-center text-gray-500">Loading...</div>
+          <div className="text-center text-gray-500"><span className="loading loading-dots loading-lg"></span></div>
         ) : error ? (
           <div className="text-center text-red-500">Error fetching history</div>
         ) : history.length === 0 ? (

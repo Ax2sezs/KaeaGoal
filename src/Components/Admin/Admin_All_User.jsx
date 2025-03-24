@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState,useEffect } from "react";
 import useFetchData from "../APIManage/useFetchData";
 import { useAuth } from "../APIManage/AuthContext";
 import EditUserDetail from "./EditUserDetail"; // Import the modal component
@@ -6,7 +6,8 @@ import CreateUserForm from "./CreateUserForm";
 
 function AdminAllUser() {
   const { user } = useAuth();
-  const { alluserDetail = [], error, isLoading, refetch } = useFetchData(user?.token);
+  const { userDetails,alluserDetail = [], error, isLoading, fetchUserDetails, fetchAllUserDetails } = useFetchData(user?.token);
+  const isSuperAdmin = userDetails?.isAdmin===9
 
   const [expandedUser, setExpandedUser] = useState(null);
   const [selectedUser, setSelectedUser] = useState(null); // Store selected user for modal
@@ -14,6 +15,13 @@ function AdminAllUser() {
   const [isCreateUserModalOpen, setIsCreateUserModalOpen] = useState(false); // Control create user modal visibility
   const [searchQuery, setSearchQuery] = useState(""); // Search query for name search
   const [filterBranchCode, setFilterBranchCode] = useState(""); // Filter by branch code
+
+   useEffect(() => {
+        if (user?.token) {
+          fetchUserDetails()
+          fetchAllUserDetails()
+        }
+      }, [user?.token, fetchUserDetails,fetchAllUserDetails]);
 
   const toggleUserDetails = (userId) => {
     setExpandedUser(expandedUser === userId ? null : userId);
@@ -61,29 +69,29 @@ function AdminAllUser() {
 
   return (
     <div className="bg-bg w-full rounded-2xl min-h-screen p-3">
-      <h2 className="text-xl font-bold mb-4">All Users</h2>
+      <h2 className="text-xl font-bold mb-4 text-button-text">All Users</h2>
 
       {/* Filter and Search Section */}
       <div className="flex gap-4 mb-4">
         {/* Search Input */}
         <div className="flex flex-col">
-          <label>Search by Name</label>
+          <label className="text-button-text">Search by Name</label>
           <input
             type="text"
             value={searchQuery}
             onChange={handleSearchChange}
-            className="input input-bordered w-full"
+            className="input input-bordered border-black w-full bg-bg text-button-text"
             placeholder="Search by name"
           />
         </div>
 
         {/* Branch Code Filter */}
         <div className="flex flex-col">
-          <label>Filter by Branch Code</label>
+          <label className="text-button-text">Filter by Branch Code</label>
           <select
             value={filterBranchCode}
             onChange={handleBranchFilterChange}
-            className="select select-bordered w-full"
+            className="select border-black select-bordered w-full bg-bg text-button-text"
           >
             <option value="">All Branches</option>
             {/* Replace with actual branch codes */}
@@ -101,7 +109,7 @@ function AdminAllUser() {
         <p>No users found.</p>
       ) : (
         <div className="overflow-x-auto">
-          <table className="min-w-full border border-gray-300 shadow-lg">
+          <table className="min-w-full border border-gray-300 shadow-lg text-button-text">
             <thead>
               <tr className="bg-gray-200">
                 <th className="border p-2">Logon Name</th>
@@ -109,6 +117,7 @@ function AdminAllUser() {
                 <th className="border p-2">Last Name</th>
                 <th className="border p-2">Branch</th>
                 <th className="border p-2">Position</th>
+                <th className="border p-2">isMissioner</th>
                 <th className="border p-2">Actions</th>
               </tr>
             </thead>
@@ -120,11 +129,15 @@ function AdminAllUser() {
                     <td className="border p-2">{user.firstName}</td>
                     <td className="border p-2">{user.lastName}</td>
                     <td className="border p-2">{user.branchCode}</td>
-                    <td className="border p-2">{user.site}</td>
+                    <td className="border p-2">{user.user_Position}</td>
+                    <td className="border p-2">
+                      {user.isAdmin === 9 ? "Super Admin" : user.isAdmin === 4 ? "Admin" : "User"}
+                    </td>
                     <td className="border p-2 text-center">
                       <button
                         onClick={() => openEditModal(user)} // Open edit modal with selected user data
-                        className="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600"
+                        className="btn btn-success btn-sm text-bg"
+                        disabled={!isSuperAdmin}
                       >
                         Edit
                       </button>

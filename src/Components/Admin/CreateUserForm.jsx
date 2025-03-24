@@ -4,7 +4,7 @@ import { useAuth } from '../APIManage/AuthContext';
 
 function CreateUserForm({ onClose }) {
   const { user } = useAuth();
-  const { createUser, success, error, isLoading } = useFetchData(user?.token);
+  const { createUser, success, error, isLoading ,refetch} = useFetchData(user?.token);
 
   const [formData, setFormData] = useState({
     logoN_NAME: '',
@@ -39,6 +39,7 @@ function CreateUserForm({ onClose }) {
     try {
       await createUser(formData);
       setShowSuccess(true);
+      refetch()
       setTimeout(() => {
         setShowSuccess(false);
         onClose(); // Close modal after success
@@ -55,7 +56,7 @@ function CreateUserForm({ onClose }) {
   }, [error]);
 
   return (
-    <div className="bg-white rounded-xl shadow-xl p-6 w-full max-w-lg mx-auto relative">
+    <div className="bg-white rounded-xl shadow-xl p-6 w-full max-w-lg mx-auto relative text-button-text">
       {/* Close Button */}
       <button
         className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
@@ -78,7 +79,7 @@ function CreateUserForm({ onClose }) {
         </div>
       )}
 
-      <h2 className="text-2xl font-bold mb-4 text-center">Create New User</h2>
+      <h2 className="text-2xl font-bold mb-4 text-center ">Create New User</h2>
       <form onSubmit={handleSubmit} className="space-y-4 max-h-[80vh] overflow-y-auto pr-2">
       {/* Input Fields */}
         <div className="form-control">
@@ -88,7 +89,7 @@ function CreateUserForm({ onClose }) {
             name="logoN_NAME"
             value={formData.logoN_NAME}
             onChange={handleChange}
-            className="input input-bordered"
+            className="input input-bordered border-button-text bg-bg"
             required
           />
         </div>
@@ -101,7 +102,7 @@ function CreateUserForm({ onClose }) {
               name="firstName"
               value={formData.firstName}
               onChange={handleChange}
-              className="input input-bordered"
+              className="input input-bordered border-button-text bg-bg"
               required
             />
           </div>
@@ -112,7 +113,7 @@ function CreateUserForm({ onClose }) {
               name="lastName"
               value={formData.lastName}
               onChange={handleChange}
-              className="input input-bordered"
+              className="input input-bordered border-button-text bg-bg" 
               required
             />
           </div>
@@ -125,7 +126,7 @@ function CreateUserForm({ onClose }) {
             name="branchCode"
             value={formData.branchCode}
             onChange={handleChange}
-            className="input input-bordered"
+            className="input input-bordered border-button-text bg-bg"
             required
           />
         </div>
@@ -137,7 +138,7 @@ function CreateUserForm({ onClose }) {
             name="branch"
             value={formData.branch}
             onChange={handleChange}
-            className="input input-bordered"
+            className="input input-bordered border-button-text bg-bg"
             required
           />
         </div>
@@ -149,7 +150,7 @@ function CreateUserForm({ onClose }) {
             name="useR_EMAIL"
             value={formData.useR_EMAIL}
             onChange={handleChange}
-            className="input input-bordered"
+            className="input input-bordered border-button-text bg-bg"
             required
           />
         </div>
@@ -161,7 +162,7 @@ function CreateUserForm({ onClose }) {
             name="user_Name"
             value={formData.user_Name}
             onChange={handleChange}
-            className="input input-bordered"
+            className="input input-bordered border-button-text bg-bg"
             required
           />
         </div>
@@ -173,7 +174,7 @@ function CreateUserForm({ onClose }) {
             name="user_Position"
             value={formData.user_Position}
             onChange={handleChange}
-            className="input input-bordered"
+            className="input input-bordered border-button-text bg-bg"
             required
           />
         </div>
@@ -181,10 +182,10 @@ function CreateUserForm({ onClose }) {
         {/* Toggle Switches */}
         <div className="flex justify-between items-center">
           <label className="label cursor-pointer">
-            <span className="label-text">Admin</span>
+            <span className="label-text mr-2">Admin</span>
             <input
               type="checkbox"
-              className="toggle toggle-primary"
+              className="toggle toggle-primary "
               checked={formData.isAdmin}
               onChange={(e) =>
                 setFormData((prev) => ({
@@ -196,7 +197,7 @@ function CreateUserForm({ onClose }) {
           </label>
 
           <label className="label cursor-pointer">
-            <span className="label-text">Is Shop</span>
+            <span className="label-text mr-2">Is Shop</span>
             <input
               type="checkbox"
               className="toggle toggle-secondary"
@@ -211,7 +212,7 @@ function CreateUserForm({ onClose }) {
           </label>
 
           <label className="label cursor-pointer">
-            <span className="label-text">Is Sup</span>
+            <span className="label-text mr-2">Is Sup</span>
             <input
               type="checkbox"
               className="toggle toggle-accent"
@@ -235,7 +236,7 @@ function CreateUserForm({ onClose }) {
               name="stateCode"
               value={formData.stateCode}
               onChange={handleChange}
-              className="input input-bordered"
+              className="input input-bordered border-button-text bg-bg"
               required
             />
           </div>
@@ -247,7 +248,7 @@ function CreateUserForm({ onClose }) {
               name="deletionStateCode"
               value={formData.deletionStateCode}
               onChange={handleChange}
-              className="input input-bordered"
+              className="input input-bordered border-button-text bg-bg"
               required
             />
           </div>

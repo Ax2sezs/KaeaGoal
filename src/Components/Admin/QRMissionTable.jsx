@@ -11,6 +11,14 @@ const QRMissionTable = ({ alluserDetail, allMission, ApproveQR, approveMission, 
     const [selectedMissionName, setSelectedMissionName] = useState("all");
 
     useEffect(() => {
+        const storedMissionId = localStorage.getItem("selectedMissionId");
+        if (storedMissionId) {
+            setSelectedMissionName(storedMissionId);
+        }
+    }, [ApproveQR]); // ให้ทำงานใหม่เมื่อ `ApproveQR` ถูกอัปเดต
+    
+
+    useEffect(() => {
         const mappedQrMissions = ApproveQR.map(mission => ({
             ...mission,
             userQRCodeMissionId: mission.useR_QR_CODE_MISSION_ID,
@@ -20,6 +28,8 @@ const QRMissionTable = ({ alluserDetail, allMission, ApproveQR, approveMission, 
         setQrMissions(mappedQrMissions);
         setFilteredMissions(mappedQrMissions);
     }, [ApproveQR]);
+
+    
 
     useEffect(() => {
         if (selectedMissionName !== "all" && Array.isArray(allMission)) {
@@ -33,6 +43,8 @@ const QRMissionTable = ({ alluserDetail, allMission, ApproveQR, approveMission, 
     const handleMissionFilter = (e) => {
         const missionId = e.target.value;
         setSelectedMissionName(missionId);
+        localStorage.setItem("selectedMissionId", missionId); 
+
 
         if (missionId === "all") {
             setFilteredMissions(qrMissions);
@@ -123,11 +135,11 @@ const QRMissionTable = ({ alluserDetail, allMission, ApproveQR, approveMission, 
 
     return (
         <div>
-            <h2 className="text-2xl font-bold mb-6">QR Missions</h2>
+            <h2 className="text-2xl font-bold mb-6 text-button-text">QR Missions</h2>
 
             {/* 🔹 Mission Name Filter */}
             <div className="p-3">
-                <select onChange={handleMissionFilter} value={selectedMissionName}>
+                <select onChange={handleMissionFilter} value={selectedMissionName} className="select select-error select-sm bg-bg text-button-text">
                     <option value="all">Select Mission</option>
                     {uniqueMissions.map(([id, name]) => (
                         <option key={id} value={id}>{name}</option>
@@ -143,17 +155,17 @@ const QRMissionTable = ({ alluserDetail, allMission, ApproveQR, approveMission, 
                     onChange={handleSelectAll}
                     checked={selectedMissions.length > 0 && selectedMissions.length === filteredMissions.filter(m => m.approve === null || m.approve === true).length}
                 />
-                <label>Select All</label>
+                <label className="text-button-text">Select All</label>
 
                 <input
                     type="number"
-                    className="border p-1 w-20"
+                    className="input input-bordered input-sm bg-bg border-button-text p-1 w-14 text-button-text"
                     value={coinAmount}
                     onChange={(e) => setCoinAmount(Number(e.target.value))}
                     placeholder="Amount"
                     readOnly
                 />
-                <button className="btn btn-primary btn-sm" onClick={handleAddAllCoin}>
+                <button className="btn btn-primary btn-sm" onClick={handleAddAllCoin} disabled={selectedMissions.length === 0}>
                     Add Coin
                 </button>
                 <button className="btn btn-success btn-sm" onClick={handleApproveAll} disabled={selectedMissions.length === 0}>
@@ -168,11 +180,11 @@ const QRMissionTable = ({ alluserDetail, allMission, ApproveQR, approveMission, 
                         <span className="loading loading-dots loading-lg"></span>
                     </div>
                 ) : selectedMissionName === "all" ? (
-                    <p className="text-gray-500 text-center">Please select a mission to display the table.</p>
+                    <p className="text-gray-500 text-center mt-10">Please select a mission to display the table.</p>
                 ) : filteredMissions.length === 0 ? (
                     <p>No QR missions available</p>
                 ) : (
-                    <table className="min-w-full border border-gray-300">
+                    <table className="min-w-full border border-gray-300 text-button-text">
                         <thead>
                             <tr className="bg-gray-100">
                                 <th className="border p-2">Select</th>

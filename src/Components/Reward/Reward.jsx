@@ -4,6 +4,7 @@ import useFetchData from '../APIManage/useFetchData';
 import { LocalShippingOutlined } from '@mui/icons-material';
 import CheckIcon from '@mui/icons-material/Check';
 import CloseOutlinedIcon from '@mui/icons-material/CloseOutlined';
+import ShoppingCartOutlinedIcon from '@mui/icons-material/ShoppingCartOutlined';
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Navigation, Pagination } from "swiper/modules";
 import "swiper/css";
@@ -37,7 +38,7 @@ const RewardCard = ({ item, onClick }) => {
           </h2>
           <div className="flex flex-row justify-between">
             <p className="text-lg text-button-text flex items-center gap-2">
-              <LocalShippingOutlined className="" />
+              <ShoppingCartOutlinedIcon className="" />
               {item?.reward_quantity || '0'}
             </p>
             <div className="flex flex-row gap-3">
@@ -53,20 +54,25 @@ const RewardCard = ({ item, onClick }) => {
 
 function Reward() {
   const { user } = useAuth();
-  const { Reward = [], error, isLoading, acceptReward, refetch } = useFetchData(user?.token);
+  const { Reward = [], error, isLoading, acceptReward, fetchRewards } = useFetchData(user?.token);
   const [selectedReward, setSelectedReward] = useState(null);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [modalMessage, setModalMessage] = useState('');
   const [isSuccess, setIsSuccess] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
-
   useEffect(() => {
-    const userId = user?.a_USER_ID || localStorage.getItem('a_USER_ID');
-    if (!userId || userId === 'undefined') {
-      console.error('a_USER_ID is undefined. Refreshing the page...');
-      window.location.reload();
+    if (user?.token) {
+      fetchRewards();
     }
-  }, [user]);
+  }, [user?.token, fetchRewards]);
+
+  // useEffect(() => {
+  //   const userId = user?.a_USER_ID || localStorage.getItem('a_USER_ID');
+  //   if (!userId || userId === 'undefined') {
+  //     console.error('a_USER_ID is undefined. Refreshing the page...');
+  //     window.location.reload();
+  //   }
+  // }, [user]);
 
   const handleOpenModal = (reward) => {
     setSelectedReward(reward);
@@ -91,7 +97,7 @@ function Reward() {
         if (successModal) {
           successModal.showModal();
         }
-      }, 500, refetch());
+      }, 500, fetchRewards());
     } catch (err) {
       console.error("API Error:", err.response?.data?.message);
       if (err.response?.data?.message === "Insufficient Coin") {
@@ -110,12 +116,20 @@ function Reward() {
           <span className="loading loading-dots loading-lg"></span>
         </div>
       ) : Array.isArray(Reward) && Reward.length === 0 ? (
-        <p>No rewards found</p>
+        <p className='text-center'>No rewards found</p>
       ) : (
         <div className="grid grid-cols-2 lg:grid-cols-2 xl:grid-cols-4 gap-5 items-center p-3 h-auto bg-bg rounded-xl">
-          {Reward.sort((a, b) => (a.reward_quantity === 0 ? 1 : -1)).map((item, index) => (
+          {Reward.sort((a, b) => {
+            // หาก reward_quantity เป็น 0 ให้อยู่ท้ายสุด
+            if (a.reward_quantity === 0 && b.reward_quantity !== 0) return 1; // a ให้อยู่ท้ายสุด
+            if (a.reward_quantity !== 0 && b.reward_quantity === 0) return -1; // b ให้อยู่ท้ายสุด
+
+            // หาก reward_quantity ไม่เป็น 0 เปรียบเทียบ reward_price
+            return (a.reward_price || 0) - (b.reward_price || 0); // จัดเรียงตาม reward_price
+          }).map((item, index) => (
             <RewardCard key={index} item={item} onClick={() => handleOpenModal(item)} />
           ))}
+
         </div>
       )}
 

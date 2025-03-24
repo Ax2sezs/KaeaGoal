@@ -9,20 +9,26 @@ function Leaderboard() {
   const [leaderItem, setLeaderItem] = useState([]);
 
   // Fetch leaderboard data
-  const { leaderboard = [], error, isLoading } = useFetchData(user?.token);
+  const { leaderboard = [], error, isLoading, fetchLeaderboard, toptenLeaderboard,myranking,fetchMyLeaderboard,fetchToptenLeaderboard } = useFetchData(user?.token);
 
   const medalImages = [
-    'src/assets/1st.png',
-    'src/assets/2nd.png',
-    'src/assets/3rd.png',
+    './1st.png',
+    './2nd.png',
+    './3rd.png',
   ];
+  // Refetch on token change
+    useEffect(() => {
+      if (user?.token) {
+        fetchToptenLeaderboard()
+      }
+    }, [user?.token,fetchToptenLeaderboard]);
 
   // Use Effect to update leaderItem when leaderboard data changes
   useEffect(() => {
-    if (leaderboard.length > 0) {
-      setLeaderItem(leaderboard);
+    if (toptenLeaderboard.length > 0) {
+      setLeaderItem(toptenLeaderboard);
     }
-  }, [leaderboard]);
+  }, [toptenLeaderboard]);
 
   if (isLoading) return <div className="text-center text-gray-500">
     <span className="loading loading-dots loading-lg"></span>
@@ -31,7 +37,7 @@ function Leaderboard() {
   if (error) return <p className="text-red-500">Error: {error.message || 'An error occurred'}</p>;
 
   return (
-    <div className="bg-bg w-full sm:w-full rounded-2xl p-3">
+    <div className="bg-bg w-full sm:w-full rounded-2xl p-3 mb-16 sm:mb-0">
       <h1 className='text-2xl text-layer-item font-bold'>LEADERBOARD</h1>
       <div className="overflow-x-auto">
         <h1 className='text-xl text-gray-800 mt-3'>Top 3 earn special gifts</h1>
@@ -57,7 +63,7 @@ function Leaderboard() {
             </div>
             <p className='text-xl text-gray-700 mt-8'>Points: {leaderItem[0]?.point}</p>
             {/* Display name or placeholder */}
-            <p className='text-lg text-gray-700'>{leaderItem[0]?.displayName || 'Anonymous'}</p>
+            <p className='text-lg text-gray-700'>{leaderItem[0]?.user_Name || 'Anonymous'}</p>
           </div>
 
           {/* 2nd place */}
@@ -76,7 +82,7 @@ function Leaderboard() {
             </div>
             <p className='text-lg text-gray-600 mt-8'>Points: {leaderItem[1]?.point}</p>
             {/* Display name or placeholder */}
-            <p className='text-lg text-gray-600'>{leaderItem[1]?.displayName || 'Anonymous'}</p>
+            <p className='text-lg text-gray-600'>{leaderItem[1]?.user_Name || 'Anonymous'}</p>
           </div>
 
           {/* 3rd place */}
@@ -96,18 +102,18 @@ function Leaderboard() {
             <p className='text-lg text-gray-600'>#3</p>
             <p className='text-lg text-gray-600'>Points: {leaderItem[2]?.point}</p>
             {/* Display name or placeholder */}
-            <p className='text-lg text-gray-600'>{leaderItem[2]?.displayName || 'Anonymous'}</p>
+            <p className='text-lg text-gray-600'>{leaderItem[2]?.user_Name || 'Anonymous'}</p>
           </div>
         </div>
 
         {/* Leaderboard Table */}
-        <div className='bg-layer-background rounded-xl p-2'>
+        <div className='bg-layer-background rounded-xl p-2 border-hidden'>
           <table className="table mt-5 w-full">
             <thead>
               <tr>
-                <th className='text-2xl text-orange-700'>Rank</th>
-                <th className='text-2xl text-orange-700'>Name</th>
-                <th className='text-2xl text-orange-700'>Points</th>
+                <th className='text-xl text-button-text'>Rank</th>
+                <th className='text-xl text-button-text'>Name</th>
+                <th className='text-xl text-button-text'>Points</th>
               </tr>
             </thead>
             <tbody className='bg-bg'>
@@ -115,10 +121,9 @@ function Leaderboard() {
                 <tr key={index + 3} className="">
                   <td className='text-xl text-gray-700'>#{index + 4}</td>
                   <td>
-                    <p className='text-lg text-gray-600'>{item?.displayName || 'Anonymous'}</p>
-
+                    <p className='text-lg text-gray-600'>{item?.user_Name || 'Anonymous'}</p>
                   </td>
-                  <td className='text-xl text-gray-800'>{item?.point}</td>
+                  <td className='text-xl text-end text-gray-800'>{item?.point}</td>
                   {/* Display name or placeholder */}
                 </tr>
               ))}

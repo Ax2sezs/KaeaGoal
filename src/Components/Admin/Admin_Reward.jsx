@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState,useEffect } from 'react';
 import CreateRewardForm from './CreateRewardForm';
 import useFetchData from '../APIManage/useFetchData';
 import { useAuth } from '../APIManage/AuthContext';
@@ -6,7 +6,7 @@ import ModalPreview from './ModalPreview';
 
 const Admin_Reward = () => {
   const { user } = useAuth();
-  const { Reward = [], error, isLoading, createReward, refetch } = useFetchData(user?.token);
+  const { Reward = [], error, isLoading, createReward, fetchRewards } = useFetchData(user?.token);
 
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
@@ -17,16 +17,17 @@ const Admin_Reward = () => {
     setIsPreviewOpen(false);
     setSelectedReward(null);
   };
-  const handleMissionCreationSuccess = () => {
-    // Reload the page after a successful mission creation
-    refetch()
-  };
+   useEffect(() => {
+              if (user?.token) {
+                  fetchRewards()
+              }
+            }, [user?.token, fetchRewards]);
 
   return (
     <div className="bg-bg w-full rounded-2xl min-h-screen p-3">
       <div className="admin-reward-container">
         <h2 className="text-2xl font-bold mb-6 text-button-text">Admin Reward</h2>
-        <h2>ALL REWARDS: {Reward.length}</h2>
+        <h2 className='text-button-text'>ALL REWARDS: {Reward.length}</h2>
 
         {/* Rewards Table */}
         <div className="reward-list overflow-x-auto">
@@ -92,7 +93,7 @@ const Admin_Reward = () => {
               <h3 className="font-bold text-lg">Create Reward</h3>
               <CreateRewardForm
                 onCreateReward={createReward}
-                onSuccess={handleMissionCreationSuccess}
+                onSuccess={fetchRewards}
                 onClose={closeCreateModal} // <-- Pass it here
               />
             </div>

@@ -6,7 +6,7 @@ import useFetchData from './APIManage/useFetchData';  // Import the merged custo
 function Header() {
   const { user, logout, isLoading } = useAuth();
   const navigate = useNavigate();
-  const { userDetails, coinDetails, error, refetch } = useFetchData(user?.token); // Use custom hook
+  const { userDetails, coinDetails, error, fetchUserDetails, fetchCoinDetails } = useFetchData(user?.token); // Use custom hook
 
   const handleLogout = () => {
     logout();
@@ -16,11 +16,12 @@ function Header() {
   // Refetch on token change
   useEffect(() => {
     if (user?.token) {
-      refetch();
+      fetchUserDetails();
+      fetchCoinDetails();
     }
-  }, [user?.token, refetch]);
+  }, [user?.token, fetchUserDetails, fetchCoinDetails]);
 
-  // Auto refetch when coin balances change
+  // Auto refetch coin details when balances change
   useEffect(() => {
     let interval;
     if (user?.token) {
@@ -29,9 +30,9 @@ function Header() {
           userDetails &&
           coinDetails &&
           (userDetails.kaeaCoinBalance !== coinDetails.kaeaCoinBalance ||
-            userDetails.thankCoinBalance !== coinDetails.thankCoinBalance)
+            userDetails.thankCoinConvert !== coinDetails.thankCoinConvert)
         ) {
-          refetch();
+          fetchCoinDetails(); // Refetch only coin details
         }
       }, 5000); // Check every 5 seconds
     }
@@ -43,8 +44,9 @@ function Header() {
     userDetails?.thankCoinBalance,
     coinDetails?.kaeaCoinBalance,
     coinDetails?.thankCoinBalance,
-    refetch
+    fetchCoinDetails
   ]);
+
 
   if (isLoading) {
     return (
@@ -60,25 +62,25 @@ function Header() {
         <div className="avatar hover:scale-105 transition-transform duration-300 ease-in-out">
           <Link to="/profile">
             <div className="ring-heavy-color ring-offset-bg w-10 sm:w-11 h-10 sm:h-11 rounded-full ring ring-offset-2 overflow-hidden">
-              <img src={userDetails?.imageUrls} alt="User Avatar" className="w-full h-full object-cover" />
+              <img src={userDetails?.imageUrls||'au-logo.png'} alt="User Avatar" className="w-full h-full object-cover" />
             </div>
           </Link>
         </div>
-        <h1 className="text-lg sm:text-xl font-bold text-button-text md:block">
-          {userDetails?.displayName || 'Guest'}
+        <h1 className="text-lg sm:text-xl font-bold text-button-text md:block w-32 truncate">
+          {userDetails?.user_Name || 'Guest'}
         </h1>
       </div>
       <div className="flex items-center text-button-text gap-2 md:gap-6">
         <div className="flex items-center">
-          <img src="src/assets/1.png" alt="Coin" className="w-5 md:w-6 sm:w-8" />
+          <img src="./1.png" alt="Coin" className="w-5 md:w-6 sm:w-8" />
           <h1 className="text-sm md:text-base font-semibold ml-1">
             {coinDetails?.kaeaCoinBalance || 0}
           </h1>
         </div>
         <div className="flex items-center">
-          <img src="src/assets/2.png" alt="Green Coin" className="w-5 md:w-6 sm:w-8" />
+          <img src="./2.png" alt="Green Coin" className="w-5 md:w-6 sm:w-8" />
           <h1 className="text-sm md:text-base font-semibold ml-1">
-            {coinDetails?.thankCoinBalance || 0}
+            {coinDetails?.thankCoinConvert || 0}
           </h1>
         </div>
         <button onClick={handleLogout} className="py-2 px-4 bg-red-600 text-white font-semibold rounded-badge hover:bg-red-700 transition">

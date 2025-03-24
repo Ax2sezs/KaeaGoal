@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState,useEffect } from 'react';
 import CreateMissionForm from './CreateMissionForm';
 import useFetchData from '../APIManage/useFetchData';
 import { useAuth } from '../APIManage/AuthContext';  // Assuming this is your custom hook/context
@@ -6,7 +6,8 @@ import ModalPreview from './ModalPreview'; // Import the new ModalPreview compon
 
 const Admin_UpdateMission = () => {
   const { user } = useAuth();
-  const { allMission = [], error, isLoading,refetch } = useFetchData(user?.token);
+  const { allMission = [], error, isLoading,fetchAllMissions } = useFetchData(user?.token);
+  const sortedMissions = [...allMission].sort((a, b) => new Date(b.start_Date) - new Date(a.start_Date));
 
   // State to handle modal visibility and selected mission details
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -15,6 +16,20 @@ const Admin_UpdateMission = () => {
   // State to handle QR code full-size modal visibility
   const [isQRCodeModalOpen, setIsQRCodeModalOpen] = useState(false);
   const [selectedQRCode, setSelectedQRCode] = useState(null);
+  const [searchName, setSearchName] = useState('');
+  const [searchType, setSearchType] = useState('');
+  const [searchDate, setSearchDate] = useState('');
+
+  const filteredMissions = sortedMissions.filter((mission) => 
+    mission.missioN_NAME.toLowerCase().includes(searchName.toLowerCase()) &&
+    mission.missioN_TYPE.toLowerCase().includes(searchType.toLowerCase()) &&
+    (!searchDate || new Date(mission.start_Date).toISOString().split('T')[0] === searchDate)
+  );
+   useEffect(() => {
+              if (user?.token) {
+                  fetchAllMissions()
+              }
+            }, [user?.token, fetchAllMissions]);
 
   const openModal = (mission) => {
     setSelectedMission(mission);
@@ -35,10 +50,6 @@ const Admin_UpdateMission = () => {
     setIsQRCodeModalOpen(false);
     setSelectedQRCode(null);
   };
-  const handleMissionCreationSuccess = () => {
-    // Reload the page after a successful mission creation
-    refetch()
-  };
 
   return (
     <div className="bg-bg w-full rounded-2xl min-h-screen p-3">
@@ -46,11 +57,35 @@ const Admin_UpdateMission = () => {
       <div className="admin-mission-container">
         <h2 className="text-2xl font-bold mb-6 text-button-text">Admin Missions</h2>
         <h2>ALL MISSION : {allMission.length}</h2>
+        {/* Filter Section */}
+      <div className="mb-4 flex flex-wrap gap-4">
+        <input
+          type="text"
+          placeholder="Search Mission Name"
+          className="input input-bordered w-full max-w-xs bg-bg"
+          value={searchName}
+          onChange={(e) => setSearchName(e.target.value)}
+        />
+        <input
+          type="text"
+          placeholder="Search Mission Type"
+          className="input input-bordered w-full max-w-xs bg-bg"
+          value={searchType}
+          onChange={(e) => setSearchType(e.target.value)}
+        />
+        <input
+          type="date"
+          className="input input-bordered w-full max-w-xs"
+          value={searchDate}
+          onChange={(e) => setSearchDate(e.target.value)}
+        />
+      </div>
+
         {/* Missions Table */}
         <div className="mission-list overflow-x-auto">
           {isLoading ? (
             <div className="text-center text-gray-500">    
-            <span className="loading loading-dots loading-lg"></span>
+            <span className="loading loading-dots loading-lg bg-bg"></span>
             </div>
           ) : error ? (
             <p className="text-red-500">{error}</p>
@@ -75,7 +110,7 @@ const Admin_UpdateMission = () => {
                 </tr>
               </thead>
               <tbody>
-                {allMission.map((mission) => (
+                {filteredMissions.map((mission) => (
                   <tr key={mission.missioN_ID} className="hover:bg-gray-50">
                     <td className="border border-gray-300 p-2 w-32">{mission.missioN_NAME}</td>
                     <td className="border border-gray-300 p-2 w-32">{mission.missioN_TYPE}</td>
@@ -176,7 +211,7 @@ const Admin_UpdateMission = () => {
           <div className="modal-box bg-bg text-button-text">
             <h3 className="font-bold text-lg">Create Mission</h3>
             <CreateMissionForm onClose={() => document.getElementById('create_mission_modal').close()}
-              onSuccess={handleMissionCreationSuccess} // Pass the success callback
+              onSuccess={fetchAllMissions} // Pass the success callback
             />
             <div className="modal-action"></div>
           </div>

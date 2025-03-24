@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import useFetchData from '../APIManage/useFetchData';
 import { useAuth } from '../APIManage/AuthContext';
 
@@ -94,9 +94,16 @@ const CreateMissionForm = ({ onClose, onSuccess }) => {
     // Optional: Clear the file input value
     document.querySelector('input[name="Images"]').value = '';
   };
+  useEffect(() => {
+    setFormData((prev) => ({
+      ...prev,
+      Mission_Point: prev.Coin_Reward, // อัปเดตค่า Mission_Point ให้เท่ากับ Coin_Reward
+    }));
+  }, [formData.Coin_Reward]); // ทำงานเมื่อ Coin_Reward เปลี่ยนแปลง
 
 
   return (
+    <>
     <div className='text-button-text'>
       <form onSubmit={handleSubmit} className="space-y-4">
         {/* Mission Name */}
@@ -149,6 +156,7 @@ const CreateMissionForm = ({ onClose, onSuccess }) => {
 
         {/* Coin Reward and Mission Points */}
         <div className="grid grid-cols-2 gap-4">
+          {/* Kae Coin */}
           <div className="form-control">
             <label className="label">
               <span className="label-text text-button-text">Kae Coin</span>
@@ -157,12 +165,23 @@ const CreateMissionForm = ({ onClose, onSuccess }) => {
               type="number"
               name="Coin_Reward"
               value={formData.Coin_Reward}
-              onChange={handleChange}
+              onChange={(e) => {
+                const value = e.target.value;
+                if (/^\d*$/.test(value)) { // ตรวจสอบให้เป็นตัวเลขเท่านั้น
+                  handleChange(e);
+                }
+              }}
+              onKeyDown={(e) => {
+                if (e.key === '-' || e.key === 'e' || e.key === '+' || e.key === '.') { // ป้องกันการพิมพ์ "-" และ "e"
+                  e.preventDefault();
+                }
+              }}
               className="input input-bordered bg-bg border-button-text"
               required
             />
           </div>
 
+          {/* Mission Point */}
           <div className="form-control">
             <label className="label">
               <span className="label-text text-button-text">Mission Point</span>
@@ -171,15 +190,17 @@ const CreateMissionForm = ({ onClose, onSuccess }) => {
               type="number"
               name="Mission_Point"
               value={formData.Mission_Point}
-              onChange={handleChange}
               className="input input-bordered bg-bg border-button-text"
+              readOnly
               required
             />
           </div>
         </div>
 
+
         {/* Dates */}
         <div className="grid grid-cols-2 gap-4">
+          {/* Start Date */}
           <div className="form-control">
             <label className="label">
               <span className="label-text text-button-text">Start Date</span>
@@ -191,9 +212,11 @@ const CreateMissionForm = ({ onClose, onSuccess }) => {
               onChange={handleChange}
               className="input input-bordered bg-bg border-button-text"
               required
+              min={new Date().toISOString().slice(0, 16)} // ✅ ห้ามเลือกย้อนหลัง
             />
           </div>
 
+          {/* Expire Date */}
           <div className="form-control">
             <label className="label">
               <span className="label-text text-button-text">Expire Date</span>
@@ -205,9 +228,11 @@ const CreateMissionForm = ({ onClose, onSuccess }) => {
               onChange={handleChange}
               className="input input-bordered bg-bg border-button-text"
               required
+              min={formData.Start_Date || new Date().toISOString().slice(0, 16)} // ✅ ห้ามเลือกน้อยกว่า Start Date
             />
           </div>
         </div>
+
 
         {/* Description */}
         <div className="form-control w-full">
@@ -229,17 +254,25 @@ const CreateMissionForm = ({ onClose, onSuccess }) => {
           <input
             type="number"
             name="Accept_limit"
+            max={2000}
             value={formData.Accept_limit}
             onChange={(e) => {
-              const value = parseInt(e.target.value, 10);
-              if (value > 0 || e.target.value === '') {
+              const value = e.target.value;
+              if (/^\d*$/.test(value)) { // ป้องกันตัวอักษรและสัญลักษณ์
                 handleChange(e);
               }
             }}
             onBlur={(e) => {
-              if (e.target.value === '' || parseInt(e.target.value, 10) <= 0) {
-                // If the input is empty or 0 on blur, set it to 1 as default
-                handleChange({ target: { name: 'Accept_limit', value: 1 } });
+              const value = parseInt(e.target.value, 10);
+              if (!value || value <= 0) {
+                handleChange({ target: { name: 'Accept_limit', value: 1 } }); // ถ้าว่างหรือเป็น 0 ให้เป็น 1
+              } else if (value > 2000) {
+                handleChange({ target: { name: 'Accept_limit', value: 2000 } }); // ถ้ามากกว่า 2000 ให้เป็น 2000
+              }
+            }}
+            onKeyDown={(e) => {
+              if (e.key === '-' || e.key === 'e' || e.key === '+' || e.key === '.') { // ป้องกัน "-" และ "e"
+                e.preventDefault();
               }
             }}
             className="input input-bordered bg-bg border-button-text"
@@ -247,6 +280,7 @@ const CreateMissionForm = ({ onClose, onSuccess }) => {
           />
 
         </div>
+
         {/* <select
           name="Participate_Type"
           value={formData.Participate_Type}
@@ -259,9 +293,6 @@ const CreateMissionForm = ({ onClose, onSuccess }) => {
           <option value="Factory">Factory</option>
           <option value="Branch">Branch</option>
         </select> */}
-
-
-
 
         {/* Is Limited */}
         <div className="form-control">
@@ -304,8 +335,6 @@ const CreateMissionForm = ({ onClose, onSuccess }) => {
               </div>
             ))}
         </div>
-
-        
 
         {/* Buttons */}
         <div className="flex justify-end gap-2">
@@ -352,6 +381,7 @@ const CreateMissionForm = ({ onClose, onSuccess }) => {
 
           <p className="">Mission Name: {formData.MISSION_NAME}</p>
           <p className="">Mission Type: {formData.MISSION_TYPE}</p>
+          <p className="">Mission Type: {formData.Accept_limit}</p>
           <p className="">Coin Reward: {formData.Coin_Reward}</p>
           <p className="">Mission Point: {formData.Mission_Point}</p>
           <p className="">Start Date: {formData.Start_Date}</p>
@@ -360,10 +390,8 @@ const CreateMissionForm = ({ onClose, onSuccess }) => {
             Description: {formData.Description}
           </p>
 
-
           <p className="">Is Limited: {formData.Is_Limited ? 'Yes' : 'No'}</p>
           <p className="">Participate Type: {formData.Participate_Type || 'N/A'}</p>
-
 
           <div className="modal-action">
             <button className="btn" onClick={() => {
@@ -377,6 +405,7 @@ const CreateMissionForm = ({ onClose, onSuccess }) => {
 
       </dialog>
     </div>
+    </>
   );
 };
 

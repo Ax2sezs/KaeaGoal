@@ -6,8 +6,8 @@ import { useAuth } from './AuthContext'; // Import the useAuth hook
 function PrivateRoute({ children }) {
   const { user } = useAuth(); // Access the user from AuthContext
 
-  // If the user is not authenticated, redirect to the login page
-  if (!user) {
+  // If the token does not exist, redirect to the login page
+  if (!user || !user.token) {
     return <Navigate to="/" />;
   }
 

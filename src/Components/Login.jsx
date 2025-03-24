@@ -40,7 +40,7 @@ function Login() {
 
   return (
     <div
-      className="flex min-h-screen items-center justify-center"
+      className="flex min-h-screen items-center justify-center w-full"
       style={{
         backgroundImage: "url('./wallpaper001.jpg')",
         backgroundSize: "cover",  // ครอบคลุมทั้งพื้นหลัง
@@ -102,7 +102,7 @@ function Login() {
           <div className="text-center">
             <p className="text-sm text-bg">
               Don't have an account?{' '}
-              <a href="/home" className="text-bg font-bold">
+              <a href="/register" className="text-bg font-bold">
                 Sign Up
               </a>
             </p>

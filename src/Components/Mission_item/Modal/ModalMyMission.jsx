@@ -26,6 +26,7 @@ const ModalMyMission = ({
   const [isScannerActive, setIsScannerActive] = useState(false);
   const [selectedImage, setSelectedImage] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [requiredText,setRequiredText] = useState("")
   const dialogRef = useRef(null);
 
   useEffect(() => {
@@ -34,29 +35,64 @@ const ModalMyMission = ({
     }
   }, []);
 
+  // useEffect(() => {
+  //   let scanner = null;
+  //   if (isScannerActive) {
+  //     scanner = new Html5QrcodeScanner(
+  //       "reader",
+  //       { fps: 10, qrbox: 250 },
+  //       false
+  //     );
+
+  //     scanner.render(
+  //       (decodedText) => {
+  //         setQrCode(decodedText);
+  //         setIsScannerActive(false); // Stop scanner after successful scan
+  //       },
+  //       (errorMessage) => {
+  //         console.error("QR Code Error:", errorMessage);
+  //       }
+  //     );
+  //   }
+
+  //   return () => {
+  //     if (scanner) {
+  //       scanner.clear().catch((err) => console.error("Error clearing scanner:", err));
+  //     }
+  //   };
+  // }, [isScannerActive]);
   useEffect(() => {
     let scanner = null;
     if (isScannerActive) {
-      scanner = new Html5QrcodeScanner(
-        "reader",
-        { fps: 10, qrbox: 250 },
-        false
-      );
-
-      scanner.render(
-        (decodedText) => {
-          setQrCode(decodedText);
-          setIsScannerActive(false); // Stop scanner after successful scan
-        },
-        (errorMessage) => {
-          console.error("QR Code Error:", errorMessage);
-        }
-      );
+      Html5Qrcode.getCameras()
+        .then((devices) => {
+          if (devices.length > 0) {
+            // ค้นหากล้องที่มีชื่อ "back" หรือใช้กล้องตัวแรก
+            const primaryCamera = devices.find((device) => device.label.toLowerCase().includes("back")) || devices[0];
+  
+            scanner = new Html5Qrcode("reader");
+            scanner.start(
+              primaryCamera.id, // ใช้กล้องหลัก
+              { fps: 10, qrbox: 250 },
+              (decodedText) => {
+                setQrCode(decodedText);
+                setIsScannerActive(false);
+                scanner.stop().catch((err) => console.error("Error stopping scanner:", err));
+              },
+              (errorMessage) => {
+                console.error("QR Code Error:", errorMessage);
+              }
+            );
+          } else {
+            console.error("No cameras found.");
+          }
+        })
+        .catch((err) => console.error("Camera access error:", err));
     }
-
+  
     return () => {
       if (scanner) {
-        scanner.clear().catch((err) => console.error("Error clearing scanner:", err));
+        scanner.stop().catch((err) => console.error("Error stopping scanner:", err));
       }
     };
   }, [isScannerActive]);
@@ -91,7 +127,9 @@ const ModalMyMission = ({
   };
 
   const handleImageSubmit = async () => {
-    if (imageFiles.length === 0) return;
+    if (imageFiles.length === 0){
+      setRequiredText('Please Select Image')
+    };
 
     setIsSubmitting(true); // Set submitting state to true
     try {
@@ -160,7 +198,8 @@ const ModalMyMission = ({
         <div className="mb-5">
           <div className="flex flex-col">
             <h3 className="text-xl">Mission: {mission?.mission_Name}</h3>
-            <p>Status: {mission?.verification_Status}</p>
+            <p className="w-full max-h-32 overflow-auto break-words whitespace-pre-line">
+            <strong>Description: </strong>{mission?.description}</p>
           </div>
         </div>
         {missionType === "QR" ? (
@@ -233,7 +272,7 @@ const ModalMyMission = ({
                 id="inputText"
                 value={inputText}
                 onChange={(e) => setInputText(e.target.value)}
-                className="textarea textarea-warning w-full mt-2 bg-bg border-layer-item rounded-badge focus:border-heavy-color"
+                className="textarea textarea-warning w-full mt-2 bg-bg border-layer-item rounded-2xl focus:border-heavy-color"
                 required
                 maxLength={255}
               />
@@ -259,7 +298,6 @@ const ModalMyMission = ({
             </div>
           </form>
         )}
-
 
         {modalError && <p className="text-red-500 mt-2">{modalError}</p>}
         {modalSuccess && <p className="text-green-500 mt-2">{modalSuccess}</p>}
@@ -302,6 +340,7 @@ const ModalMyMission = ({
                     ? handleTextSubmit  // เรียกใช้ handleTextSubmit สำหรับ missionType เป็น "Text"
                     : handleMissionCodeSubmit
             }
+            disabled={isSubmitting}
             className="btn rounded-badge btn-success text-white"
             // disabled={
             //   isSubmitting || // ถ้ากำลังส่งข้อมูลจะไม่สามารถกดได้

@@ -1,11 +1,16 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import useFetchData from '../APIManage/useFetchData';
 import { useAuth } from '../APIManage/AuthContext';
 
 function MyReward() {
     const { user } = useAuth();
-    const { userReward = [], error, isLoading } = useFetchData(user?.token || '');
+    const { userReward = [], error, isLoading,fetchUserRewards } = useFetchData(user?.token || '');
     const [expandedIndex, setExpandedIndex] = useState(null);
+    useEffect(() => {
+                if (user?.token) {
+                    fetchUserRewards();
+                }
+            }, [user?.token, fetchUserRewards]);
 
     const getStepClasses = (status, step) => {
         const statusMap = {
@@ -34,7 +39,7 @@ function MyReward() {
             ) : error ? (
                 <p className="text-red-500">Error: {error.message || 'An error occurred'}</p>
             ) : userReward.length === 0 ? (
-                <p>No rewards found</p>
+                <p className='text-center'>No rewards found</p>
             ) : (
                 <div className="p-2 bg-layer-background rounded-xl w-full mb-16">
                     <div className="flex flex-col gap-4">

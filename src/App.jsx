@@ -1,6 +1,6 @@
 // src/App.js
 import React, { Suspense, lazy } from 'react';
-import { Routes, Route, useLocation } from 'react-router-dom';
+import { Routes, Route, useLocation,Navigate  } from 'react-router-dom';
 import Sidebar from './Components/Sidebar';
 import Header from './Components/Header';
 import LandingPage from './Components/Login';
@@ -34,22 +34,21 @@ const MyReward = lazy(()=>import('./Components/Reward/MyReward'))
 const AdminUserReward = lazy(()=>import('./Components/Admin/Admin_User_Reward'))
 const TabReward = lazy(()=>import('./Components/Reward_Tab'))
 const AllUser = lazy(()=>import('./Components/Admin/Admin_All_User'))
+const Register = lazy(()=>import('./Components/Register'))
 
 function App() {
   const location = useLocation(); // Get the current route
 
   // Render Sidebar and Header conditionally
-  const isHeaderVisible = location.pathname !== '/' && location.pathname !== '/';
-  const isSidebarVisible = location.pathname !== '/';
+  const isAuthPage = location.pathname === '/' || location.pathname === '/register';
+const isHeaderVisible = !isAuthPage;
+const isSidebarVisible = !isAuthPage;
 
-  // Determine layout styles based on route
-  const layoutStyles = location.pathname === '/'
-    ? '' // No margin for LandingPage
-    : 'min-h-screen bg-layer-background mt-16 sm:ml-64';
+// Determine layout styles based on route
+const layoutStyles = isAuthPage ? '' : 'min-h-screen bg-layer-background mt-16 sm:ml-64';
+const loginlayout = isAuthPage ? '' : 'p-1';
+const pdlayout = isAuthPage ? '' : 'flex flex-col lg:flex-row justify-center items-center bg-layer-background p-2';
 
-  const loginlayout = location.pathname === '/' ? '' : 'p-1';
-  const pdlayout = location.pathname === '/' ? ""
-    : "flex flex-col lg:flex-row justify-center items-center bg-layer-background p-2";
 
   return (
     <div className="flex">
@@ -85,6 +84,8 @@ function App() {
                     <Route path="/qr" element={<PrivateRoute><QRCode /></PrivateRoute>} />
                     <Route path="/order" element={<PrivateRoute><Order /></PrivateRoute>} />
                     <Route path="/mymission" element={<PrivateRoute><MyMission /></PrivateRoute>} />
+                    <Route path='/rewardtab' element={<PrivateRoute><TabReward/></PrivateRoute>}/>
+                    
                     <Route path='/admin' element={<PrivateRoute><Admin/></PrivateRoute>}/>
                     <Route path='/admin_list' element={<PrivateRoute><AdminList/></PrivateRoute>}/>
                     <Route path='/getmission' element={<PrivateRoute><AdminMission/></PrivateRoute>}/>
@@ -92,9 +93,10 @@ function App() {
                     <Route path='/adminreward' element={<PrivateRoute><AdminReward/></PrivateRoute>}/>
                     <Route path='/myreward' element={<PrivateRoute><MyReward/></PrivateRoute>}/>
                     <Route path='/admingetreward' element={<PrivateRoute><AdminUserReward/></PrivateRoute>}/>
-                    <Route path='/rewardtab' element={<PrivateRoute><TabReward/></PrivateRoute>}/>
                     <Route path='/alluser' element={<PrivateRoute><AllUser/></PrivateRoute>}/>
-                    <Route path='/test' element={<Test/>}/>
+                    {/* <Route path='/register' element={<Register/>}/>
+                    <Route path='/test' element={<Test/>}/> */}
+                    <Route path="*" element={<Navigate to="/" />} />
 
                   </Routes>
                 </Suspense>

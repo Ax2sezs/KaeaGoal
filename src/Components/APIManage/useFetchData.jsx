@@ -13,268 +13,45 @@ const useFetchData = (token) => {
   const [ApproveQR, setApproveQR] = useState([]);
   const [adminUserMissions, setAdminUserMissions] = useState([]);
   const [ApprovePhoto, setApprovePhoto] = useState([]);
-  const [ApproveText, setApproveText] = useState([])
+  const [ApproveText, setApproveText] = useState([]);
   const [Reward, setReward] = useState([]);
   const [adminReward, setAdminReward] = useState([]);
   const [userReward, setUserReward] = useState([]);
   const [leaderboard, setLeaderboard] = useState([]);
+  const [toptenLeaderboard,setToptenLeaderboard] =useState([])
+  const [myranking,setMyranking] = useState([])
   const [history, setHistory] = useState([]);
+  const [filteredUserDetail, setFilteredUserDetail] = useState([])
   const [success, setSuccess] = useState('');
   const [error, setError] = useState('');
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
 
   const navigate = useNavigate();
 
-  // Fetch data function
-  const fetchData = useCallback(async () => {
+  const fetchUserDetails = useCallback(async () => {
     if (!token) {
       setError('Token is missing or invalid');
-      setIsLoading(false);
       return;
     }
 
     try {
       setIsLoading(true);
-
-      // Fetch user details
       const userResponse = await api.get('/Auth/me', {
         headers: { Authorization: `Bearer ${token}` },
       });
-      // console.log('Fetched user data:', userResponse.data);
       const { a_USER_ID, logoN_NAME } = userResponse.data;
 
-      // Store data in localStorage
       if (a_USER_ID && logoN_NAME) {
         localStorage.setItem('a_USER_ID', a_USER_ID);
         localStorage.setItem('logoN_NAME', logoN_NAME);
       }
 
       setUserDetails(userResponse.data);
-
-      // Fetch coin details
-      const coinResponse = await api.get('/Coin/Coin-Balance', {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      setCoinDetails(coinResponse.data);
-      try {
-        const missionResponse = await api.get('/Mission/Get-All-Mission', {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        setAllMission(missionResponse.data || []);
-      } catch (err) {
-        if (err.response?.status === 404) {
-          console.warn('No missions available.');
-          setAllMission([]); // Treat 404 as no data
-        } else {
-          throw err; // Rethrow other errors
-        }
-      }
-      try {
-        const userResponse = await api.get('/Auth/Get-All-User', {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        setAlluserDetail(userResponse.data || []);
-      } catch (err) {
-        if (err.response?.status === 404) {
-          console.warn('No missions available.');
-          setAlluserDetail([]); // Treat 404 as no data
-        } else {
-          throw err; // Rethrow other errors
-        }
-      }
-
-      // Fetch missions
-      try {
-        setIsLoading(true);
-        const missionResponse = await api.get('/Mission/Get-Unaccepted-Mission', {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        setMissions(missionResponse.data || []);
-      } catch (err) {
-        if (err.response?.status === 404) {
-          console.warn('No unaccepted missions available.');
-          setMissions([]); // Treat 404 as no data
-        } else {
-          throw err; // Rethrow other errors
-        }
-      }
-
-      try {
-        // Attempt to fetch user missions
-        const userMissions = await api.get('/Mission/User-Mission', {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        setUserMission(userMissions.data || []);
-      } catch (err) {
-        // Handle 404 or other errors gracefully
-        if (err.response?.status === 404) {
-          console.warn('User missions endpoint not found.');
-          setUserMission([]); // Set empty user missions
-        } else {
-          throw err; // Rethrow other errors
-        }
-      }
-
-      try {
-        // Attempt to fetch user missions
-        const completeMissions = await api.get('/Mission/Get-Completed-Mission', {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        setCompleteMission(completeMissions.data || []);
-      } catch (err) {
-        // Handle 404 or other errors gracefully
-        if (err.response?.status === 404) {
-          console.warn('User missions endpoint not found.');
-          setCompleteMission([]); // Set empty user missions
-        } else {
-          throw err; // Rethrow other errors
-        }
-      }
-      try {
-        const ApproveQR = await api.get('Mission/Get-Approve-QRCode-Mission', {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        setApproveQR(ApproveQR.data || []);
-      } catch (err) {
-        if (err.response?.status === 403) {
-          console.warn('Access forbidden for this user. Skipping error.');
-          setApproveQR([]); // Gracefully handle the case by setting a default state
-        } else if (err.response?.status === 404) {
-          console.warn('Mission not found.');
-          setApproveQR([]);
-        } else {
-          throw err; // Rethrow unexpected errors
-        }
-      }
-      try {
-        const ApprovePhoto = await api.get('Mission/Get-All-Approve-Photo-Mission', {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        setApprovePhoto(ApprovePhoto.data || []);
-      } catch (err) {
-        if (err.response?.status === 403) {
-          console.warn('Access forbidden for this user. Skipping error.');
-          setApprovePhoto([]); // Gracefully handle the case by setting a default state
-        } else if (err.response?.status === 404) {
-          console.warn('Mission not found.');
-          setApprovePhoto([]);
-        } else {
-          throw err; // Rethrow unexpected errors
-        }
-      }
-      try {
-        const ApproveText = await api.get('Mission/Get-All-Approve-Text-Mission', {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-
-        setApproveText(ApproveText.data || [])
-      } catch (err) {
-        if (err.response?.status === 403) {
-          console.warn('Access forbidden for this user. Skipping error.');
-          setApproveText([]); // Gracefully handle the case by setting a default state
-        } else if (err.response?.status === 404) {
-          console.warn('Mission not found.');
-          setApproveText([]);
-        } else {
-          throw err; // Rethrow unexpected errors
-        }
-      }
-      try {
-        const adminUserMissions = await api.get('Mission/Admin-Get-User-Mission', {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        setAdminUserMissions(adminUserMissions.data || []);
-      } catch (err) {
-        if (err.response?.status === 403) {
-          console.warn('Access forbidden for this user. Skipping error.');
-          setAdminUserMissions([]); // Gracefully handle the case by setting a default state
-        } else if (err.response?.status === 404) {
-          console.warn('Mission not found.');
-          setAdminUserMissions([]);
-        } else {
-          throw err; // Rethrow unexpected errors
-        }
-      }
-      try {
-        const rewardResponse = await api.get('/Reward/Get-All-Reward', {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        setReward(rewardResponse.data || []); // Safely handle empty or undefined response data
-      } catch (err) {
-        if (err.response?.status === 404) {
-          console.warn('No missions available.');
-          setReward([]); // Treat 404 as no data
-        } else {
-          console.error('An unexpected error occurred:', err); // Log the error for debugging
-          setReward([]); // Optionally, you can set the reward to an empty array here
-        }
-      }
-      try {
-        const responseReward = await api.get('/Reward/Admin-Get-All-User-Reward', {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        setAdminReward(responseReward.data || []); // Safely handle empty or undefined response data
-      } catch (err) {
-        if (err.response?.status === 404) {
-          console.warn('No reward available.');
-          setAdminReward([]); // Treat 404 as no data
-        } else {
-          console.error('An unexpected error occurred:', err); // Log the error for debugging
-          setAdminReward([]); // Optionally, you can set the reward to an empty array here
-        }
-      }
-      try {
-        const responseReward = await api.get('/Reward/Get-User-Reward', {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        setUserReward(responseReward.data || []); // Safely handle empty or undefined response data
-      } catch (err) {
-        if (err.response?.status === 404) {
-          console.warn('No reward available.');
-          setUserReward([]); // Treat 404 as no data
-        } else {
-          console.error('An unexpected error occurred:', err); // Log the error for debugging
-          setUserReward([]); // Optionally, you can set the reward to an empty array here
-        }
-      }
-
-      try {
-        const responseLeader = await api.get('Leaderboard/Get-Current-Leaderboard', {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        setLeaderboard(responseLeader.data || []); // Safely handle empty or undefined response data
-      } catch (err) {
-        if (err.response?.status === 404) {
-          console.warn('No reward available.');
-          setLeaderboard([]); // Treat 404 as no data
-        } else {
-          console.error('An unexpected error occurred:', err); // Log the error for debugging
-          setLeaderboard([]); // Optionally, you can set the reward to an empty array here
-        }
-      }
-      try {
-        // Fetch Transaction History
-        const responseHistory = await api.get('Coin/Recent-Transaction', {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        setHistory(responseHistory.data || []);
-      } catch (err) {
-        if (err.response?.status === 404) {
-          console.warn('No history available.');
-          setHistory([]); // Treat 404 as no data
-        } else {
-          console.error('An unexpected error occurred:', err);
-          setHistory([]); // Optionally set empty array on error
-        }
-      }
-
-
-      setSuccess('Data fetched successfully!');
+      setSuccess('User details fetched successfully!');
     } catch (err) {
-      setError('Failed to fetch data');
+      setError('Failed to fetch user details');
       console.error('API Error:', err.response?.data || err);
 
-      // Redirect to login on token failure
       if (err.response?.status === 401) {
         localStorage.clear();
         navigate('/');
@@ -284,49 +61,493 @@ const useFetchData = (token) => {
     }
   }, [token, navigate]);
 
-  // Initial fetch
-  useEffect(() => {
-    fetchData();
-  }, [fetchData]);
+  const fetchCoinDetails = useCallback(async () => {
+    if (!token) {
+      setError('Token is missing or invalid');
+      return;
+    }
 
-  // Refetch function
-  const refetch = useCallback(() => {
-    setIsLoading(true);
-    fetchData();
-  }, [fetchData]);
+    try {
+      setIsLoading(true);
+      const coinResponse = await api.get('/Coin/Coin-Balance', {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setCoinDetails(coinResponse.data);
+      setSuccess('Coin details fetched successfully!');
+    } catch (err) {
+      setError('Failed to fetch coin details');
+      console.error('API Error:', err.response?.data || err);
 
+      if (err.response?.status === 401) {
+        localStorage.clear();
+        navigate('/');
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  }, [token, navigate]);
+
+  const fetchAllMissions = useCallback(async () => {
+    if (!token) {
+      setError('Token is missing or invalid');
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+      const missionResponse = await api.get('/Mission/Get-All-Mission', {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setAllMission(missionResponse.data || []);
+      setSuccess('All missions fetched successfully!');
+    } catch (err) {
+      if (err.response?.status === 404) {
+        console.warn('No missions available.');
+        setAllMission([]);
+      } else {
+        setError('Failed to fetch all missions');
+        console.error('API Error:', err.response?.data || err);
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  }, [token]);
+
+  const fetchAllUserDetails = useCallback(async () => {
+    if (!token) {
+      setError('Token is missing or invalid');
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+      const userResponse = await api.get('/Auth/Get-All-User', {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setAlluserDetail(userResponse.data || []);
+      setSuccess('All user details fetched successfully!');
+    } catch (err) {
+      if (err.response?.status === 404) {
+        console.warn('No users available.');
+        setAlluserDetail([]);
+      } else {
+        setError('Failed to fetch all user details');
+        console.error('API Error:', err.response?.data || err);
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  }, [token]);
+
+  const fetchMissions = useCallback(async () => {
+    if (!token) {
+      setError('Token is missing or invalid');
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+      const missionResponse = await api.get('/Mission/Get-Unaccepted-Mission', {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setMissions(missionResponse.data || []);
+      setSuccess('Missions fetched successfully!');
+    } catch (err) {
+      if (err.response?.status === 404) {
+        console.warn('No unaccepted missions available.');
+        setMissions([]);
+      } else {
+        setError('Failed to fetch missions');
+        console.error('API Error:', err.response?.data || err);
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  }, [token]);
+
+  const fetchUserMissions = useCallback(async () => {
+    if (!token) {
+      setError('Token is missing or invalid');
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+      const userMissions = await api.get('/Mission/User-Mission', {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setUserMission(userMissions.data || []);
+      setSuccess('User missions fetched successfully!');
+    } catch (err) {
+      if (err.response?.status === 404) {
+        console.warn('User missions endpoint not found.');
+        setUserMission([]);
+      } else {
+        setError('Failed to fetch user missions');
+        console.error('API Error:', err.response?.data || err);
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  }, [token]);
+
+  const fetchCompleteMissions = useCallback(async () => {
+    if (!token) {
+      setError('Token is missing or invalid');
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+      const completeMissions = await api.get('/Mission/Get-Completed-Mission', {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setCompleteMission(completeMissions.data || []);
+      setSuccess('Complete missions fetched successfully!');
+    } catch (err) {
+      if (err.response?.status === 404) {
+        console.warn('No completed missions available.');
+        setCompleteMission([]);
+      } else {
+        setError('Failed to fetch complete missions');
+        console.error('API Error:', err.response?.data || err);
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  }, [token]);
+
+  const fetchApproveQR = useCallback(async () => {
+    if (!token) {
+      setError('Token is missing or invalid');
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+      const ApproveQR = await api.get('Mission/Get-Approve-QRCode-Mission', {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setApproveQR(ApproveQR.data || []);
+      setSuccess('Approve QR missions fetched successfully!');
+    } catch (err) {
+      if (err.response?.status === 403) {
+        console.warn('Access forbidden for this user. Skipping error.');
+        setApproveQR([]);
+      } else if (err.response?.status === 404) {
+        console.warn('Mission not found.');
+        setApproveQR([]);
+      } else {
+        setError('Failed to fetch approve QR missions');
+        console.error('API Error:', err.response?.data || err);
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  }, [token]);
+
+  const fetchApprovePhoto = useCallback(async () => {
+    if (!token) {
+      setError('Token is missing or invalid');
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+      const ApprovePhoto = await api.get('Mission/Get-All-Approve-Photo-Mission', {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setApprovePhoto(ApprovePhoto.data || []);
+      setSuccess('Approve photo missions fetched successfully!');
+    } catch (err) {
+      if (err.response?.status === 403) {
+        console.warn('Access forbidden for this user. Skipping error.');
+        setApprovePhoto([]);
+      } else if (err.response?.status === 404) {
+        console.warn('Mission not found.');
+        setApprovePhoto([]);
+      } else {
+        setError('Failed to fetch approve photo missions');
+        console.error('API Error:', err.response?.data || err);
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  }, [token]);
+
+  const fetchApproveText = useCallback(async () => {
+    if (!token) {
+      setError('Token is missing or invalid');
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+      const ApproveText = await api.get('Mission/Get-All-Approve-Text-Mission', {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setApproveText(ApproveText.data || []);
+      setSuccess('Approve text missions fetched successfully!');
+    } catch (err) {
+      if (err.response?.status === 403) {
+        console.warn('Access forbidden for this user. Skipping error.');
+        setApproveText([]);
+      } else if (err.response?.status === 404) {
+        console.warn('Mission not found.');
+        setApproveText([]);
+      } else {
+        setError('Failed to fetch approve text missions');
+        console.error('API Error:', err.response?.data || err);
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  }, [token]);
+
+  const fetchAdminUserMissions = useCallback(async () => {
+    if (!token) {
+      setError('Token is missing or invalid');
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+      const adminUserMissions = await api.get('Mission/Admin-Get-User-Mission', {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setAdminUserMissions(adminUserMissions.data || []);
+      setSuccess('Admin user missions fetched successfully!');
+    } catch (err) {
+      if (err.response?.status === 403) {
+        console.warn('Access forbidden for this user. Skipping error.');
+        setAdminUserMissions([]);
+      } else if (err.response?.status === 404) {
+        console.warn('Mission not found.');
+        setAdminUserMissions([]);
+      } else {
+        setError('Failed to fetch admin user missions');
+        console.error('API Error:', err.response?.data || err);
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  }, [token]);
+
+  const fetchRewards = useCallback(async () => {
+    if (!token) {
+      setError('Token is missing or invalid');
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+      const rewardResponse = await api.get('/Reward/Get-All-Reward', {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setReward(rewardResponse.data || []);
+      setSuccess('Rewards fetched successfully!');
+    } catch (err) {
+      if (err.response?.status === 404) {
+        console.warn('No rewards available.');
+        setReward([]);
+      } else {
+        setError('Failed to fetch rewards');
+        console.error('API Error:', err.response?.data || err);
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  }, [token]);
+
+  const fetchAdminRewards = useCallback(async () => {
+    if (!token) {
+      setError('Token is missing or invalid');
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+      const responseReward = await api.get('/Reward/Admin-Get-All-User-Reward', {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setAdminReward(responseReward.data || []);
+      setSuccess('Admin rewards fetched successfully!');
+    } catch (err) {
+      if (err.response?.status === 404) {
+        console.warn('No rewards available.');
+        setAdminReward([]);
+      } else {
+        setError('Failed to fetch admin rewards');
+        console.error('API Error:', err.response?.data || err);
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  }, [token]);
+
+  const fetchUserRewards = useCallback(async () => {
+    if (!token) {
+      setError('Token is missing or invalid');
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+      const responseReward = await api.get('/Reward/Get-User-Reward', {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setUserReward(responseReward.data || []);
+      setSuccess('User rewards fetched successfully!');
+    } catch (err) {
+      if (err.response?.status === 404) {
+        console.warn('No rewards available.');
+        setUserReward([]);
+      } else {
+        setError('Failed to fetch user rewards');
+        console.error('API Error:', err.response?.data || err);
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  }, [token]);
+
+  const fetchLeaderboard = useCallback(async () => {
+    if (!token) {
+      setError('Token is missing or invalid');
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+      const responseLeader = await api.get('Leaderboard/Get-Current-Leaderboard', {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setLeaderboard(responseLeader.data || []);
+      setSuccess('Leaderboard fetched successfully!');
+    } catch (err) {
+      if (err.response?.status === 404) {
+        console.warn('No leaderboard available.');
+        setLeaderboard([]);
+      } else {
+        setError('Failed to fetch leaderboard');
+        console.error('API Error:', err.response?.data || err);
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  }, [token]);
+
+  const fetchToptenLeaderboard = useCallback(async () => {
+    if (!token) {
+      setError('Token is missing or invalid');
+      return;
+    }
+    try {
+      setIsLoading(true);
+      const responseLeader = await api.get('Leaderboard/top10', {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setToptenLeaderboard(responseLeader.data || []);
+      setSuccess('Leaderboard fetched successfully!');
+    } catch (err) {
+      if (err.response?.status === 404) {
+        console.warn('No leaderboard available.');
+        setToptenLeaderboard([]);
+      } else {
+        setError('Failed to fetch leaderboard');
+        console.error('API Error:', err.response?.data || err);
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  }, [token]);
+  const fetchMyLeaderboard = useCallback(async () => {
+    if (!token) {
+      setError('Token is missing or invalid');
+      return;
+    }
+    try {
+      setIsLoading(true);
+      const responseLeader = await api.get('Leaderboard/ranking/me', {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setMyranking(responseLeader.data || []);
+      setSuccess('Leaderboard fetched successfully!');
+    } catch (err) {
+      if (err.response?.status === 404) {
+        console.warn('No leaderboard available.');
+        setMyranking([]);
+      } else {
+        setError('Failed to fetch leaderboard');
+        console.error('API Error:', err.response?.data || err);
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  }, [token]);
+
+  const fetchHistory = useCallback(async () => {
+    if (!token) {
+      setError('Token is missing or invalid');
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+      const responseHistory = await api.get('Coin/Recent-Transaction', {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setHistory(responseHistory.data || []);
+      setSuccess('History fetched successfully!');
+    } catch (err) {
+      if (err.response?.status === 404) {
+        console.warn('No history available.');
+        setHistory([]);
+      } else {
+        setError('Failed to fetch history');
+        console.error('API Error:', err.response?.data || err);
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  }, [token]);
 
   const login = async (logoN_NAME, useR_PASSWORD) => {
     try {
       setIsLoading(true);
       setError('');
       setSuccess('');
-
+  
       // ส่งข้อมูล login ไปที่ API
       const response = await api.post('/Auth/login', { logoN_NAME, useR_PASSWORD });
-
-      // ดึง token, a_USER_ID, และ logoN_NAME จาก response
-      const { token: { accessToken: token }, a_USER_ID, logoN_NAME: fetchedUserName } = response.data;
-
-      // เก็บ token และข้อมูลผู้ใช้ใน localStorage
+  
+      // ดึง token จาก response
+      const { token: { accessToken: token } } = response.data;
+  
+      // เก็บ token ใน localStorage
       localStorage.setItem('token', token);
+  
+      // ดึงข้อมูลผู้ใช้เพิ่มเติมจาก API /Auth/me (ใช้ token)
+      const userResponse = await api.get('/Auth/me', {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+  
+      // ดึง a_USER_ID และ logoN_NAME จากการตอบกลับของ /Auth/me
+      const { a_USER_ID, logoN_NAME: fetchedUserName } = userResponse.data;
+  
+      // เก็บข้อมูลผู้ใช้ใน localStorage
       localStorage.setItem('a_USER_ID', a_USER_ID);
       localStorage.setItem('logoN_NAME', fetchedUserName);
-
-      // อัปเดตข้อมูลผู้ใช้ใน state
-      setUserDetails({ a_USER_ID, logoN_NAME: fetchedUserName });
+        setUserDetails(userResponse.data);
+  
+      // แสดง Success Message และนำทางไปหน้า Home
       setSuccess('Login successful!');
-
-      // แสดง Loading หรือ Logo ก่อนที่จะไปหน้า Home
-      setIsLoading(true); // Set isLoading to true for loading screen
-
-      // Add a small delay to show loading
       setTimeout(() => {
         // นำทางไปหน้า Home
         navigate('/home');
         window.location.reload();  // Refresh หน้าเมื่อ Login สำเร็จ
       }); // Delay of 1.5 seconds (adjust as needed)
-
+  
       return response.data; // คืนค่าข้อมูลเพื่อใช้งานต่อ
     } catch (err) {
       setError(
@@ -338,6 +559,7 @@ const useFetchData = (token) => {
       setIsLoading(false); // Set loading state to false after the process is finished
     }
   };
+  
 
   const acceptMission = async (missionId, userId) => {
     if (!missionId || !userId) {
@@ -841,6 +1063,39 @@ const useFetchData = (token) => {
     }
   };
 
+  const addThankCoin = async (userId, amount, description) => {
+    try {
+      console.log("User ID:", userId);
+      console.log("Coin Amount:", amount);
+      console.log("Description:", description);
+
+      const response = await api.post(
+        `/Coin/Add-THANKCoin`, // URL ของ API
+        {
+          userId: userId, // ส่ง userId
+          amount: amount, // ส่ง amount
+          description: description, // ส่ง description
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`, // Token สำหรับการยืนยันตัวตน
+            "Content-Type": "application/json", // ใช้ Content-Type เป็น JSON
+          },
+        }
+      );
+
+      console.log("Thanks Coin Reward Added Successfully:", response.data);
+      setSuccess("Thanks Coin Given Successfully");
+      setError(null);
+      return response.data;
+    } catch (err) {
+      console.error("Error giving thanks coin:", err);
+      setError("Failed to give thanks coin");
+      throw err;
+    }
+  };
+
+
   const rewardStatus = async (useR_REWARD_ID, status) => {
     try {
       // Log the payload for debugging
@@ -995,7 +1250,7 @@ const useFetchData = (token) => {
       );
 
       console.log("API Response:", response.data);
-      setSuccess("Password changed successfully!");
+      setSuccess(response.data);
       return response.data; // Return API response
     } catch (err) {
       console.error("Error changing password:", err);
@@ -1038,6 +1293,40 @@ const useFetchData = (token) => {
     }
   };
 
+  const fetchFilteredUsers = useCallback(async (filterData) => {
+    if (!token) {
+      setError('Token is missing or invalid');
+      return;
+    }
+     // ตรวจสอบว่า filterData มี pageNumber และ pageSize
+  if (!filterData.pageNumber || filterData.pageNumber <= 0) {
+    filterData.pageNumber = 1;  // ถ้าไม่มีหรือค่าไม่ถูกต้อง ตั้งค่าเป็น 1
+  }
+
+  if (!filterData.pageSize || filterData.pageSize <= 0) {
+    filterData.pageSize = 10;  // ถ้าไม่มีหรือค่าไม่ถูกต้อง ตั้งค่าเป็น 10
+  }
+
+    try {
+      setIsLoading(true);
+      const response = await api.post('/Auth/get-filter-user', filterData, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      setFilteredUserDetail(response.data || []); // เก็บข้อมูลผู้ใช้ที่กรองแล้ว
+      setSuccess('Filtered user details fetched successfully!');
+    } catch (err) {
+      if (err.response?.status === 404) {
+        console.warn('No matching users found.');
+        setFilteredUserDetail([]); // ถ้าไม่พบผู้ใช้
+      } else {
+        setError('Failed to fetch filtered user details');
+        console.error('API Error:', err.response?.data || err);
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  }, [token]);
 
   return {
     userDetails,
@@ -1062,10 +1351,12 @@ const useFetchData = (token) => {
     convertCoin,
     approvePhoto,
     giveCoin,
+    addThankCoin,
     createReward,
     acceptReward,
     rewardStatus,
-    refetch,
+    fetchFilteredUsers,
+    // refetch,
     editProfileImg,
     editDisplayName,
     editUserDetail,
@@ -1083,7 +1374,28 @@ const useFetchData = (token) => {
     adminReward,
     userReward,
     leaderboard,
+    toptenLeaderboard,
+    myranking,
     history,
+    fetchUserDetails,
+    fetchCoinDetails,
+    fetchAllMissions,
+    fetchAllUserDetails,
+    fetchMissions,
+    fetchUserMissions,
+    fetchCompleteMissions,
+    fetchApproveQR,
+    fetchApprovePhoto,
+    fetchApproveText,
+    fetchAdminUserMissions,
+    fetchRewards,
+    fetchAdminRewards,
+    fetchUserRewards,
+    fetchLeaderboard,
+    fetchHistory,
+    filteredUserDetail,
+    fetchToptenLeaderboard,
+    fetchMyLeaderboard,
 
   };
 };

@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import useFetchData from '../APIManage/useFetchData';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../APIManage/AuthContext';
 import CheckIcon from '@mui/icons-material/Check';
 import CloseOutlinedIcon from '@mui/icons-material/CloseOutlined';
 import ExpandMoreOutlinedIcon from '@mui/icons-material/ExpandMoreOutlined';
@@ -9,18 +10,27 @@ import ChevronRightOutlinedIcon from '@mui/icons-material/ChevronRightOutlined';
 const Convert = () => {
   const [thankCoinAmount, setThankCoinAmount] = useState(0);
   const [kaeaCoinAmount, setKaeaCoinAmount] = useState(0);
-  const [currentThankCoinBalance, setCurrentThankCoinBalance] = useState(0); // เก็บค่าจำนวนเหรียญที่แสดง
+  const [currentThankCoinBalance, setCurrentThankCoinBalance] = useState(0);
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
-  const { coinDetails, convertCoin, error, isLoading,refetch} = useFetchData(localStorage.getItem('token'));
+
+  const { user } = useAuth();
+  const { coinDetails, convertCoin, error, isLoading, fetchCoinDetails } = useFetchData(user?.token);
   const navigate = useNavigate();
 
   const confirmModalRef = useRef(null);
   const successModalRef = useRef(null);
-  const errorModalRef = useRef(null)
+  const errorModalRef = useRef(null);
+
+  // Refetch on token change
+  useEffect(() => {
+    if (user?.token) {
+      fetchCoinDetails();
+    }
+  }, [user?.token, fetchCoinDetails]);
 
   // ตรวจสอบว่า coinDetails พร้อมใช้งานหรือยัง
   useEffect(() => {
-    if (coinDetails) {
+    if (coinDetails && coinDetails.thankCoinConvert !== undefined) {
       setCurrentThankCoinBalance(coinDetails.thankCoinConvert);
     }
   }, [coinDetails]);
@@ -38,11 +48,9 @@ const Convert = () => {
     }
   };
 
-  const isDisabled = currentThankCoinBalance < 0; // ตรวจสอบว่าค่าที่ใส่มาเป็น 0 หรือติดลบ
-
+  const isDisabled = thankCoinAmount <= 0; // ตรวจสอบว่าค่าที่ใส่มาเป็น 0 หรือติดลบ
 
   const handleOpenConfirmModal = () => {
-
     confirmModalRef.current.showModal();
   };
 
@@ -51,8 +59,9 @@ const Convert = () => {
       await convertCoin(thankCoinAmount);
       confirmModalRef.current.close();
       setIsSuccessModalOpen(true);
-      setThankCoinAmount("")
-      refetch()
+      setThankCoinAmount("");
+      setKaeaCoinAmount(0);
+      fetchCoinDetails();
       setTimeout(() => {
         successModalRef.current.showModal();
       }, 500);
@@ -63,44 +72,69 @@ const Convert = () => {
   };
 
   const increaseCoinAmount = () => {
-    if (thankCoinAmount + 10 <= currentThankCoinBalance) {  // ตรวจสอบว่าไม่เกินจำนวนเหรียญที่มี
-      setThankCoinAmount((prevAmount) => prevAmount + 10);
-      setKaeaCoinAmount(calculateKaeaCoins(thankCoinAmount + 10));
-      setCurrentThankCoinBalance((prevBalance) => prevBalance - 10);
-    }
+    setThankCoinAmount((prevAmount = 0) => {
+      const maxAmount = coinDetails?.thankCoinConvert || 0;
+      const newAmount = prevAmount + 10;
+
+      if (newAmount <= maxAmount) {
+        setKaeaCoinAmount(calculateKaeaCoins(newAmount));
+        setCurrentThankCoinBalance((prevBalance) => maxAmount - newAmount);
+        return newAmount;
+      } else {
+        return prevAmount;
+      }
+    });
   };
 
   const decreaseCoinAmount = () => {
-    if (thankCoinAmount > 0) {  // ตรวจสอบว่าไม่ติดลบ
-      setThankCoinAmount((prevAmount) => prevAmount - 10);
-      setKaeaCoinAmount(calculateKaeaCoins(thankCoinAmount - 10));
-      setCurrentThankCoinBalance((prevBalance) => prevBalance + 10);
-    }
+    setThankCoinAmount((prevAmount = 0) => {
+      const maxAmount = coinDetails?.thankCoinConvert || 0;
+      const newAmount = prevAmount - 10;
+
+      if (newAmount >= 0) {
+        setKaeaCoinAmount(calculateKaeaCoins(newAmount));
+        setCurrentThankCoinBalance((prevBalance) => maxAmount - newAmount);
+        return newAmount;
+      } else {
+        return prevAmount;
+      }
+    });
   };
 
-
-  if (isLoading) {
-    return <div>Loading...</div>;  // หรือแสดง UI บอกว่ากำลังโหลด
+  if (isLoading || !coinDetails) {
+    return <div className="text-center text-gray-500"><span className="loading loading-dots loading-lg"></span></div>;
   }
 
   return (
     <div>
-      <div className="bg-bg w-full min-h-full rounded-2xl p-3 sm:p-10">
+      <div className="bg-bg w-full rounded-2xl p-3 sm:p-10">
         <div className="flex flex-col justify-center items-center gap-10">
-        <div className="flex flex-col">
-          <div className="flex flex-row justify-center items-center gap-2">
-            <p className="text-4xl text-green-500 font-bold">{coinDetails.thankCoinConvert}</p>
-            <img src="./2.png" className="w-10 h-10" />
+          <div className="flex flex-col">
+            <div className="flex flex-row justify-center items-center gap-2">
+              <p className="text-4xl text-green-500 font-bold">{coinDetails.thankCoinConvert}</p>
+              <img src="./2.png" className="w-10 h-10" />
+            </div>
+            <div className='flex flex-row gap-3 mt-5'>
+              <h1 className='text-red-500 text-lg font-bold'>*Ratio</h1>
+              <div className='flex flex-row gap-3'>
+                <h1 className='text-green-500 text-lg font-bold'>10</h1>
+                  <img src="./2.png" className='w-5 h-5' />
+              </div>
+              =
+              <div className='flex flex-row gap-3'>
+                <h1 className='text-yellow-500 text-lg font-bold'>1</h1>
+                <img src='./1.png' className='w-5 h-5'/>
+              </div>
+            </div>
           </div>
-        </div>
           <div className="flex flex-row items-center justify-between w-full gap-5">
-            <img src="src/assets/2.png" alt="Green Coin" className="w-16 h-16 sm:w-24 sm:h-24" />
-            <p className="text-xl sm:text-lg text-green-500 font-bold mt-3">{currentThankCoinBalance}</p> {/* ใช้สถานะ currentThankCoinBalance */}
+            <img src="./2.png" alt="Green Coin" className="w-16 h-16 sm:w-24 sm:h-24" />
+            <p className="text-xl sm:text-lg text-green-500 font-bold mt-3">{currentThankCoinBalance}</p>
             <p className="text-xl sm:text-lg text-green-500 font-bold mt-3">Thank Coin</p>
           </div>
           <div className="divider"><ExpandMoreOutlinedIcon /></div>
           <div className="flex flex-row items-center justify-between w-full">
-            <img src="src/assets/1.png" alt="Yellow Coin" className="w-16 h-16 sm:w-24 sm:h-24" />
+            <img src="./1.png" alt="Yellow Coin" className="w-16 h-16 sm:w-24 sm:h-24" />
             <p className="text-xl sm:text-lg text-yellow-500 font-bold mt-3">{kaeaCoinAmount}</p>
             <p className="text-xl sm:text-lg text-yellow-500 font-bold mt-3">Kaea Coin</p>
           </div>
@@ -122,16 +156,16 @@ const Convert = () => {
                 onChange={handleCoinAmountChange}
                 min="1"
                 required
-                placeholder="Enter Green Coins (ends with 0)"
+                readOnly
+                placeholder="Thanks Coin"
               />
               <button
                 className="btn bg-layer-item border-hidden w-16 rounded-badge text-white hover:bg-heavy-color disabled:opacity-50 disabled:cursor-not-allowed"
                 onClick={increaseCoinAmount}
-                disabled={thankCoinAmount + 10 > currentThankCoinBalance} // ปิดใช้งานถ้าจำนวนเหรียญติดลบ
+                disabled={thankCoinAmount + 10 > coinDetails.thankCoinConvert}
               >
                 +10
               </button>
-
             </div>
             <div className="flex justify-center">
               <button
@@ -183,7 +217,6 @@ const Convert = () => {
             >
               Cancel
             </button>
-
           </div>
         </div>
       </dialog>

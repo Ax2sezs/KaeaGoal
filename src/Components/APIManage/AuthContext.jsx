@@ -3,6 +3,7 @@ import React, { createContext, useState, useEffect } from 'react';
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
+  // กำหนด state user จากข้อมูลใน localStorage (ถ้ามี)
   const [user, setUser] = useState(() => {
     const token = localStorage.getItem('token');
     const a_USER_ID = localStorage.getItem('a_USER_ID');
@@ -14,6 +15,7 @@ export const AuthProvider = ({ children }) => {
       : null;
   });
 
+  // ฟังก์ชัน login
   const login = (token, a_USER_ID, logoN_NAME) => {
     localStorage.setItem('token', token);
     localStorage.setItem('a_USER_ID', a_USER_ID);  // Store a_USER_ID in localStorage
@@ -22,17 +24,32 @@ export const AuthProvider = ({ children }) => {
     console.log('User logged in:', { token, a_USER_ID, logoN_NAME });
   };
 
-  // Handle logout process and clearing data from localStorage
+  // ฟังก์ชัน logout
   const logout = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('a_USER_ID');  // Remove a_USER_ID from localStorage
     localStorage.removeItem('logoN_NAME');
     setUser(null);  // Clear user state
   };
+
+  // ตรวจสอบเมื่อข้อมูลใน localStorage หรือ state user เปลี่ยนแปลง
   useEffect(() => {
-    const userId = localStorage.getItem('a_USER_ID');
-    console.log('UserId from localStorage:', userId);  // Ensure the correct user ID is retrieved
-  }, []);
+    // โหลดข้อมูลจาก localStorage เมื่อ component ถูก mount
+    const token = localStorage.getItem('token');
+    const a_USER_ID = localStorage.getItem('a_USER_ID');
+    const logoN_NAME = localStorage.getItem('logoN_NAME');
+
+    if (token && a_USER_ID && logoN_NAME) {
+      setUser({ token, a_USER_ID, logoN_NAME });
+      console.log('User data loaded from localStorage inside useEffect:', { token, a_USER_ID, logoN_NAME });
+    }
+  }, []); // ใช้ empty dependency array เพื่อให้มันทำงานแค่ครั้งเดียวเมื่อ component mount
+
+  useEffect(() => {
+    if (user) {
+      console.log('User state has been updated:', user); // ตรวจสอบเมื่อ state user ถูกอัปเดต
+    }
+  }, [user]); // จะทำงานทุกครั้งที่ state user เปลี่ยนแปลง
 
   return (
     <AuthContext.Provider value={{ user, login, logout }}>

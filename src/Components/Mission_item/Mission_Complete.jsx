@@ -1,10 +1,15 @@
-import React, { useState } from 'react';
+import React, { useState,useEffect } from 'react';
 import useFetchData from '../APIManage/useFetchData';
 import { useAuth } from '../APIManage/AuthContext';
 
 function Coin({ isTableLayout }) {
   const { user } = useAuth();
-  const { completeMission = [], error, isLoading } = useFetchData(user?.token);
+  const { completeMission = [], error, isLoading, fetchCompleteMissions } = useFetchData(user?.token);
+  useEffect(() => {
+              if (user?.token) {
+                  fetchCompleteMissions();
+              }
+          }, [user?.token, fetchCompleteMissions]);
 
   if (isLoading) {
     return <div className="text-center text-gray-500">
@@ -44,7 +49,12 @@ function Coin({ isTableLayout }) {
                     <img src={mission.mission_Image[0]} className="w-full h-16 object-cover rounded-2xl md:h-32"
                     /></td>
                   <td className="px-4 py-2 truncate">{mission.mission_Name}</td>
-                  <td className="px-4 py-2 text-green-600 font-bold">Collected{mission.coin_Reward}</td>
+                  <td className="px-4 py-2 text-green-600 font-bold">
+                    <div className='flex justify-center gap-3'>
+                    {mission.coin_Reward}
+                    <img src='./1.png' className='w-5 h-5'/>
+                    </div>
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -52,9 +62,9 @@ function Coin({ isTableLayout }) {
         </div>
       ) : (
         // Grid Layout
-        <div className="grid grid-cols-2 gap-4 items-center p-0 h-auto rounded-xl md:grid-cols-2 lg:grid-cols-4">
+        <div className="grid grid-cols-1 gap-4 items-center p-0 h-auto rounded-xl md:grid-cols-2 lg:grid-cols-4">
           {completeMission.map((mission, index) => (
-            <div
+            <div 
               key={index}
               className="flex flex-col bg-bg shadow-xl rounded-2xl overflow-hidden sm:flex-col"
             >
@@ -82,7 +92,7 @@ function Coin({ isTableLayout }) {
                   <div>
                     <strong className="text-green-600">Collected {mission.coin_Reward}</strong>
                   </div>
-                  <div>
+                  <div className='ml-1'>
                     <img src="./1.png" alt="Coin Icon" className="w-6 h-6" />
                   </div>
                 </div>

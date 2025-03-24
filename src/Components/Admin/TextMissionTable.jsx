@@ -7,8 +7,14 @@ function TextMissionTable({ alluserDetail, allMission, ApproveText, approveText,
     const [coinAmount, setCoinAmount] = useState(10);
 
     useEffect(() => {
-        setFilteredMissions(ApproveText);
-    }, [ApproveText]);
+        if (selectedMissionName === "all") {
+            setFilteredMissions(ApproveText);
+        } else {
+            setFilteredMissions(ApproveText.filter(mission => mission.missioN_ID === selectedMissionName));
+        }
+    }, [selectedMissionName, ApproveText]); // ✅ ให้ filteredMissions อัปเดตทุกครั้งที่ selectedMissionName เปลี่ยน
+
+
 
     useEffect(() => {
         if (selectedMissionName !== "all" && Array.isArray(allMission)) {
@@ -19,10 +25,17 @@ function TextMissionTable({ alluserDetail, allMission, ApproveText, approveText,
         }
     }, [selectedMissionName, allMission]);  // ✅ ทำงานเมื่อเลือก Mission ใหม่
 
+    useEffect(() => {
+        const storedMissionId = localStorage.getItem("selectedMissionId");
+        if (storedMissionId) {
+            setSelectedMissionName(storedMissionId);
+        }
+    }, []);
 
     const handleMissionFilter = (e) => {
         const missionId = e.target.value;
         setSelectedMissionName(missionId);
+        localStorage.setItem("selectedMissionId", missionId);
 
         if (missionId === "all") {
             setFilteredMissions(ApproveText);
@@ -121,11 +134,11 @@ function TextMissionTable({ alluserDetail, allMission, ApproveText, approveText,
 
     return (
         <div className="">
-            <h2 className="text-2xl font-bold mb-6">Text Missions</h2>
+            <h2 className="text-2xl font-bold mb-6 text-button-text">Text Missions</h2>
 
             {/* Mission Filter Dropdown */}
             <div className="p-3">
-                <select onChange={handleMissionFilter} value={selectedMissionName}>
+                <select onChange={handleMissionFilter} value={selectedMissionName} className="select select-sm select-error bg-bg text-button-text">
                     <option value="all">Select Mission</option>
                     {uniqueMissions.map(([id, name]) => (
                         <option key={id} value={id}>{name}</option>
@@ -146,16 +159,16 @@ function TextMissionTable({ alluserDetail, allMission, ApproveText, approveText,
                 />
 
 
-                <label>Select All</label>
+                <label className='text-button-text'>Select All</label>
 
                 <input
                     type="number"
-                    className="border p-1 w-20"
+                    className="input input-bordered input-sm bg-bg border-button-text p-1 w-14 text-button-text"
                     value={coinAmount}
                     onChange={(e) => setCoinAmount(Number(e.target.value))}
                     placeholder="Amount"
                 />
-                <button className="btn btn-primary btn-sm" onClick={handleAddAllCoin}>
+                <button className="btn btn-primary btn-sm" onClick={handleAddAllCoin} disabled={selectedMissions.length === 0}>
                     Add Coin
                 </button>
                 <button className="btn btn-success btn-sm" onClick={handleApproveAll} disabled={selectedMissions.length === 0}>
@@ -166,10 +179,8 @@ function TextMissionTable({ alluserDetail, allMission, ApproveText, approveText,
             {/* Table */}
             {isLoading ? (
                 <p>Loading...</p>
-            ) : error ? (
-                <p className="text-red-500">Error loading data: {error.message}</p>
             ) : (selectedMissionName !== "all" && filteredMissions.length > 0) ? ( // Check if mission is selected and has filtered data
-                <table className="table-auto w-full border-collapse border border-gray-300">
+                <table className="table-auto w-full border-collapse border border-gray-300 text-button-text">
                     <thead>
                         <tr className="bg-gray-200">
                             <th className="border p-2">
@@ -186,20 +197,20 @@ function TextMissionTable({ alluserDetail, allMission, ApproveText, approveText,
                     <tbody>
                         {filteredMissions.map((mission) => (
                             <tr key={mission.missionId} className="border">
-                                    <td className="border p-2">
-                                        <input
-                                            type="checkbox"
-                                            className="checkbox"
-                                            checked={selectedMissions.includes(mission.useR_MISSION_ID)}
-                                            onChange={() => handleCheckboxChange(mission.useR_MISSION_ID)}
-                                            disabled={mission.approve === false} // ❌ ถ้า approve === false → ห้ามเลือก
-                                        />
-                                    </td>
+                                <td className="border p-2">
+                                    <input
+                                        type="checkbox"
+                                        className="checkbox"
+                                        checked={selectedMissions.includes(mission.useR_MISSION_ID)}
+                                        onChange={() => handleCheckboxChange(mission.useR_MISSION_ID)}
+                                        disabled={mission.approve === false} // ❌ ถ้า approve === false → ห้ามเลือก
+                                    />
+                                </td>
 
                                 <td className="border p-2">{mission.logoN_NAME}</td>
                                 <td className="border p-2">{mission.missioN_NAME}</td>
                                 <td className="border p-2">{new Date(mission.submiT_DATE).toLocaleString()}</td>
-                                <td className="border p-2">{mission.text.join(", ")}</td>
+                                <td className="border p-2 text-sm">{mission.text.join(", ")}</td>
                                 <td className="border p-2">
                                     {
                                         alluserDetail.find(user => user.a_USER_ID === mission.approve_By)?.user_Name || "-"
@@ -212,7 +223,7 @@ function TextMissionTable({ alluserDetail, allMission, ApproveText, approveText,
                                             <>
                                                 <button
                                                     className="btn btn-success btn-xs mb-5 text-bg"
-                                                    onClick={() => handleAction(mission.missionId, true)}
+                                                    onClick={() => handleAction(mission.useR_MISSION_ID, true)}
                                                     disabled={mission.approve !== null}
                                                 >
                                                     Approve
@@ -220,7 +231,7 @@ function TextMissionTable({ alluserDetail, allMission, ApproveText, approveText,
 
                                                 <button
                                                     className="btn btn-error btn-xs w-20"
-                                                    onClick={() => handleAction(mission.missionId, false)}
+                                                    onClick={() => handleAction(mission.useR_MISSION_ID, false)}
                                                     disabled={mission.approve !== null}
                                                 >
                                                     Reject
@@ -241,7 +252,7 @@ function TextMissionTable({ alluserDetail, allMission, ApproveText, approveText,
                     </tbody>
                 </table>
             ) : (
-                <p className='text-gray-500 text-center'>Please select a mission to display the table.</p>
+                <p className='text-gray-500 text-center mt-10'>Please select a mission to display the table.</p>
             )}
         </div>
     );

@@ -1,7 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import LogoutIcon from '@mui/icons-material/Logout';
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
+import CheckIcon from '@mui/icons-material/Check';
+import CloseOutlinedIcon from '@mui/icons-material/CloseOutlined';
+import KeyIcon from '@mui/icons-material/Key';
 import Alert from '@mui/material/Alert';
 import { useAuth } from './APIManage/AuthContext';
 import useFetchData from './APIManage/useFetchData';
@@ -11,7 +14,7 @@ import MyReward from './Reward/MyReward';
 function Profile() {
     const [activeTab, setActiveTab] = useState('history');
     const { user } = useAuth();
-    const { userDetails = [], refetch, editProfileImg, editDisplayName, changePassword, isLoading,error } = useFetchData(user?.token);
+    const { userDetails, editProfileImg, editDisplayName, changePassword, isLoading, error, success, fetchUserDetails } = useFetchData(user?.token);
     const [selectedFile, setSelectedFile] = useState(null);
     const [preview, setPreview] = useState(null);
     const [newDisplayName, setNewDisplayName] = useState("");
@@ -26,6 +29,12 @@ function Profile() {
         { id: 'order', label: 'My Orders', component: <MyReward /> },
     ];
 
+    useEffect(() => {
+        if (user?.token) {
+            fetchUserDetails()
+        }
+    }, [user?.token, fetchUserDetails]);
+
     const handleFileChange = (event) => {
         const file = event.target.files[0];
         if (file) {
@@ -37,7 +46,6 @@ function Profile() {
     const handleSubmit = async () => {
         try {
             let hasChanges = false;
-            setLoading(true);
             // อัปเดตชื่อถ้ามีการเปลี่ยนแปลง
             if (newDisplayName.trim() && newDisplayName !== userDetails?.displayName) {
                 const nameResponse = await editDisplayName(newDisplayName);
@@ -52,6 +60,7 @@ function Profile() {
                 if (imageResponse === "Profile has been updated.") {
                     hasChanges = true;
                 }
+                setLoading(true);
             }
 
             if (hasChanges) {
@@ -74,12 +83,39 @@ function Profile() {
             console.error("Error updating profile:", error);
         }
     };
+    const handleChangePassword = async () => {
+        try {
+            // เรียกฟังก์ชัน changePassword
+            const response = await changePassword(currentPassword, newPassword, confirmPassword);
+            // เช็คว่า message ใน response ตรงกับ "Password has been changed successfully."
+            if (response.message === "Password has been changed successfully.") {
+                document.getElementById("success_modal").showModal();
+                setTimeout(() => {
+                    document.getElementById("changePasswordModal").close();
+                    setCurrentPassword("");
+                    setNewPassword("");
+                    setConfirmPassword("");
+                }, 1500);
+            } else {
+                // ถ้า message ไม่ตรงกับที่คาดไว้ แสดง error modal
+                document.getElementById("error_modal").showModal();
+            }
+        } catch (error) {
+            // ถ้าเกิดข้อผิดพลาดจากฟังก์ชัน
+            document.getElementById("error_modal").showModal();
+        }
+    };
 
     return (
         <div className="bg-bg w-full min-h-screen rounded-2xl p-3 mb-16 sm:mb-0">
             <div className="flex flex-row justify-between">
                 <h1 className="text-2xl text-layer-item font-bold">Profile.</h1>
-                
+                <button
+                    className="btn btn-sm bg-layer-item border-hidden text-white rounded-badge hover:bg-heavy-color"
+                    onClick={() => document.getElementById('changePasswordModal').showModal()}
+                >
+                    <KeyIcon />
+                </button>
             </div>
 
             {isLoading ? (
@@ -92,7 +128,7 @@ function Profile() {
                         <div className="avatar flex flex-col justify-center items-center relative">
                             <div className="ring-layer-item ring-offset-bg w-28 rounded-full ring ring-offset-2">
                                 <img
-                                    src={userDetails?.imageUrls || 'default-image.jpg'}
+                                    src={userDetails?.imageUrls || 'au-logo.png'}
                                     alt="Profile"
                                     loading="lazy"
                                 />
@@ -108,7 +144,7 @@ function Profile() {
 
                     <div className="flex flex-col w-full mt-16 justify-center items-center">
                         <h1 className="text-xl md:text-3xl text-heavy-color text-center">
-                            {userDetails?.displayName}
+                            {userDetails?.user_Name}
                         </h1>
                         <h1 className="text-lg md:text-lg text-heavy-color text-center">
                             {userDetails?.branchCode} {userDetails?.branch}
@@ -136,7 +172,7 @@ function Profile() {
                             <div className="avatar">
                                 <div className="w-32 h-32 rounded-full ring-2 ring-layer-item ring-offset-2">
                                     <img
-                                        src={selectedFile ? preview : userDetails?.imageUrls}
+                                        src={selectedFile ? preview : userDetails?.imageUrls || './au-logo.png'}
                                         alt="Profile"
                                         className="object-cover w-full h-full"
                                     />
@@ -164,32 +200,24 @@ function Profile() {
                         />
 
                         {/* Input ใส่ชื่อใหม่ */}
-                        <input
+                        {/* <input
                             type="text"
                             placeholder="Enter new name"
                             value={newDisplayName}
                             onChange={(e) => setNewDisplayName(e.target.value)}
                             className="text-button-text input input-bordered border-layer-item rounded-badge w-full max-w-xs mb-4 bg-bg 
                 focus:border-heavy-color focus:ring-2 focus:ring-heavy-color transition-all duration-300 mt-5"
-                        />
-
+                        /> */}
                         {/* ปุ่มบันทึก */}
-                        <div className='flex flex-row gap-5'>
-                       
-                        <button
-                            className="btn btn-warning rounded-badge text-bg"
-                            onClick={() => document.getElementById('changePasswordModal').showModal()}
-                        >
-                            Change Password
-                        </button>
-                        <button
-                            type="button"
-                            className="btn btn-success rounded-badge text-bg"
-                            onClick={handleSubmit}
-                            disabled={loading}
-                        >
-                            {loading ? "Save . . ." : "Save Change"}
-                        </button>
+                        <div className='flex flex-row gap-5 mt-10'>
+                            <button
+                                type="button"
+                                className="btn btn-success rounded-badge text-bg"
+                                onClick={handleSubmit}
+                                disabled={loading}
+                            >
+                                {loading ? "Save . . ." : "Save Change"}
+                            </button>
                         </div>
                     </form>
                 </div>
@@ -203,7 +231,7 @@ function Profile() {
                                 setCurrentPassword("");
                                 setNewPassword("");
                                 setConfirmPassword("");
-                                
+
                             }}
                         >
                             ✕
@@ -219,6 +247,7 @@ function Profile() {
                             className="text-button-text input input-bordered border-layer-item rounded-badge w-full max-w-xs mb-4 bg-bg 
                             focus:border-heavy-color focus:ring-2 focus:ring-heavy-color transition-all duration-300"
                         />
+                        <p className='text-red-500'>* New password must be at least 8 characters, with an uppercase, lowercase, number, and special character (e.g., Password@123).</p>
                         <input
                             type="password"
                             placeholder="New Password"
@@ -239,15 +268,43 @@ function Profile() {
                         <button
                             type="button"
                             className="btn btn-success mt-4 rounded-badge text-bg"
-                            onClick={() => changePassword(currentPassword, newPassword, confirmPassword)}
+                            onClick={handleChangePassword}
                         >
                             Change Password
                         </button>
+
                     </form>
                 </div>
             </dialog>
+            {/* Error Modal */}
+            <dialog id="error_modal" className="modal">
+                <div className="modal-box bg-red-500 text-white text-center">
+                    <h1 className="text-bg"><CloseOutlinedIcon fontSize="large" className="animate-bounce" /></h1>
+                    <h3 className="text-xl font-bold">Incorrect</h3>
+                    <p>There was an error changing your password.</p>
+                    <button
+                        className="btn border-bg bg-bg rounded-badge text-red-500 mt-3 hover:bg-bg"
+                        onClick={() => document.getElementById("error_modal").close()}
+                    >
+                        Close
+                    </button>
+                </div>
+            </dialog>
 
-
+            {/* Success Modal */}
+            <dialog id="success_modal" className="modal">
+                <div className="modal-box bg-green-500 text-white text-center">
+                    <h1 className="text-bg"><CheckIcon fontSize="large" className="animate-bounce" /></h1>
+                    <h3 className="text-xl font-bold">Successfully!</h3>
+                    <p>Your password has been updated.</p>
+                    <button
+                        className="btn border-bg bg-bg rounded-badge text-green-500 mt-3 hover:bg-bg"
+                        onClick={() => document.getElementById("success_modal").close()}
+                    >
+                        Close
+                    </button>
+                </div>
+            </dialog>
 
             {/* Tabs */}
             <div className="flex flex-col justify-center items-center h-20">

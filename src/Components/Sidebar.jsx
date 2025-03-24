@@ -1,12 +1,12 @@
-import React from 'react';
+import {React,useEffect} from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
-import { Home, Assignment, CardGiftcard, EmojiEvents, AccountCircle, AdminPanelSettings } from '@mui/icons-material';
+import { Home, Assignment, CardGiftcard, EmojiEvents, AccountCircle, AdminPanelSettings, CurrencyExchange } from '@mui/icons-material';
 import { useAuth } from './APIManage/AuthContext'; // Assuming you are using the AuthContext to manage login state
 import useFetchData from './APIManage/useFetchData';  // Import the merged custom hook
 
 function Sidebar() {
   const { user } = useAuth(); // Access the user from AuthContext
-  const { userDetails, error } = useFetchData(user?.token); // Use custom hook
+  const { userDetails, error, fetchUserDetails } = useFetchData(user?.token); // Use custom hook
   const location = useLocation(); // Access current route's location
 
   // Sidebar items data with MUI icons
@@ -14,17 +14,24 @@ function Sidebar() {
     { label: 'Home', link: '/home', icon: <Home /> },
     { label: 'Mission', link: '/mission', icon: <Assignment /> },
     { label: 'Reward', link: '/rewardtab', icon: <CardGiftcard /> },
-    { label: 'Ranking', link: '/leaderboard', icon: <EmojiEvents /> },
+    // { label: 'Ranking', link: '/leaderboard', icon: <EmojiEvents /> },
+    { label: 'ThanksCoin', link: '/kaecoin', icon: <CurrencyExchange /> },
     { label: 'Profile', link: '/profile', icon: <AccountCircle /> },
   ];
 
-if (userDetails && (userDetails?.isAdmin === 9 || userDetails?.isAdmin === 4)) {
-  sidebarItems.push({
-    label: 'Admin',
-    link: '/admin',
-    icon: <AdminPanelSettings />,
-  });
-}
+  useEffect(() => {
+    if (user?.token) {
+      fetchUserDetails()
+    }
+  }, [user?.token, fetchUserDetails]);
+
+  if (userDetails && (userDetails?.isAdmin === 9 || userDetails?.isAdmin === 4)) {
+    sidebarItems.push({
+      label: 'Admin',
+      link: '/admin',
+      icon: <AdminPanelSettings />,
+    });
+  }
   const isAdminActive = location.pathname.startsWith('/admin');
 
   return (
@@ -42,9 +49,8 @@ if (userDetails && (userDetails?.isAdmin === 9 || userDetails?.isAdmin === 4)) {
 
         {/* Menu Items */}
         <ul
-          className={`flex sm:flex-col w-full justify-around px-3 sm:justify-start font-bold ${
-            userDetails?.isAdmin === 9 ? 'gap-0' : 'gap-3'
-          }`}
+          className={`flex sm:flex-col w-full justify-around px-3 sm:justify-start font-bold ${userDetails?.isAdmin === 9 ? 'gap-0' : 'gap-3'
+            }`}
         >
           {sidebarItems.map((item, index) => (
             <li key={index} className="flex flex-col items-center w-16 mb-2 sm:block">
@@ -52,19 +58,17 @@ if (userDetails && (userDetails?.isAdmin === 9 || userDetails?.isAdmin === 4)) {
                 to={item.link}
                 className={({ isActive }) => {
                   const isItemActive = isActive || (item.link === '/admin' && isAdminActive);
-                  return `flex flex-col sm:flex-row items-center w-full p-3 transition-all transform ${
-                    isItemActive
+                  return `flex flex-col sm:flex-row items-center w-full p-3 transition-all transform ${isItemActive
                       ? 'text-bg scale-110 sm:mx-2'
                       : 'hover:scale-105 text-heavy-color sm:mx-3'
-                  }`;
+                    }`;
                 }}
               >
                 <div
-                  className={`text-3xl sm:text-lg transition-all ${
-                    location.pathname === item.link || (item.link === '/admin' && isAdminActive)
+                  className={`text-3xl sm:text-lg transition-all ${location.pathname === item.link || (item.link === '/admin' && isAdminActive)
                       ? 'text-bg'
                       : 'text-heavy-color group-hover:text-bg'
-                  }`}
+                    }`}
                 >
                   {item.icon}
                 </div>

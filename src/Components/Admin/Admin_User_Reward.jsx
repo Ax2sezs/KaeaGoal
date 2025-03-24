@@ -1,17 +1,22 @@
-import React, { useState } from 'react';
+import React, { useState,useEffect } from 'react';
 import useFetchData from '../APIManage/useFetchData';
 import { useAuth } from '../APIManage/AuthContext';
 
 function Admin_User_Reward() {
   const { user } = useAuth();
-  const { adminReward = [], error, isLoading, rewardStatus, refetch } = useFetchData(user?.token || '');
+  const { adminReward = [], error, isLoading, rewardStatus, fetchAdminRewards } = useFetchData(user?.token || '');
+   useEffect(() => {
+              if (user?.token) {
+                  fetchAdminRewards()
+              }
+            }, [user?.token, fetchAdminRewards]);
 
   const [selectedReward, setSelectedReward] = useState(""); // State สำหรับเลือก Reward
 
   const handleStatusChange = async (userRewardId, newStatus) => {
     try {
       await rewardStatus(userRewardId, newStatus);
-      refetch();
+      fetchAdminRewards();
     } catch (error) {
       console.error("Error updating reward status:", error);
     }
@@ -47,7 +52,7 @@ function Admin_User_Reward() {
       <div className="mb-4">
         <label className="text-button-text font-medium mr-2">Filter by Reward:</label>
         <select
-          className="border border-gray-300 p-2 rounded"
+          className="select select-sm bg-bg border-button-text text-button-text"
           value={selectedReward}
           onChange={(e) => setSelectedReward(e.target.value)}
         >
@@ -116,9 +121,9 @@ function Admin_User_Reward() {
                     value={reward.reward_Status}
                     onChange={(e) => handleStatusChange(reward.user_reward_Id, e.target.value)}
                   >
-                    <option value="Approve" className="text-white">Approve</option>
-                    <option value="OnDelivery" className="bg-yellow-500 text-black">On Delivery</option>
-                    <option value="Delivered" className="bg-blue-500 text-white">Delivered</option>
+                    <option value="Approve" className="text-black">Approve</option>
+                    <option value="OnDelivery" className=" text-black">On Delivery</option>
+                    <option value="Delivered" className=" text-black">Delivered</option>
                   </select>
                 </td>
               </tr>

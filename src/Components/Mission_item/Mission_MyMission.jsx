@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useAuth } from "../APIManage/AuthContext";
 import useFetchData from "../APIManage/useFetchData";
 import ModalMission from "./Modal/ModalMyMission";
@@ -87,11 +87,16 @@ const MissionCard = ({ mission, onClick }) => {
 
 function Mission_MyMission({ isTableLayout }) {
   const { user } = useAuth();
-  const { userMission = [], error, isLoading, executeCodeMission, executeQRMission, executePhotoMission, executeTextMission, refetch } = useFetchData(user?.token);
+  const { userMission = [], error, isLoading, executeCodeMission, executeQRMission, executePhotoMission, executeTextMission, fetchUserMissions } = useFetchData(user?.token);
   const [selectedMission, setSelectedMission] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalError, setModalError] = useState("");
   const [modalSuccess, setModalSuccess] = useState("");
+  useEffect(() => {
+    if (user?.token) {
+      fetchUserMissions();
+    }
+  }, [user?.token, fetchUserMissions]);
 
   const handleModalOpen = (mission) => {
     setSelectedMission(mission);
@@ -118,7 +123,7 @@ function Mission_MyMission({ isTableLayout }) {
       setModalSuccess(document.getElementById('success_modal').showModal()
       );
 
-      refetch()
+      fetchUserMissions()
     } catch (err) {
       console.error("Failed to execute mission code", err);
       setModalError(document.getElementById('error_modal').showModal())
@@ -136,7 +141,7 @@ function Mission_MyMission({ isTableLayout }) {
       setModalError("");
       setModalSuccess(document.getElementById('success_modal').showModal())
 
-      refetch()
+      fetchUserMissions()
     } catch (err) {
       console.error("Failed to execute QR code mission", err);
       setModalError(document.getElementById('error_modal').showModal())
@@ -145,7 +150,7 @@ function Mission_MyMission({ isTableLayout }) {
 
   const handleSubmitPhoto = async (imageFiles) => {
     if (!selectedMission || imageFiles.length === 0) {
-      setModalError("Invalid mission or no files selected. Please try again.");
+      setModalError("No files selected. Please try again.");
       return;
     }
 
@@ -156,7 +161,7 @@ function Mission_MyMission({ isTableLayout }) {
       setModalError("");
       setTimeout(() => handleModalClose());
       setModalSuccess(document.getElementById('success_modal').showModal())
-      refetch()
+      fetchUserMissions()
     } catch (err) {
       console.error("Failed to execute Photo mission", err);
       setModalError("Failed to execute Photo mission. Please try again.");
@@ -167,32 +172,32 @@ function Mission_MyMission({ isTableLayout }) {
       setModalError("Invalid mission or empty text. Please try again.");
       return;
     }
-  
+
     try {
       const { missioN_ID, useR_MISSION_ID } = selectedMission;
-  
+
       // Log ข้อมูลที่ถูกส่งไป
       console.log("Sending the following data to API:");
       console.log({
-        missioN_ID, 
-        useR_MISSION_ID, 
+        missioN_ID,
+        useR_MISSION_ID,
         inputText
       });
-  
+
       await executeTextMission(missioN_ID, useR_MISSION_ID, inputText);
       console.log("Text mission executed successfully!");
-  
+
       setModalError("");
       setTimeout(() => handleModalClose(), 100);
       setModalSuccess(document.getElementById('success_modal').showModal());
-  
-      refetch();
+
+      fetchUserMissions();
     } catch (err) {
       console.error("Failed to execute text mission", err);
       setModalError(document.getElementById('error_modal').showModal());
     }
   };
-  
+
 
 
   const sortedMissions = userMission
@@ -226,14 +231,15 @@ function Mission_MyMission({ isTableLayout }) {
       // If all conditions are the same, maintain the original order
       return 0;
     });
+    if (isLoading) {
+      return <div className="text-center text-gray-500"><span className="loading loading-dots loading-lg"></span></div>;
+    }
+    if(sortedMissions.length<=0){
+      return<div className="text-center">No mission Available</div>
+    }
 
   return (
     <div>
-      {isLoading &&
-        <div className="text-center text-gray-500">
-          <span className="loading loading-dots loading-lg"></span>
-        </div>}
-
       {/* Display missions in grid layout */}
       {!isTableLayout ? (
         <div className="grid lg:grid-cols-2 xl:grid-cols-2 gap-5 items-center p-3 mb-16 h-auto bg-bg rounded-xl">
@@ -284,7 +290,7 @@ function Mission_MyMission({ isTableLayout }) {
                     </div>
                   </td>
                   <td className="px-3 py-2 text-center truncate" style={{ width: "8rem" }}>
-                    {item.verification_Status !== "Waiting for Confirmation." ? (
+                    {item.verification_Status !== "Waiting for Confirmation." && item.verification_Status !== "Rejected" ? (
                       <div className="flex flex-col items-center">
                         <button
                           className="btn btn-md w-20 bg-layer-item text-white px-4 py-2 rounded-badge border-hidden hover:bg-heavy-color mb-2"
@@ -296,7 +302,7 @@ function Mission_MyMission({ isTableLayout }) {
                     ) : (
                       <div className="flex justify-center items-center">
                         <span className="text-lg text-gray-500">
-                          Awaiting Confirmation
+                          {item.verification_Status == "Waiting for Confirmation." ? "Waiting" : "Rejected"}
                         </span>
                       </div>
                     )}

@@ -4,7 +4,7 @@ import { useAuth } from "../APIManage/AuthContext";
 
 function EditUserDetail({ userData, onClose }) {
     const { user } = useAuth();
-    const { userDetails, editUserDetail, resetPassword, success, error, isLoading, refetch } = useFetchData(user?.token);
+    const { userDetails, editUserDetail, resetPassword, addThankCoin, success, error, isLoading, refetch } = useFetchData(user?.token);
 
     const initialState = {
         a_USER_ID: userData?.a_USER_ID || "",
@@ -24,6 +24,10 @@ function EditUserDetail({ userData, onClose }) {
 
     const [formData, setFormData] = useState(initialState);
     const [passwordResetSuccess, setPasswordResetSuccess] = useState(false); // State to track password reset success
+    const [thanksCoinAmount, setThanksCoinAmount] = useState(0); // Amount ของ Coin ที่จะให้
+    const [thanksCoinDescription, setThanksCoinDescription] = useState(""); // คำอธิบายของ Coin
+    const [thanksCoinSuccess, setThanksCoinSuccess] = useState(false); // ใช้เก็บสถานะการให้ Coin สำเร็จ
+
 
     const handleChange = (e) => {
         const { name, type, checked, value } = e.target;
@@ -89,9 +93,24 @@ function EditUserDetail({ userData, onClose }) {
         }
     };
 
+    const handleGiveThanksCoin = async () => {
+        try {
+            const result = await addThankCoin(userData.a_USER_ID, thanksCoinAmount, thanksCoinDescription);
+            if (result) {
+                setThanksCoinSuccess(true);
+                console.log("Thanks Coin Given Successfully:", result);
+                alert("Thanks Coin Given Successfully!");
+            }
+        } catch (err) {
+            console.error("Error giving thanks coin:", err);
+            setThanksCoinSuccess(false);
+        }
+    };
+
+
     return (
         <dialog open className="modal">
-            <div className="modal-box w-1/2 max-w-2xl">
+            <div className="modal-box w-1/2 max-w-2xl bg-bg text-button-text">
                 <h2 className="text-xl font-semibold mb-4">Edit {userData.logoN_NAME} Detail.</h2>
 
                 {passwordResetSuccess && (
@@ -116,7 +135,7 @@ function EditUserDetail({ userData, onClose }) {
                                 name={name}
                                 value={formData[name]}
                                 onChange={handleChange}
-                                className="input input-bordered w-full"
+                                className="input input-bordered w-full bg-bg text-button-text"
                             />
                         </div>
                     ))}
@@ -166,23 +185,52 @@ function EditUserDetail({ userData, onClose }) {
                     ))}
 
                     {/* Select for Site */}
-                    <div className="flex flex-col">
+                    {/* <div className="flex flex-col">
                         <label className="font-medium">Site</label>
                         <select
                             name="site"
                             value={formData.site}
                             onChange={handleChange}
-                            className="input input-bordered w-full"
+                            className="input input-bordered w-full bg-bg text-button-text"
                         >
                             <option value="">Select Site</option>
                             <option value="Office">Office</option>
                             <option value="Factory">Factory</option>
                             <option value="Branch">Branch</option>
                         </select>
+                    </div> */}
+                    {/* New Fields for Thanks Coin */}
+                    <div className="flex flex-col">
+                        <label className="font-medium">Give Thanks Coin Amount</label>
+                        <input
+                            type="number"
+                            name="thanksCoinAmount"
+                            value={thanksCoinAmount}
+                            onChange={(e) => setThanksCoinAmount(e.target.value)}
+                            className="input input-bordered w-full bg-bg text-button-text"
+                        />
+                    </div>
+
+                    <div className="flex flex-col">
+                        <label className="font-medium">Description for Thanks Coin</label>
+                        <textarea
+                            name="thanksCoinDescription"
+                            value={thanksCoinDescription}
+                            onChange={(e) => setThanksCoinDescription(e.target.value)}
+                            className="input input-bordered w-full bg-bg text-button-text"
+                        />
                     </div>
                 </form>
 
                 <div className="modal-action justify-between">
+
+                    <div className="flex gap-5">
+                        {/* New Button to give Thanks Coin */}
+                        <button onClick={handleGiveThanksCoin} className="btn btn-success">
+                            Give Thanks Coin
+                        </button>
+                    </div>
+                   
                     <button onClick={handlePasswordReset} className="btn btn-secondary">
                         Reset Password
                     </button>

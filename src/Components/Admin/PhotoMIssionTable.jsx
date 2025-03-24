@@ -19,11 +19,18 @@ const PhotoMissionTable = ({ alluserDetail, allMission, ApprovePhoto, approvePho
             ...mission,
             userPhotoMissionId: mission.useR_PHOTO_MISSION_ID,
         }));
-
+    
         mappedPhotoMissions.sort((a, b) => (a.approve === null ? -1 : 1) - (b.approve === null ? -1 : 1));
         setPhotoMissions(mappedPhotoMissions);
-        setFilteredMissions(mappedPhotoMissions);
-    }, [ApprovePhoto]);
+    
+        // ใช้ filter จากค่า selectedMissionName ที่เลือกไว้
+        if (selectedMissionName === "all") {
+            setFilteredMissions(mappedPhotoMissions);
+        } else {
+            setFilteredMissions(mappedPhotoMissions.filter(m => m.missioN_ID === selectedMissionName));
+        }
+    }, [ApprovePhoto, selectedMissionName]); // ✅ เพิ่ม selectedMissionName เป็น dependency
+    
 
     useEffect(() => {
         if (selectedMissionName !== "all" && Array.isArray(allMission)) {
@@ -32,12 +39,19 @@ const PhotoMissionTable = ({ alluserDetail, allMission, ApprovePhoto, approvePho
         } else {
             setCoinAmount(0);
         }
-    }, [selectedMissionName, allMission]);  // 🔹 ทำงานเมื่อเลือก Mission ใหม่
+    }, [selectedMissionName, allMission]);
 
+    useEffect(() => {
+        const storedMissionId = localStorage.getItem("selectedMissionId");
+        if (storedMissionId) {
+            setSelectedMissionName(storedMissionId);
+        }
+    }, []);
 
     const handleMissionFilter = (e) => {
         const missionId = e.target.value;
         setSelectedMissionName(missionId);
+        localStorage.setItem("selectedMissionId", missionId);
 
         if (missionId === "all") {
             setFilteredMissions(photoMissions);
@@ -105,8 +119,6 @@ const PhotoMissionTable = ({ alluserDetail, allMission, ApprovePhoto, approvePho
         }
     };
 
-
-
     const handleAddAllCoin = async () => {
         if (selectedMissions.length === 0) {
             alert("Please select at least one mission.");
@@ -163,11 +175,11 @@ const PhotoMissionTable = ({ alluserDetail, allMission, ApprovePhoto, approvePho
 
     return (
         <div>
-            <h2 className="text-2xl font-bold mb-6">Photo Missions</h2>
+            <h2 className="text-2xl font-bold mb-6 text-button-text">Photo Missions</h2>
 
             {/* 🔹 Mission Name Filter */}
             <div className="p-3">
-                <select onChange={handleMissionFilter} value={selectedMissionName}>
+                <select onChange={handleMissionFilter} value={selectedMissionName} className="select select-sm select-error bg-bg text-button-text">
                     <option value="all">Select Mission</option>
                     {uniqueMissions.map(([id, name]) => (
                         <option key={id} value={id}>{name}</option>
@@ -183,17 +195,17 @@ const PhotoMissionTable = ({ alluserDetail, allMission, ApprovePhoto, approvePho
                     onChange={handleSelectAll}
                     checked={selectedMissions.length > 0 && selectedMissions.length === filteredMissions.filter(m => m.approve === null || m.approve === true).length}
                 />
-                <label>Select All</label>
+                <label className="text-button-text">Select All</label>
 
                 <input
                     type="number"
-                    className="border p-1 w-20"
+                    className="input input-bordered input-sm bg-bg border-button-text p-1 w-14 text-button-text"
                     value={coinAmount}
                     onChange={(e) => setCoinAmount(Number(e.target.value))}
                     placeholder="Amount"
                     readOnly
                 />
-                <button className="btn btn-primary btn-sm" onClick={handleAddAllCoin} >
+                <button className="btn btn-primary btn-sm" onClick={handleAddAllCoin} disabled={selectedMissions.length === 0} >
                     Add Coin
                 </button>
                 <button className="btn btn-success btn-sm" onClick={handleApproveAll} disabled={selectedMissions.length === 0}>
@@ -204,7 +216,7 @@ const PhotoMissionTable = ({ alluserDetail, allMission, ApprovePhoto, approvePho
             {/* แสดง Table เฉพาะเมื่อเลือก Mission ที่เฉพาะเจาะจง */}
             {selectedMissionName !== "all" && filteredMissions.length > 0 ? (
                 <div className="overflow-x-auto">
-                    <table className="min-w-full border border-gray-300">
+                    <table className="min-w-full border border-gray-300 text-button-text">
                         <thead>
                             <tr className="bg-gray-100">
                                 <th className="border p-2">Select</th>
@@ -229,7 +241,11 @@ const PhotoMissionTable = ({ alluserDetail, allMission, ApprovePhoto, approvePho
                                         />
                                     </td>
                                     <td className="border p-2">{mission.missioN_NAME}</td>
-                                    <td className="border p-2">{mission.logoN_NAME}</td>
+                                    <td className="border p-2">
+                                        {
+                                            alluserDetail.find(user => user.a_USER_ID === mission.a_USER_ID)?.user_Name || "-"
+                                        }
+                                    </td>
                                     <td className="border p-2">{new Date(mission.uploadeD_AT).toLocaleString()}</td>
                                     <td className="border p-2 flex gap-2">
                                         <div className="grid grid-cols-4 gap-2">
@@ -284,7 +300,7 @@ const PhotoMissionTable = ({ alluserDetail, allMission, ApprovePhoto, approvePho
                     </table>
                 </div>
             ) : (
-                <p className="text-gray-500 text-center">Please select a mission to display the table.</p>
+                <p className="text-gray-500 text-center mt-10">Please select a mission to display the table.</p>
             )}
 
 
