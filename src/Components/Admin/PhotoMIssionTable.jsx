@@ -3,6 +3,14 @@ import { Button } from "@mui/material";
 import { Dialog, DialogActions, DialogContent, DialogTitle } from "@mui/material";
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
+import FormatListBulletedOutlinedIcon from '@mui/icons-material/FormatListBulletedOutlined';
+import WindowOutlinedIcon from '@mui/icons-material/WindowOutlined';
+import { Swiper, SwiperSlide } from "swiper/react";
+import "swiper/css";
+import "swiper/css/navigation";
+import "swiper/css/pagination";
+import { Navigation, Pagination } from "swiper/modules";
+import heic2any from 'heic2any';
 
 const PhotoMissionTable = ({ alluserDetail, allMission, ApprovePhoto, approvePhoto, addAllCoinPhoto, isLoading, error, refetch }) => {
     const [photoMissions, setPhotoMissions] = useState([]);
@@ -13,16 +21,57 @@ const PhotoMissionTable = ({ alluserDetail, allMission, ApprovePhoto, approvePho
     const [selectedMissionId, setSelectedMissionId] = useState(null);
     const [openModal, setOpenModal] = useState(false);
     const [selectedMissionName, setSelectedMissionName] = useState("all");
+    const [isTableLayout, setIsTableLayout] = useState(false)
+    const [convertedPhotos, setConvertedPhotos] = useState({});
+
+
+    useEffect(() => {
+        // แปลงไฟล์ HEIC ให้เป็นรูปภาพที่รองรับ
+        const convertPhotos = async () => {
+            const newConvertedPhotos = {};
+
+            for (const mission of filteredMissions) {
+                const photoUrls = mission.photo || [];
+                const convertedUrls = [];
+
+                for (const photoUrl of photoUrls) {
+                    if (photoUrl.endsWith('.heic')) {
+                        try {
+                            const response = await fetch(photoUrl);
+                            const blob = await response.blob();
+
+                            // แปลงไฟล์ HEIC เป็น JPEG
+                            const convertedImage = await heic2any({ blob, toType: 'image/jpeg' });
+
+                            const convertedUrl = URL.createObjectURL(convertedImage);
+                            convertedUrls.push(convertedUrl);
+                        } catch (err) {
+                            console.error(`Error converting HEIC file: ${err}`);
+                            convertedUrls.push(photoUrl); // หากแปลงไม่ได้, ใช้ URL เดิม
+                        }
+                    } else {
+                        convertedUrls.push(photoUrl); // หากไม่ใช่ HEIC, ใช้ URL เดิม
+                    }
+                }
+
+                newConvertedPhotos[mission.userPhotoMissionId] = convertedUrls;
+            }
+
+            setConvertedPhotos(newConvertedPhotos);
+        };
+
+        convertPhotos();
+    }, [filteredMissions]);
 
     useEffect(() => {
         const mappedPhotoMissions = ApprovePhoto.map(mission => ({
             ...mission,
             userPhotoMissionId: mission.useR_PHOTO_MISSION_ID,
         }));
-    
+
         mappedPhotoMissions.sort((a, b) => (a.approve === null ? -1 : 1) - (b.approve === null ? -1 : 1));
         setPhotoMissions(mappedPhotoMissions);
-    
+
         // ใช้ filter จากค่า selectedMissionName ที่เลือกไว้
         if (selectedMissionName === "all") {
             setFilteredMissions(mappedPhotoMissions);
@@ -30,7 +79,7 @@ const PhotoMissionTable = ({ alluserDetail, allMission, ApprovePhoto, approvePho
             setFilteredMissions(mappedPhotoMissions.filter(m => m.missioN_ID === selectedMissionName));
         }
     }, [ApprovePhoto, selectedMissionName]); // ✅ เพิ่ม selectedMissionName เป็น dependency
-    
+
 
     useEffect(() => {
         if (selectedMissionName !== "all" && Array.isArray(allMission)) {
@@ -211,10 +260,33 @@ const PhotoMissionTable = ({ alluserDetail, allMission, ApprovePhoto, approvePho
                 <button className="btn btn-success btn-sm" onClick={handleApproveAll} disabled={selectedMissions.length === 0}>
                     Approve All
                 </button>
-            </div>
+                {/* <div className="stats shadow">
+                    <div className="stat place-items-center">
+                        <div className="stat-title">Downloads</div>
+                        <div className="stat-value">31K</div>
+                    </div>
 
+                    <div className="stat place-items-center">
+                        <div className="stat-title">Users</div>
+                        <div className="stat-value text-secondary">4,200</div>
+                    </div>
+
+                    <div className="stat place-items-center">
+                        <div className="stat-title">New Registers</div>
+                        <div className="stat-value">1,200</div>
+                    </div>
+                </div> */}
+            </div>
+            <div className="flex justify-end mb-4">
+                <button
+                    className="px-4 py-2 border rounded-md bg-blue-500 text-white"
+                    onClick={() => setIsTableLayout(!isTableLayout)}
+                >
+                    {isTableLayout ? <WindowOutlinedIcon /> : <FormatListBulletedOutlinedIcon />}
+                </button>
+            </div>
             {/* แสดง Table เฉพาะเมื่อเลือก Mission ที่เฉพาะเจาะจง */}
-            {selectedMissionName !== "all" && filteredMissions.length > 0 ? (
+            {/* {selectedMissionName !== "all" && filteredMissions.length > 0 ? (
                 <div className="overflow-x-auto">
                     <table className="min-w-full border border-gray-300 text-button-text">
                         <thead>
@@ -254,7 +326,7 @@ const PhotoMissionTable = ({ alluserDetail, allMission, ApprovePhoto, approvePho
                                                     key={index}
                                                     src={imgUrl}
                                                     alt={`Mission Submission ${index + 1}`}
-                                                    className="h-16 w-16 rounded-lg shadow-md object-cover cursor-pointer"
+                                                    className="h-16 w-16 rounded-lg shadow-md object-cover cursor-pointer hover:scale-"
                                                     onClick={() => handleImageClick(mission.userPhotoMissionId, imgUrl, index)}
                                                 />
                                             ))}
@@ -299,6 +371,247 @@ const PhotoMissionTable = ({ alluserDetail, allMission, ApprovePhoto, approvePho
                         </tbody>
                     </table>
                 </div>
+            ) : (
+                <p className="text-gray-500 text-center mt-10">Please select a mission to display the table.</p>
+            )} */}
+            {/* {selectedMissionName !== "all" && filteredMissions.length > 0 ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {filteredMissions.map(mission => (
+                        <div key={mission.userPhotoMissionId} className="bg-white border border-gray-300 rounded-lg shadow-md p-4">
+
+                            <div className="flex justify-between items-center mb-4">
+                                <input
+                                    type="checkbox"
+                                    className="checkbox"
+                                    checked={selectedMissions.includes(mission.userPhotoMissionId)}
+                                    onChange={() => handleCheckboxChange(mission.userPhotoMissionId)}
+                                    disabled={mission.approve === false} // ถ้า approve === false → ห้ามเลือก
+                                />
+                                <span className="text-xl font-semibold">{mission.missioN_NAME}</span>
+                            </div>
+                            <div className="flex gap-2">
+                            <Swiper
+            modules={[Navigation, Pagination]}
+            spaceBetween={10}
+            slidesPerView={1}
+            navigation
+            pagination={{ clickable: true }}
+            className="w-full h-60"
+        >
+            {mission.photo?.map((imgUrl, index) => (
+                <SwiperSlide key={index}>
+                    <img
+                        // src={imgUrl}
+                        src="./wallpaper001.jpg"
+                        alt={`Mission Submission ${index + 1}`}
+                        className="h-full w-full rounded-lg shadow-md object-cover cursor-pointer"
+                        onClick={() => handleImageClick(mission.userPhotoMissionId, imgUrl, index)}
+                    />
+                </SwiperSlide>
+            ))}
+        </Swiper>
+                            </div>
+                            <div className="mb-4">
+                                <div className="font-medium text-gray-700"></div>
+                                <div className="text-gray-500">
+                                    Username: {
+                                        alluserDetail.find(user => user.a_USER_ID === mission.a_USER_ID)?.user_Name || "-"
+                                    }
+                                </div>
+                            </div>
+
+                            <div className="flex justify-between">
+                                <div className="flex flex-col">
+                                <div className="font-medium text-gray-700">Submission Date:</div>
+                                <div className="text-gray-500">
+                                    {new Date(mission.uploadeD_AT).toLocaleString()}
+                                </div>
+                                </div>
+                                <div className="">
+                                <div className="font-medium text-gray-700">Approve By:</div>
+                                <div className="text-gray-500">
+                                    {
+                                        alluserDetail.find(user => user.a_USER_ID === mission.approve_By)?.user_Name || "-"
+                                    }
+                                </div>
+                            </div>
+                            </div>
+                           
+
+                            <div className="flex justify-between items-center mt-4">
+                                {mission.approve === null ? (
+                                    <>
+                                        <button
+                                            className="btn btn-success btn-xs"
+                                            onClick={() => handleAction(mission.userPhotoMissionId, true)}
+                                            disabled={mission.approve !== null}
+                                        >
+                                            Approve
+                                        </button>
+                                        <button
+                                            className="btn btn-error btn-xs"
+                                            onClick={() => handleAction(mission.userPhotoMissionId, false)}
+                                            disabled={mission.approve !== null}
+                                        >
+                                            Reject
+                                        </button>
+                                    </>
+                                ) : mission.approve === true ? (
+                                    <span className="text-green-500">Approved</span>
+                                ) : (
+                                    <span className="text-red-500">Rejected</span>
+                                )}
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            ) : (
+                <p className="text-gray-500 text-center mt-10">Please select a mission to display the cards.</p>
+            )} */}
+            {selectedMissionName !== "all" && filteredMissions.length > 0 ? (
+                isTableLayout ? (
+                    // 🟢 Table View
+                    <div className="overflow-x-auto">
+                        <table className="min-w-full border border-gray-300 text-button-text">
+                            <thead>
+                                <tr className="bg-gray-100">
+                                    <th className="border p-2">Select</th>
+                                    <th className="border p-2">EmployeeID</th>
+                                    <th className="border p-2">EmployeeName</th>
+                                    <th className="border p-2">Department</th>
+                                    <th className="border p-2">Submission Date</th>
+                                    <th className="border p-2 w-72">Photos</th>
+                                    <th className="border p-2">Action</th>
+                                    <th className="border p-2">Approver</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {filteredMissions.map(mission => (
+                                    <tr key={mission.userPhotoMissionId} className="hover:bg-gray-50">
+                                        <td className="border p-2">
+                                            <input
+                                                type="checkbox"
+                                                className="checkbox"
+                                                checked={selectedMissions.includes(mission.userPhotoMissionId)}
+                                                onChange={() => handleCheckboxChange(mission.userPhotoMissionId)}
+                                                disabled={mission.approve === false}
+                                            />
+                                        </td>
+                                        <td className="border p-2">{mission.logoN_NAME}</td>
+                                        <td className="border p-2">{mission.useR_NAME}</td>
+                                        <td className="border p-2">{mission.branchCode}-{mission.department}</td>
+                                        <td className="border p-2">{new Date(mission.uploadeD_AT).toLocaleString()}</td>
+                                        <td className="border p-2">
+                                            <div className="grid grid-cols-4 gap-2">
+                                            {(convertedPhotos[mission.userPhotoMissionId] || mission.photo)?.map((imgUrl, index) => (
+                                                    <img
+                                                        key={index}
+                                                        src={imgUrl}
+                                                        alt={`Mission Submission ${index + 1}`}
+                                                        className="h-16 w-16 rounded-lg shadow-md object-cover cursor-pointer"
+                                                        onClick={() => handleImageClick(mission.userPhotoMissionId, imgUrl, index)}
+                                                    />
+                                                ))}
+                                            </div>
+                                        </td>
+                                        <td className="border p-2">
+                                            <div className="flex gap-3">
+                                                {mission.approve === null ? (
+                                                    <>
+                                                        <button className="btn btn-success btn-xs" onClick={() => handleAction(mission.userPhotoMissionId, true)}>
+                                                            Approve
+                                                        </button>
+                                                        <button className="btn btn-error btn-xs" onClick={() => handleAction(mission.userPhotoMissionId, false)}>
+                                                            Reject
+                                                        </button>
+                                                    </>
+                                                ) : mission.approve === true ? (
+                                                    <span className="text-green-500">Approved</span>
+                                                ) : (
+                                                    <span className="text-red-500">Rejected</span>
+                                                )}
+                                            </div>
+                                        </td>
+                                        <td className="border p-2 flex flex-col">
+                                            {
+                                                alluserDetail.find(user => user.a_USER_ID === mission.approve_By)?.user_Name || "-"
+                                            }
+                                            <span className='text-xs text-gray-400'>
+                                                {mission.approve_DATE ? new Date(mission.approve_DATE).toLocaleString() : '-'}
+                                            </span>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                ) : (
+                    // 🟢 Card View
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 text-button-text">
+                        {filteredMissions.map(mission => (
+                            <div key={mission.userPhotoMissionId} className="bg-white border border-gray-300 rounded-lg shadow-md p-4">
+                                <div className="flex justify-between items-center mb-4">
+                                    <div className="flex flex-col">
+                                        <span className="text-lg font-semibold">{mission.useR_NAME}</span>
+                                        <span className="text-sm">{mission.branchCode}-{mission.department}</span>
+                                    </div>
+                                    <input
+                                        type="checkbox"
+                                        className="checkbox"
+                                        checked={selectedMissions.includes(mission.userPhotoMissionId)}
+                                        onChange={() => handleCheckboxChange(mission.userPhotoMissionId)}
+                                        disabled={mission.approve === false}
+                                    />
+                                </div>
+
+                                <Swiper modules={[Navigation, Pagination]} spaceBetween={10} slidesPerView={1} navigation pagination={{ clickable: true }} className="w-full h-60">
+                                {(convertedPhotos[mission.userPhotoMissionId] || mission.photo)?.map((imgUrl, index) => (
+                                        <SwiperSlide key={index}>
+                                            <img
+                                                src={imgUrl}
+                                                alt={`Mission Submission ${index + 1}`}
+                                                className="h-full w-full rounded-lg shadow-md object-cover cursor-pointer"
+                                                onClick={() => handleImageClick(mission.userPhotoMissionId, imgUrl, index)}
+                                            />
+                                        </SwiperSlide>
+                                    ))}
+                                </Swiper>
+
+                                <div className="flex justify-between">
+                                    <div className="font-medium text-gray-700">Submit Date:</div>
+                                    <div className="text-gray-500">{new Date(mission.uploadeD_AT).toLocaleString()}</div>
+                                </div>
+                                <div className="divider"></div>
+                                <div className="flex justify-between">
+                                    <div className="flex flex-col">
+                                        <div className="font-medium text-gray-700">Approve Date:</div>
+                                        <div className="text-gray-500">{mission.approve_DATE ? new Date(mission.approve_DATE).toLocaleString() : '-'}
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <div className="font-medium text-gray-700">Approve By:</div>
+                                        <div className="text-gray-500">
+                                            {alluserDetail.find(user => user.a_USER_ID === mission.approve_By)?.user_Name || "-"}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="flex justify-between items-center mt-4">
+                                    {mission.approve === null ? (
+                                        <>
+                                            <button className="btn btn-success btn-sm w-24" onClick={() => handleAction(mission.userPhotoMissionId, true)}>Approve</button>
+                                            <button className="btn btn-error btn-sm w-24" onClick={() => handleAction(mission.userPhotoMissionId, false)}>Reject</button>
+                                        </>
+                                    ) : mission.approve === true ? (
+                                        <span className="text-green-500">Approved</span>
+                                    ) : (
+                                        <span className="text-red-500">Rejected</span>
+                                    )}
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                )
             ) : (
                 <p className="text-gray-500 text-center mt-10">Please select a mission to display the table.</p>
             )}

@@ -11,12 +11,12 @@ function Admin_Home() {
 
     // Define sidebar items
     let sidebarItems = [
-        { label: 'Get User', icon: <People />, route: '/alluser' },
-        { label: 'Approve Mission', icon: <Article />, route: '/getmission' },
-        { label: 'All Mission', icon: <Update />, route: '/updatemission' },
+        { label: 'Get User', icon: <People />, route: '/c3a9d8e7-1b2f-4c7e-92a1-7d8c9b3e1a2f' },
+        { label: 'Approve Mission', icon: <Article />, route: '/b18c4f56-7a2f-4e77-9a33-4e9b0d2b9f19' },
+        { label: 'All Mission', icon: <Update />, route: '/a6c3d8f1-23eb-4c7d-98ba-123d8ef9a12c' },
         // { label: 'Order', icon: <LocalShipping />, route: '/order' },
-        { label: 'Reward', icon: <CardGiftcard />, route: '/admingetreward' },
-        { label: 'Update Reward', icon: <Update />, route: '/adminreward' },
+        { label: 'Reward', icon: <CardGiftcard />, route: '/ea932c1a-b3d5-48d2-91c4-f9b23e7aebc2' },
+        { label: 'Update Reward', icon: <Update />, route: '/d72a1b4f-91e3-4c8b-843f-5b1a8d7e9c23' },
     ];
 
     // Filter sidebar items if isAdmin === 4

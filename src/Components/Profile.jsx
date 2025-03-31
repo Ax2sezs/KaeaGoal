@@ -128,7 +128,7 @@ function Profile() {
                         <div className="avatar flex flex-col justify-center items-center relative">
                             <div className="ring-layer-item ring-offset-bg w-28 rounded-full ring ring-offset-2">
                                 <img
-                                    src={userDetails?.imageUrls || 'au-logo.png'}
+                                    src={userDetails?.imageUrls || 'profile.png'}
                                     alt="Profile"
                                     loading="lazy"
                                 />
@@ -172,7 +172,7 @@ function Profile() {
                             <div className="avatar">
                                 <div className="w-32 h-32 rounded-full ring-2 ring-layer-item ring-offset-2">
                                     <img
-                                        src={selectedFile ? preview : userDetails?.imageUrls || './au-logo.png'}
+                                        src={selectedFile ? preview : userDetails?.imageUrls || './profile.png'}
                                         alt="Profile"
                                         className="object-cover w-full h-full"
                                     />

@@ -37,11 +37,11 @@ const RewardCard = ({ item, onClick }) => {
             {item?.reward_Name || 'N/A'}
           </h2>
           <div className="flex flex-row justify-between">
-            <p className="text-lg text-button-text flex items-center gap-2">
+            <p className="text-lg text-button-text flex items-center gap-1">
               <ShoppingCartOutlinedIcon className="" />
               {item?.reward_quantity || '0'}
             </p>
-            <div className="flex flex-row gap-3">
+            <div className="flex flex-row gap-1">
               <img src="./1.png" alt="Coin Icon" className="w-6 h-6" />
               <p className="text-lg text-green-500 font-bold">{item?.reward_price || 'N/A'}</p>
             </div>
@@ -56,6 +56,7 @@ function Reward() {
   const { user } = useAuth();
   const { Reward = [], error, isLoading, acceptReward, fetchRewards } = useFetchData(user?.token);
   const [selectedReward, setSelectedReward] = useState(null);
+  const [isButtonDisabled, setIsButtonDisabled] = useState(false);  // ใช้ติดตามสถานะการ disable ปุ่ม
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [modalMessage, setModalMessage] = useState('');
   const [isSuccess, setIsSuccess] = useState(false);
@@ -87,22 +88,29 @@ function Reward() {
       setModalMessage('Missing reward ID or user ID');
       return;
     }
+    setIsButtonDisabled(true);
+
+    // ใช้ setTimeout เพื่อ disable ปุ่มเพียง 5 วินาที
+    setTimeout(() => {
+      setIsButtonDisabled(false);  // หลังจาก 5 วินาทีให้เปิดปุ่มใช้งานอีกครั้ง
+    }, 3000); // 5 วินาที
 
     try {
       await acceptReward(selectedReward.reward_Id, user.a_USER_ID);
       setIsSuccess(true);
-      document.getElementById('reward_modal').close();
       setTimeout(() => {
-        const successModal = document.getElementById("success_modal");
+        const successModal = document.getElementById("success_modal_reward");
         if (successModal) {
           successModal.showModal();
         }
+        document.getElementById('reward_modal').close();
+
       }, 500, fetchRewards());
     } catch (err) {
       console.error("API Error:", err.response?.data?.message);
       if (err.response?.data?.message === "Insufficient Coin") {
         setErrorMessage("Not enough coin!");
-        document.getElementById("error_modal").showModal();
+        document.getElementById("error_modal_reward").showModal();
       } else {
         setModalMessage("Failed to accept reward");
       }
@@ -138,7 +146,7 @@ function Reward() {
         <div className="modal-box bg-bg text-button-text">
           {selectedReward && (
             <>
-              <div className="relative w-full h-48 rounded-2xl">
+              <div className="relative w-full h-56 rounded-2xl">
                 <Swiper
                   modules={[Navigation, Pagination]}
                   navigation
@@ -173,7 +181,7 @@ function Reward() {
               {selectedReward?.reward_price || 0} Pts
             </div>
             <div>
-              <button className="btn btn-success rounded-badge text-bg mr-2" onClick={handleAcceptReward}>Confirm</button>
+              <button className="btn btn-success rounded-badge text-bg mr-2" onClick={handleAcceptReward} disabled={isButtonDisabled}>Confirm</button>
               <button className="btn btn-outline btn-error rounded-badge" onClick={() => document.getElementById('reward_modal').close()}>Close</button>
             </div>
           </div>
@@ -181,13 +189,13 @@ function Reward() {
       </dialog>
 
       {/* Error Modal */}
-      <dialog id="error_modal" className="modal">
+      <dialog id="error_modal_reward" className="modal">
         <div className="modal-box bg-red-500 text-white text-center">
           <h1 className='text-bg'><CloseOutlinedIcon fontSize='large' className='animate-bounce' /></h1>
           <h3 className="text-xl font-bold">Not enough coin</h3>
           <button
             className="btn border-bg bg-bg rounded-badge text-red-500 mt-3 hover:bg-bg"
-            onClick={() => document.getElementById("error_modal").close()}
+            onClick={() => document.getElementById("error_modal_reward").close()}
           >
             Close
           </button>
@@ -195,14 +203,14 @@ function Reward() {
       </dialog>
 
       {/* Success Modal */}
-      <dialog id="success_modal" className="modal">
+      <dialog id="success_modal_reward" className="modal">
         <div className="modal-box bg-green-500 text-white text-center">
           <h1 className='text-bg'><CheckIcon fontSize='large' className='animate-bounce' /></h1>
           <h3 className="text-xl font-bold">{selectedReward?.reward_Name}. Redeemed Successfully!</h3>
           <p>You have successfully redeemed...</p>
           <button
             className="btn border-bg bg-bg rounded-badge text-green-500 mt-3 hover:bg-bg"
-            onClick={() => document.getElementById("success_modal").close()}
+            onClick={() => document.getElementById("success_modal_reward").close()}
           >
             Close
           </button>

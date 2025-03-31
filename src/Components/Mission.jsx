@@ -20,11 +20,12 @@ function Mission() {
     return (
         <div className="bg-bg w-full min-h-screen rounded-2xl mb-16 sm:mb-0">
             <div className="absolute top-24 right-10">
-                <label className="swap swap-rotate">
+                {/* <label className="swap swap-rotate">
                     <input
                         type="checkbox"
                         checked={isTableLayout}
                         onChange={() => setIsTableLayout(!isTableLayout)}
+                        disabled
                     />
                     <WindowOutlinedIcon
                         alt="Grid Layout"
@@ -34,7 +35,7 @@ function Mission() {
                         alt="List Layout"
                         className={`swap-off h-6 w-6 transition-all duration-300 ease-in-out transform ${isTableLayout ? 'rotate-180 text-gray-500' : 'rotate-0 text-button-text'}`}
                     />
-                </label>
+                </label> */}
 
             </div>
             <h1 className="text-2xl text-layer-item font-bold m-3">{activeTab}.</h1>

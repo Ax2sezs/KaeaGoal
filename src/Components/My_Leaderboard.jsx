@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from './APIManage/AuthContext';
 import useFetchData from './APIManage/useFetchData';
+import EmojiEventsIcon from '@mui/icons-material/EmojiEvents';
 
 function My_Leaderboard() {
     const { user } = useAuth();
@@ -29,19 +30,21 @@ function My_Leaderboard() {
 
     return (
         <div className="flex flex-row justify-around items-center w-full">
-            <span>No. <strong>#{myranking?.rank||'-'}</strong></span>
+            <span>Rank. <strong>#{myranking?.rank || '-'}</strong></span>
             <div>
                 <img
-                    src={myranking?.imageUrls || './au-logo.png'}
+                    src={myranking?.imageUrls || './profile.png'}
                     alt="User Avatar"
                     className='object-cover w-16 h-16 rounded-full border-4 p-1 border-layer-item'
                 />
             </div>
-            <span>{myranking?.point || 0} Point.</span>
+            {/* <span>{myranking?.point || 0} Point.</span> */}
             <Link to="/leaderboard">
-                <button className="border-hidden w-16 h-16 bg-layer-item text-bg rounded-2xl hover:bg-layer-item">
-                    Ranking
+                <button className="border-hidden w-16 h-16 bg-layer-item text-bg rounded-2xl hover:bg-heavy-color text-xs flex flex-col items-center justify-center leading-none">
+                    <EmojiEventsIcon className="mb-0.5" />
+                    <span>Ranking</span>
                 </button>
+
             </Link>
         </div>
     );

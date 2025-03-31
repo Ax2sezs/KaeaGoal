@@ -15,16 +15,16 @@ import "swiper/css/pagination";
 
 function Mission_Main({ isTableLayout }) {
   const { user } = useAuth();
-  const { missions = [], error, isLoading, acceptMission,fetchMissions } = useFetchData(user?.token);
+  const { missions = [], error, isLoading, acceptMission, fetchMissions } = useFetchData(user?.token);
   const [selectedIndex, setSelectedIndex] = useState(null);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isModalSuccess, setIsModalSuccess] = useState(false);
 
-      useEffect(() => {
-            if (user?.token) {
-                fetchMissions();
-            }
-        }, [user?.token, fetchMissions]);
+  useEffect(() => {
+    if (user?.token) {
+      fetchMissions();
+    }
+  }, [user?.token, fetchMissions]);
 
   // useEffect(() => {
   //   const userId = user?.a_USER_ID || localStorage.getItem('a_USER_ID');
@@ -48,15 +48,35 @@ function Mission_Main({ isTableLayout }) {
     const isFullB = b?.current_Accept >= b?.accept_limit;
     const isLimitedA = a?.is_Limited ? -1 : 1;
     const isLimitedB = b?.is_Limited ? -1 : 1;
-
+  
+    // ✅ ตรวจสอบว่า mission กำลังจะมา (ยังไม่ถึงวันที่กำหนด)
+    const isComingA = a?.start_Date && new Date(a.start_Date) > new Date();
+    const isComingB = b?.start_Date && new Date(b.start_Date) > new Date();
+  
+    // ✅ ตรวจสอบว่า mission หมดอายุ (วันหมดอายุ <= วันปัจจุบัน)
+    const isExpiredA = a?.end_Date && new Date(a.end_Date) <= new Date();
+    const isExpiredB = b?.end_Date && new Date(b.end_Date) <= new Date();
+  
+    // ✅ ถ้า mission หมดอายุ ให้ไปอยู่หลังสุด
+    if (isExpiredA !== isExpiredB) {
+      return isExpiredA ? 1 : -1; // isExpiredA ไปอยู่หลังสุด
+    }
+  
+    // ✅ ถ้า mission กำลังจะมา ให้ไปอยู่ก่อน
+    if (isComingA !== isComingB) {
+      return isComingA ? 1 : -1; // isComingA อยู่ก่อน
+    }
+  
     // ✅ ถ้าอันไหนเต็ม ให้ไปอยู่หลังสุด
     if (isFullA !== isFullB) {
       return isFullA - isFullB;
     }
-
+  
     // ✅ ถ้ายังไม่เต็ม ให้ Limited มาก่อน
     return isLimitedA - isLimitedB;
   });
+  
+  
 
   const handleButtonClick = (index) => {
     setSelectedIndex(index);
@@ -82,7 +102,7 @@ function Mission_Main({ isTableLayout }) {
       setTimeout(() => {
         const successModal = document.getElementById("success_modal");
         if (successModal) {
-          successModal.showModal(); // เปิด Modal Success
+          successModal.showModal();
         }
       }, 200);
 
@@ -125,7 +145,7 @@ function Mission_Main({ isTableLayout }) {
                   const isFull = mission.current_Accept >= mission.accept_limit;
                   const isExpired = mission.expire_Date && new Date(mission.expire_Date) < new Date();
                   const isComing = mission?.start_Date && new Date(mission.start_Date) > new Date();
-                  const isDisabled = isFull || isExpired ||isComing;
+                  const isDisabled = isFull || isExpired || isComing;
 
                   return (
                     <tr key={index}

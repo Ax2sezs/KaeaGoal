@@ -4,7 +4,7 @@ import { useAuth } from '../APIManage/AuthContext';
 
 function CreateUserForm({ onClose }) {
   const { user } = useAuth();
-  const { createUser, success, error, isLoading ,refetch} = useFetchData(user?.token);
+  const { createUser, success, error, isLoading, fetchAllMissions } = useFetchData(user?.token);
 
   const [formData, setFormData] = useState({
     logoN_NAME: '',
@@ -39,7 +39,7 @@ function CreateUserForm({ onClose }) {
     try {
       await createUser(formData);
       setShowSuccess(true);
-      refetch()
+      fetchAllMissions()
       setTimeout(() => {
         setShowSuccess(false);
         onClose(); // Close modal after success
@@ -81,7 +81,7 @@ function CreateUserForm({ onClose }) {
 
       <h2 className="text-2xl font-bold mb-4 text-center ">Create New User</h2>
       <form onSubmit={handleSubmit} className="space-y-4 max-h-[80vh] overflow-y-auto pr-2">
-      {/* Input Fields */}
+        {/* Input Fields */}
         <div className="form-control">
           <label className="label">Logo Name</label>
           <input
@@ -113,7 +113,7 @@ function CreateUserForm({ onClose }) {
               name="lastName"
               value={formData.lastName}
               onChange={handleChange}
-              className="input input-bordered border-button-text bg-bg" 
+              className="input input-bordered border-button-text bg-bg"
               required
             />
           </div>

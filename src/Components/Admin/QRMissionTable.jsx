@@ -14,8 +14,12 @@ const QRMissionTable = ({ alluserDetail, allMission, ApproveQR, approveMission, 
         const storedMissionId = localStorage.getItem("selectedMissionId");
         if (storedMissionId) {
             setSelectedMissionName(storedMissionId);
+            setFilteredMissions(qrMissions.filter(mission => 
+                storedMissionId === "all" ? true : mission.missioN_ID === storedMissionId
+            ));
         }
-    }, [ApproveQR]); // ให้ทำงานใหม่เมื่อ `ApproveQR` ถูกอัปเดต
+    }, [ApproveQR, qrMissions]); 
+    
     
 
     useEffect(() => {
@@ -182,14 +186,14 @@ const QRMissionTable = ({ alluserDetail, allMission, ApproveQR, approveMission, 
                 ) : selectedMissionName === "all" ? (
                     <p className="text-gray-500 text-center mt-10">Please select a mission to display the table.</p>
                 ) : filteredMissions.length === 0 ? (
-                    <p>No QR missions available</p>
+                    <p className="text-center">No QR missions available</p>
                 ) : (
                     <table className="min-w-full border border-gray-300 text-button-text">
                         <thead>
                             <tr className="bg-gray-100">
                                 <th className="border p-2">Select</th>
-                                <th className="border p-2">Mission Name</th>
-                                <th className="border p-2">Username</th>
+                                <th className="border p-2">EmployeeID</th>
+                                <th className="border p-2">EmployeeName</th>
                                 <th className="border p-2">Scan Date</th>
                                 <th className="border p-2">Approver</th>
                                 <th className="border p-2">Action</th>
@@ -207,13 +211,17 @@ const QRMissionTable = ({ alluserDetail, allMission, ApproveQR, approveMission, 
                                             disabled={mission.approve === false}
                                         />
                                     </td>
-                                    <td className="border p-2">{mission.missioN_NAME}</td>
                                     <td className="border p-2">{mission.logoN_NAME}</td>
+                                    <td className="border p-2">{mission.useR_NAME}</td>
+                                    <td className="border p-2">{mission.branchCode}-{mission.department}</td>
                                     <td className="border p-2">{new Date(mission.scanned_At).toLocaleString()}</td>
                                     <td className="border p-2">
                                         {
                                             alluserDetail.find(user => user.a_USER_ID === mission.approve_By)?.user_Name || "-"
                                         }
+                                        <span className='text-xs text-gray-400'>
+                                            {mission.approve_DATE ? new Date(mission.approve_DATE).toLocaleString() : '-'}
+                                        </span>
                                     </td>
                                     <td className="border p-2">
                                         <div>

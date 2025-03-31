@@ -231,15 +231,20 @@ function Mission_MyMission({ isTableLayout }) {
       // If all conditions are the same, maintain the original order
       return 0;
     });
-    if (isLoading) {
-      return <div className="text-center text-gray-500"><span className="loading loading-dots loading-lg"></span></div>;
-    }
-    if(sortedMissions.length<=0){
-      return<div className="text-center">No mission Available</div>
-    }
+
+
 
   return (
     <div>
+      {isLoading ? (
+        <div className="text-center text-gray-500">
+          <span className="loading loading-dots loading-lg"></span>
+        </div>
+      ) : sortedMissions.length <= 0 ? (
+        <div className="text-center">No mission Available</div>
+      ) : null}
+
+
       {/* Display missions in grid layout */}
       {!isTableLayout ? (
         <div className="grid lg:grid-cols-2 xl:grid-cols-2 gap-5 items-center p-3 mb-16 h-auto bg-bg rounded-xl">
@@ -302,7 +307,7 @@ function Mission_MyMission({ isTableLayout }) {
                     ) : (
                       <div className="flex justify-center items-center">
                         <span className="text-lg text-gray-500">
-                          {item.verification_Status == "Waiting for Confirmation." ? "Waiting" : "Rejected"}
+                          {item.verification_Status !== "In progress" ? "Waiting" : "Rejected"}
                         </span>
                       </div>
                     )}

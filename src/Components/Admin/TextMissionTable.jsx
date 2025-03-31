@@ -179,81 +179,81 @@ function TextMissionTable({ alluserDetail, allMission, ApproveText, approveText,
             {/* Table */}
             {isLoading ? (
                 <p>Loading...</p>
-            ) : (selectedMissionName !== "all" && filteredMissions.length > 0) ? ( // Check if mission is selected and has filtered data
+            ) : (selectedMissionName !== "all" && filteredMissions.length > 0) ? (
                 <table className="table-auto w-full border-collapse border border-gray-300 text-button-text">
                     <thead>
                         <tr className="bg-gray-200">
-                            <th className="border p-2">
-                                Select
-                            </th>
-                            <th className="border p-2">User</th>
-                            <th className="border p-2">Mission</th>
+                            <th className="border p-2">Select</th>
+                            <th className="border p-2">EmployeeID</th>
+                            <th className="border p-2">EmployeeName</th>
+                            <th className="border p-2">Department</th>
                             <th className="border p-2">Submit Date</th>
                             <th className="border p-2">Text</th>
-                            <th className="border p-2">Approver</th>
                             <th className="border p-2">Actions</th>
+                            <th className="border p-2">Approver</th>
                         </tr>
                     </thead>
                     <tbody>
-                        {filteredMissions.map((mission) => (
-                            <tr key={mission.missionId} className="border">
-                                <td className="border p-2">
-                                    <input
-                                        type="checkbox"
-                                        className="checkbox"
-                                        checked={selectedMissions.includes(mission.useR_MISSION_ID)}
-                                        onChange={() => handleCheckboxChange(mission.useR_MISSION_ID)}
-                                        disabled={mission.approve === false} // ❌ ถ้า approve === false → ห้ามเลือก
-                                    />
-                                </td>
+                        {filteredMissions
+                            .slice() // Clone array เพื่อไม่เปลี่ยนแปลง state ต้นฉบับ
+                            .sort((a, b) => (a.approve === null ? -1 : 1)) // ✅ เอา approve === null มาก่อน
+                            .map((mission) => (
+                                <tr key={mission.missionId} className="border">
+                                    <td className="border p-2">
+                                        <input
+                                            type="checkbox"
+                                            className="checkbox"
+                                            checked={selectedMissions.includes(mission.useR_MISSION_ID)}
+                                            onChange={() => handleCheckboxChange(mission.useR_MISSION_ID)}
+                                            disabled={mission.approve === false}
+                                        />
+                                    </td>
+                                    <td className="border p-2">{mission.logoN_NAME}</td>
+                                    <td className="border p-2">{mission.useR_NAME}</td>
+                                    <td className="border p-2">{mission.branchCode}-{mission.department}</td>
+                                    <td className="border p-2">{new Date(mission.submiT_DATE).toLocaleString()}</td>
+                                    <td className="border p-2 text-sm">{mission.text.join(", ")}</td>                             
+                                    <td className="border p-2">
+                                        <div className="flex gap-3">
+                                            {mission.approve === null ? (
+                                                <>
+                                                    <button
+                                                        className="btn btn-success btn-xs mb-5 text-bg"
+                                                        onClick={() => handleAction(mission.useR_MISSION_ID, true)}
+                                                        disabled={mission.approve !== null}
+                                                    >
+                                                        Approve
+                                                    </button>
 
-                                <td className="border p-2">{mission.logoN_NAME}</td>
-                                <td className="border p-2">{mission.missioN_NAME}</td>
-                                <td className="border p-2">{new Date(mission.submiT_DATE).toLocaleString()}</td>
-                                <td className="border p-2 text-sm">{mission.text.join(", ")}</td>
-                                <td className="border p-2">
-                                    {
-                                        alluserDetail.find(user => user.a_USER_ID === mission.approve_By)?.user_Name || "-"
-                                    }
-                                </td>
-                                <td className="border p-2">
-                                    <div className="flex">
-                                        {mission.approve === null ? (
-                                            // หาก approve เป็น null ให้แสดงปุ่ม
-                                            <>
-                                                <button
-                                                    className="btn btn-success btn-xs mb-5 text-bg"
-                                                    onClick={() => handleAction(mission.useR_MISSION_ID, true)}
-                                                    disabled={mission.approve !== null}
-                                                >
-                                                    Approve
-                                                </button>
-
-                                                <button
-                                                    className="btn btn-error btn-xs w-20"
-                                                    onClick={() => handleAction(mission.useR_MISSION_ID, false)}
-                                                    disabled={mission.approve !== null}
-                                                >
-                                                    Reject
-                                                </button>
-                                            </>
-                                        ) : mission.approve === true ? (
-                                            // หาก approve เป็น true ให้แสดงข้อความ "Approved"
-                                            <span className="text-green-500">Approved</span>
-                                        ) : (
-                                            // หาก approve เป็น false ให้แสดงข้อความ "Rejected"
-                                            <span className="text-red-500">Rejected</span>
-                                        )}
-                                    </div>
-                                </td>
-
-                            </tr>
-                        ))}
+                                                    <button
+                                                        className="btn btn-error btn-xs w-20"
+                                                        onClick={() => handleAction(mission.useR_MISSION_ID, false)}
+                                                        disabled={mission.approve !== null}
+                                                    >
+                                                        Reject
+                                                    </button>
+                                                </>
+                                            ) : mission.approve === true ? (
+                                                <span className="text-green-500">Approved</span>
+                                            ) : (
+                                                <span className="text-red-500">Rejected</span>
+                                            )}
+                                        </div>
+                                    </td>
+                                    <td className="border p-2 flex flex-col">
+                                        {alluserDetail.find(user => user.a_USER_ID === mission.approve_By)?.user_Name || "-"}
+                                        <span className='text-xs text-gray-400'>
+                                            {mission.approve_DATE ? new Date(mission.approve_DATE).toLocaleString() : '-'}
+                                        </span>
+                                    </td>
+                                </tr>
+                            ))}
                     </tbody>
                 </table>
             ) : (
                 <p className='text-gray-500 text-center mt-10'>Please select a mission to display the table.</p>
             )}
+
         </div>
     );
 }

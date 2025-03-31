@@ -22,6 +22,8 @@ const useFetchData = (token) => {
   const [myranking,setMyranking] = useState([])
   const [history, setHistory] = useState([]);
   const [filteredUserDetail, setFilteredUserDetail] = useState([])
+  const [filterByDept,setFilterByDept] = useState([])
+  const [department,setDepartments] = useState([])
   const [success, setSuccess] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -485,6 +487,78 @@ const useFetchData = (token) => {
       setIsLoading(false);
     }
   }, [token]);
+
+  const fetchFilterByDept = useCallback(async (site,departmentName, page = 1, pageSize = 50) => {
+    if (!token) {
+      setError('Token is missing or invalid');
+      return;
+    }
+  
+    try {
+      setIsLoading(true);
+      const responseFilter = await api.get('Auth/FilterByDepartment', {
+        headers: { Authorization: `Bearer ${token}` },
+        params: { site, department: departmentName, page, pageSize },
+      });
+  
+      console.log("API Response:", responseFilter);
+  
+      // ตรวจสอบว่า responseFilter.data มีโครงสร้างที่ถูกต้องไหม
+      if (Array.isArray(responseFilter.data)) {
+        setFilterByDept(responseFilter.data); // ถ้า data เป็น array
+      } else if (responseFilter.data?.data) {
+        setFilterByDept(responseFilter.data.data); // ถ้าข้อมูลอยู่ใน response.data.data
+      } else {
+        setFilterByDept([]); // ถ้าไม่พบข้อมูลที่ต้องการ
+      }
+  
+      setSuccess('Users fetched successfully!');
+    } catch (err) {
+      if (err.response?.status === 404) {
+        console.warn('No Users available.');
+        setFilterByDept([]);
+      } else {
+        setError('Failed to fetch');
+        console.error('API Error:', err.response?.data || err);
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  }, [token]);
+  
+
+  
+  const fetchDept = useCallback(async (site) => {
+    if (!token) {
+      setError('Token is missing or invalid');
+      return;
+    }
+  
+    try {
+      setIsLoading(true);
+      const responseDept = await api.get('Auth/GetDepartmentsBySite', {
+        headers: { Authorization: `Bearer ${token}` },
+        params: { site }, // ส่ง Site เป็นพารามิเตอร์
+      });
+  
+      // ตรวจสอบว่า response เดินมาถึงหรือไม่
+      console.log("API Response:", responseDept);
+  
+      setDepartments(responseDept.data || []); // ✅ ใช้ตัวแปร setDepartments แทน setFilterByDept
+      setSuccess('Departments fetched successfully!');
+    } catch (err) {
+      if (err.response?.status === 404) {
+        console.warn('No Departments available.');
+        setDepartments([]);
+      } else {
+        setError('Failed to fetch');
+        console.error('API Error:', err.response?.data || err);
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  }, [token]);
+  
 
   const fetchHistory = useCallback(async () => {
     if (!token) {
@@ -1298,27 +1372,39 @@ const useFetchData = (token) => {
       setError('Token is missing or invalid');
       return;
     }
-     // ตรวจสอบว่า filterData มี pageNumber และ pageSize
-  if (!filterData.pageNumber || filterData.pageNumber <= 0) {
-    filterData.pageNumber = 1;  // ถ้าไม่มีหรือค่าไม่ถูกต้อง ตั้งค่าเป็น 1
-  }
-
-  if (!filterData.pageSize || filterData.pageSize <= 0) {
-    filterData.pageSize = 10;  // ถ้าไม่มีหรือค่าไม่ถูกต้อง ตั้งค่าเป็น 10
-  }
-
+  
     try {
       setIsLoading(true);
       const response = await api.post('/Auth/get-filter-user', filterData, {
         headers: { Authorization: `Bearer ${token}` },
       });
-
-      setFilteredUserDetail(response.data || []); // เก็บข้อมูลผู้ใช้ที่กรองแล้ว
+  
+      console.log("API Response:", response.data); // ดูว่า API ส่งอะไรมาบ้าง
+  
+      if (Array.isArray(response.data.items)) {
+        const filteredData = response.data.items.map(user => ({
+          a_USER_ID: user.a_USER_ID,
+          logoN_NAME: user.logoN_NAME,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          branchCode: user.branchCode,
+          branch: user.branch,
+          user_Name: user.user_Name,
+          user_Position: user.user_Position,
+          imageUrls: user.imageUrls, // เพิ่ม imageUrls ที่ได้จาก API
+        }));
+  
+        setFilteredUserDetail(filteredData); // เซ็ตข้อมูลที่กรองมา
+      } else {
+        console.error("Invalid API response format:", response.data);
+        setFilteredUserDetail([]); // ถ้าข้อมูลผิด ให้ใช้ []
+      }
+  
       setSuccess('Filtered user details fetched successfully!');
     } catch (err) {
       if (err.response?.status === 404) {
         console.warn('No matching users found.');
-        setFilteredUserDetail([]); // ถ้าไม่พบผู้ใช้
+        setFilteredUserDetail([]); // ถ้าไม่พบผู้ใช้ ให้ใช้ []
       } else {
         setError('Failed to fetch filtered user details');
         console.error('API Error:', err.response?.data || err);
@@ -1327,6 +1413,8 @@ const useFetchData = (token) => {
       setIsLoading(false);
     }
   }, [token]);
+  
+  
 
   return {
     userDetails,
@@ -1377,6 +1465,8 @@ const useFetchData = (token) => {
     toptenLeaderboard,
     myranking,
     history,
+    filterByDept,
+    department,
     fetchUserDetails,
     fetchCoinDetails,
     fetchAllMissions,
@@ -1396,6 +1486,8 @@ const useFetchData = (token) => {
     filteredUserDetail,
     fetchToptenLeaderboard,
     fetchMyLeaderboard,
+    fetchFilterByDept,
+    fetchDept,
 
   };
 };

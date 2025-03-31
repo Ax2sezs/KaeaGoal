@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from './APIManage/AuthContext'; // Assuming you have the AuthContext for user data
 import useFetchData from './APIManage/useFetchData';  // Import the merged custom hook
+import LogoutIcon from '@mui/icons-material/Logout';
 
 function Header() {
   const { user, logout, isLoading } = useAuth();
@@ -62,7 +63,7 @@ function Header() {
         <div className="avatar hover:scale-105 transition-transform duration-300 ease-in-out">
           <Link to="/profile">
             <div className="ring-heavy-color ring-offset-bg w-10 sm:w-11 h-10 sm:h-11 rounded-full ring ring-offset-2 overflow-hidden">
-              <img src={userDetails?.imageUrls||'au-logo.png'} alt="User Avatar" className="w-full h-full object-cover" />
+              <img src={userDetails?.imageUrls||'profile.png'} alt="User Avatar" className="w-full h-full object-cover" />
             </div>
           </Link>
         </div>
@@ -83,8 +84,8 @@ function Header() {
             {coinDetails?.thankCoinConvert || 0}
           </h1>
         </div>
-        <button onClick={handleLogout} className="py-2 px-4 bg-red-600 text-white font-semibold rounded-badge hover:bg-red-700 transition">
-          Logout
+        <button onClick={handleLogout} className="btn bg-red-500 rounded-badge btn-sm border-hidden">
+          <LogoutIcon className='scale-75 text-bg'/>
         </button>
       </div>
     </header>

@@ -85,15 +85,15 @@ const pdlayout = isAuthPage ? '' : 'flex flex-col lg:flex-row justify-center ite
                     <Route path="/order" element={<PrivateRoute><Order /></PrivateRoute>} />
                     <Route path="/mymission" element={<PrivateRoute><MyMission /></PrivateRoute>} />
                     <Route path='/rewardtab' element={<PrivateRoute><TabReward/></PrivateRoute>}/>
-                    
-                    <Route path='/admin' element={<PrivateRoute><Admin/></PrivateRoute>}/>
-                    <Route path='/admin_list' element={<PrivateRoute><AdminList/></PrivateRoute>}/>
-                    <Route path='/getmission' element={<PrivateRoute><AdminMission/></PrivateRoute>}/>
-                    <Route path='/updatemission' element={<PrivateRoute><UpdateMission/></PrivateRoute>}/>
-                    <Route path='/adminreward' element={<PrivateRoute><AdminReward/></PrivateRoute>}/>
                     <Route path='/myreward' element={<PrivateRoute><MyReward/></PrivateRoute>}/>
-                    <Route path='/admingetreward' element={<PrivateRoute><AdminUserReward/></PrivateRoute>}/>
-                    <Route path='/alluser' element={<PrivateRoute><AllUser/></PrivateRoute>}/>
+                    
+                    <Route path='/f47ac10b-58cc-4372-a567-0e02b2c3d479' element={<PrivateRoute><Admin/></PrivateRoute>}/>
+                    <Route path='/7c1e2a69-9d3b-4d4e-97a2-5b5f3a5eabc7' element={<PrivateRoute><AdminList/></PrivateRoute>}/>
+                    <Route path='/b18c4f56-7a2f-4e77-9a33-4e9b0d2b9f19' element={<PrivateRoute><AdminMission/></PrivateRoute>}/>
+                    <Route path='/a6c3d8f1-23eb-4c7d-98ba-123d8ef9a12c' element={<PrivateRoute><UpdateMission/></PrivateRoute>}/>
+                    <Route path='/ea932c1a-b3d5-48d2-91c4-f9b23e7aebc2' element={<PrivateRoute><AdminReward/></PrivateRoute>}/>
+                    <Route path='/d72a1b4f-91e3-4c8b-843f-5b1a8d7e9c23' element={<PrivateRoute><AdminUserReward/></PrivateRoute>}/>
+                    <Route path='/c3a9d8e7-1b2f-4c7e-92a1-7d8c9b3e1a2f' element={<PrivateRoute><AllUser/></PrivateRoute>}/>
                     {/* <Route path='/register' element={<Register/>}/>
                     <Route path='/test' element={<Test/>}/> */}
                     <Route path="*" element={<Navigate to="/" />} />

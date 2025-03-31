@@ -4,13 +4,13 @@ import { useAuth } from '../APIManage/AuthContext';
 
 function MyReward() {
     const { user } = useAuth();
-    const { userReward = [], error, isLoading,fetchUserRewards } = useFetchData(user?.token || '');
+    const { userReward = [], error, isLoading, fetchUserRewards } = useFetchData(user?.token || '');
     const [expandedIndex, setExpandedIndex] = useState(null);
     useEffect(() => {
-                if (user?.token) {
-                    fetchUserRewards();
-                }
-            }, [user?.token, fetchUserRewards]);
+        if (user?.token) {
+            fetchUserRewards();
+        }
+    }, [user?.token, fetchUserRewards]);
 
     const getStepClasses = (status, step) => {
         const statusMap = {
@@ -63,10 +63,10 @@ function MyReward() {
                                         <span className="font-semibold truncate w-28 text-button-text">{item.reward_Name}</span>
                                     </div>
                                     <ul className="hidden sm:steps steps-horizontal w-full ">
-                                                <li className={getStepClasses(item.reward_Status, 1)}>Ordered</li>
-                                                <li className={getStepClasses(item.reward_Status, 2)}>On Delivery</li>
-                                                <li className={getStepClasses(item.reward_Status, 3)}>Delivered</li>
-                                            </ul>
+                                        <li className='step step-warning'>Ordered</li>
+                                        <li className={getStepClasses(item.reward_Status, 2)}>On Delivery</li>
+                                        <li className={getStepClasses(item.reward_Status, 3)}>Delivered</li>
+                                    </ul>
                                     <div className="text-center font-bold">
                                         <div className='flex flex-col'>
                                             <p className='text-button-text'>{getCurrentStepLabel(item.reward_Status)}</p>
@@ -82,7 +82,7 @@ function MyReward() {
                                         <strong className='text-button-text'>Detailed Steps:</strong>
                                         <div className="text-xs sm:text-sm text-gray-700">
                                             <ul className="steps steps-horizontal w-full sm:hidden">
-                                            <li className={getStepClasses(item.reward_Status, 1)}>Ordered</li>
+                                                <li className={getStepClasses(item.reward_Status, 1)}>Ordered</li>
                                                 <li className={getStepClasses(item.reward_Status, 2)}>On Delivery</li>
                                                 <li className={getStepClasses(item.reward_Status, 3)}>Delivered</li>
                                             </ul>

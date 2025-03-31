@@ -1,4 +1,4 @@
-import {React,useEffect} from "react";
+import { React, useEffect } from "react";
 import { useAuth } from "../APIManage/AuthContext";
 import useFetchData from "../APIManage/useFetchData";
 
@@ -7,15 +7,16 @@ function History() {
   const { history = [], error, isLoading, fetchHistory } = useFetchData(user?.token);
 
   useEffect(() => {
-      if (user?.token) {
-        fetchHistory();
-      }
-    }, [user?.token, fetchHistory]);
+    if (user?.token) {
+      fetchHistory();
+    }
+  }, [user?.token, fetchHistory]);
 
   // Define coin icons
   const coinIcons = {
     2: './1.png', // KAEA Coin
     1: './2.png', // Thanks Coin
+    3: './3.png',
   };
 
   return (
@@ -60,10 +61,11 @@ function History() {
                     {Number(item.amount)}
 
                     <img
-                      src={coinIcons[item.coin_Type] || coinIcons[2]}
+                      src={item.transaction_Type === 'Receive from Admin' ? coinIcons[3] : coinIcons[item.coin_Type] || coinIcons[2]}
                       alt="coin-icon"
                       className="w-5 h-5"
                     />
+
                   </span>
                 </div>
               </div>

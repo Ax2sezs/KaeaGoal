@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from "react";
-import { Html5QrcodeScanner } from "html5-qrcode";
+import { Html5QrcodeScanner,Html5Qrcode } from "html5-qrcode";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Navigation, Pagination } from "swiper/modules";
 import CheckIcon from '@mui/icons-material/Check';
@@ -23,7 +23,7 @@ const ModalMyMission = ({
   const [qrCode, setQrCode] = useState("");
   const [inputText, setInputText] = useState("")
   const [imageFiles, setImageFiles] = useState([]);
-  const [isScannerActive, setIsScannerActive] = useState(false);
+  const [isScannerActive, setIsScannerActive] = useState(true);
   const [selectedImage, setSelectedImage] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [requiredText,setRequiredText] = useState("")
@@ -37,23 +37,55 @@ const ModalMyMission = ({
 
   // useEffect(() => {
   //   let scanner = null;
-  //   if (isScannerActive) {
-  //     scanner = new Html5QrcodeScanner(
-  //       "reader",
-  //       { fps: 10, qrbox: 250 },
-  //       false
-  //     );
 
-  //     scanner.render(
-  //       (decodedText) => {
-  //         setQrCode(decodedText);
-  //         setIsScannerActive(false); // Stop scanner after successful scan
-  //       },
-  //       (errorMessage) => {
-  //         console.error("QR Code Error:", errorMessage);
+  //   // ฟังก์ชันที่ใช้ดึงข้อมูลกล้อง
+  //   const getBackCamera = async () => {
+  //     try {
+  //       const cameras = await Html5Qrcode.getCameras(); // ดึงรายการกล้อง
+  //       if (cameras && cameras.length > 0) {
+  //         // ตรวจสอบว่ามีกล้องหลัง
+  //         const backCamera = cameras.find(camera => camera.facing === "back");
+  //         if (backCamera) {
+  //           return backCamera.id;
+  //         }
+  //         // ถ้าไม่มีกล้องหลัง ก็เลือกกล้องแรกแทน
+  //         return cameras[0].id;
   //       }
-  //     );
-  //   }
+  //       throw new Error("No cameras found");
+  //     } catch (err) {
+  //       console.error("Error getting cameras:", err);
+  //       return null; // ถ้าไม่พบกล้อง
+  //     }
+  //   };
+
+  //   const startScanner = async () => {
+  //     const backCameraId = await getBackCamera(); // หากล้องหลัง
+  //     if (backCameraId) {
+  //       // สร้าง scanner ด้วยกล้องหลัง
+  //       scanner = new Html5QrcodeScanner(
+  //         "reader",
+  //         { 
+  //           fps: 10, 
+  //           qrbox: 250,
+  //           cameraId: backCameraId, // เลือกกล้องหลัง
+  //           showCameraSelector: false,  // ซ่อน UI สำหรับเลือกกล้อง
+  //           showStopScanButton: false,  // ซ่อน UI ปุ่มหยุดการสแกน
+  //         },
+  //         false
+  //       );
+
+  //       scanner.render(
+  //         (decodedText) => {
+  //           setQrCode(decodedText);  // แสดงผล QR code ที่สแกนได้
+  //           setIsScannerActive(false); // หยุดการสแกนเมื่อสำเร็จ
+  //         },
+  //         (errorMessage) => {
+  //           console.error("QR Code Error:", errorMessage); // แสดง error ถ้าสแกนไม่สำเร็จ
+  //         }
+  //       );
+  //     }
+  //   };
+
 
   //   return () => {
   //     if (scanner) {
@@ -61,41 +93,7 @@ const ModalMyMission = ({
   //     }
   //   };
   // }, [isScannerActive]);
-  useEffect(() => {
-    let scanner = null;
-    if (isScannerActive) {
-      Html5Qrcode.getCameras()
-        .then((devices) => {
-          if (devices.length > 0) {
-            // ค้นหากล้องที่มีชื่อ "back" หรือใช้กล้องตัวแรก
-            const primaryCamera = devices.find((device) => device.label.toLowerCase().includes("back")) || devices[0];
   
-            scanner = new Html5Qrcode("reader");
-            scanner.start(
-              primaryCamera.id, // ใช้กล้องหลัก
-              { fps: 10, qrbox: 250 },
-              (decodedText) => {
-                setQrCode(decodedText);
-                setIsScannerActive(false);
-                scanner.stop().catch((err) => console.error("Error stopping scanner:", err));
-              },
-              (errorMessage) => {
-                console.error("QR Code Error:", errorMessage);
-              }
-            );
-          } else {
-            console.error("No cameras found.");
-          }
-        })
-        .catch((err) => console.error("Camera access error:", err));
-    }
-  
-    return () => {
-      if (scanner) {
-        scanner.stop().catch((err) => console.error("Error stopping scanner:", err));
-      }
-    };
-  }, [isScannerActive]);
 
   const handleMissionCodeSubmit = async (e) => {
     e.preventDefault();

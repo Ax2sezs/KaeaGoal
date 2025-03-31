@@ -8,6 +8,7 @@ function Login() {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [isChecked, setIsChecked] = useState(false); // ✅ เพิ่ม state สำหรับ checkbox
   const navigate = useNavigate();
 
   const { login } = useFetchData(null);
@@ -99,25 +100,55 @@ function Login() {
           </div>
 
           {/* Sign Up Link */}
-          <div className="text-center">
-            <p className="text-sm text-bg">
-              Don't have an account?{' '}
-              <a href="/register" className="text-bg font-bold">
-                Sign Up
-              </a>
+          <div className="text-center flex gap-2">
+            <input type='checkbox' className='checkbox checkbox-success bg-bg' 
+            checked={isChecked}
+            onChange={(e) => setIsChecked(e.target.checked)}
+            />
+            <p className='text-sm text-bg'>I accept</p>
+            <p className="text-sm text-bg cursor-pointer font-bold" onClick={() => document.getElementById('policy').showModal()}>
+              the terms and conditions.
             </p>
           </div>
           <div className="flex justify-center mt-4">
             <button
               type="submit"
-              className="btn btn-outline bg-bg text-lg font-bold text-layer-item border border-bg rounded-full shadow-lg hover:scale-105 transform transition-all duration-300"
-              disabled={isLoading}
+              className="btn btn-outline bg-bg text-lg font-bold text-layer-item border-hidden rounded-full hover:scale-105 hover:bg-layer-item transform transition-all duration-300"
+              disabled={isLoading || !isChecked} // ✅ ปิดปุ่มถ้า checkbox ไม่ถูกติ๊ก
             >
               {isLoading ? 'Logging in...' : 'Login'}
             </button>
           </div>
         </form>
       </div>
+
+      {/* Open the modal using document.getElementById('ID').showModal() method */}
+      <dialog id="policy" className="modal">
+        <div className="modal-box bg-bg text-button-text" >
+          <h3 className="font-bold text-lg">Policy</h3>
+          <p className="py-4">
+            นโยบายการจัดเก็บและใช้รูปภาพ
+
+            เว็บไซต์ของเรามีการให้คุณส่งรูปภาพ ซึ่งอาจมีบุคคลอื่นติดอยู่ในภาพด้วย และเราจะจัดเก็บรูปของคุณในฐานข้อมูล รูปภาพที่คุณส่งมา อาจถูกนำไปใช้ในกิจกรรมของเว็บไซต์ หรือใช้เป็นตัวอย่างสำหรับกิจกรรมในอนาคต
+
+            หากคุณต้องการให้ลบรูปภาพของคุณ สามารถแจ้ง Admin เพื่อดำเนินการลบให้ได้ทุกเมื่อ
+          </p>
+          <div className='divider'></div>
+          <p className='py-4'>
+            Policy on Image Storage and Usage
+
+            Our website allows you to upload images, which may include other individuals in the background. We will store your uploaded images in our database. The images you provide may be used for website activities or as examples for future events.
+
+            If you wish to have your images removed, you can contact Admin at any time to request deletion.
+          </p>
+          <div className="modal-action">
+            <form method="dialog">
+              {/* if there is a button in form, it will close the modal */}
+              <button className="btn btn-success rounded-badge">Close</button>
+            </form>
+          </div>
+        </div>
+      </dialog>
     </div>
   );
 }

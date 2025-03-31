@@ -28,7 +28,7 @@ function Sidebar() {
   if (userDetails && (userDetails?.isAdmin === 9 || userDetails?.isAdmin === 4)) {
     sidebarItems.push({
       label: 'Admin',
-      link: '/admin',
+      link: '/f47ac10b-58cc-4372-a567-0e02b2c3d479',
       icon: <AdminPanelSettings />,
     });
   }
@@ -44,7 +44,7 @@ function Sidebar() {
         {/* Logo Section */}
         <div className="hidden sm:flex items-center justify-center w-full bg-layer-item py-4 mb-5 mt-5">
           <h1 className="text-2xl font-bold text-white">KAEGoal</h1>
-          <img src="./au-logo.png" className="w-15 h-12 mx-2" alt="KAEGoal Logo" />
+          {/* <img src="./profile.png" className="w-15 h-12 mx-2" alt="KAEGoal Logo" /> */}
         </div>
 
         {/* Menu Items */}
