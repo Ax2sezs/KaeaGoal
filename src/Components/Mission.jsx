@@ -5,6 +5,8 @@ import Mission_MyMission from './Mission_item/Mission_MyMission';
 import FormatListBulletedOutlinedIcon from '@mui/icons-material/FormatListBulletedOutlined';
 import WindowOutlinedIcon from '@mui/icons-material/WindowOutlined';
 import { ListAltOutlined } from '@mui/icons-material';
+import PeopleIcon from '@mui/icons-material/People';
+import { Link } from 'react-router-dom';
 
 function Mission() {
     const [activeTab, setActiveTab] = useState('Mission');
@@ -38,7 +40,9 @@ function Mission() {
                 </label> */}
 
             </div>
-            <h1 className="text-2xl text-layer-item font-bold m-3">{activeTab}.</h1>
+            <div className='flex flex-row justify-between items-center'>
+                <h1 className="text-2xl text-layer-item font-bold m-3">{activeTab}.</h1>
+            </div>
 
             {/* Tabs Navigation (Sticky) */}
             <div className="sticky top-14 z-50 bg-transparent">
@@ -48,8 +52,8 @@ function Mission() {
                             <button
                                 key={tab.id}
                                 className={`join-item btn ${activeTab === tab.id
-                                        ? 'bg-layer-item border-hidden text-white hover:bg-heavy-color'
-                                        : 'border border-layer-item bg-bg hover:bg-light-color hover:border-transparent hover:text-gray-600'
+                                    ? 'bg-layer-item border-hidden text-white hover:bg-heavy-color'
+                                    : 'border border-layer-item bg-bg hover:bg-light-color hover:border-transparent hover:text-gray-600'
                                     } rounded-full p-3`}
                                 onClick={() => setActiveTab(tab.id)}
                             >

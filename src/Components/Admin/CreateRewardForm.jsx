@@ -3,7 +3,7 @@ import useFetchData from '../APIManage/useFetchData';
 import { useAuth } from '../APIManage/AuthContext';
 import PreviewModal from './PreviewModal'; // Import the PreviewModal component
 
-const CreateRewardForm = ({ onCreateReward, onSuccess, onClose }) => {
+const CreateRewardForm = ({ onCreateReward, onSuccess, onClose, cate }) => {
   const { user } = useAuth();
   const { createReward, success, error, isLoading } = useFetchData(user?.token);
 
@@ -12,8 +12,10 @@ const CreateRewardForm = ({ onCreateReward, onSuccess, onClose }) => {
     REWARD_PRICE: 0,
     QUANTITY: 0,
     DESCRIPTION: '',
+    REWARDCate_Id: '',
     ImageFile: [] // Ensure this starts as an array
   });
+  
 
   const [showPreviewModal, setShowPreviewModal] = useState(false);
 
@@ -49,11 +51,12 @@ const CreateRewardForm = ({ onCreateReward, onSuccess, onClose }) => {
       setShowPreviewModal(false)
     }
   };
-  
+
 
   const handleCloseModal = () => {
     setShowPreviewModal(false); // Close the modal without confirming
   };
+  console.log('CATE:', cate);
 
   return (
     <>
@@ -77,6 +80,7 @@ const CreateRewardForm = ({ onCreateReward, onSuccess, onClose }) => {
             className='input input-bordered bg-bg border-button-text'
             type="number"
             name="REWARD_PRICE"
+            min="1"
             value={rewardData.REWARD_PRICE}
             onChange={handleChange}
             required
@@ -89,10 +93,28 @@ const CreateRewardForm = ({ onCreateReward, onSuccess, onClose }) => {
             className='input input-bordered bg-bg border-button-text'
             type="number"
             name="QUANTITY"
+            min="1"
             value={rewardData.QUANTITY}
             onChange={handleChange}
             required
           />
+        </div>
+        <div className='form-control w-full'>
+          <label className='label-text text-button-text'>Category</label>
+          <select
+            className="select select-bordered bg-bg border-button-text"
+            name="REWARDCate_Id"
+            value={rewardData.REWARDCate_Id}
+            onChange={handleChange}
+            required
+          >
+            <option value="" disabled>Select Category</option>
+            {cate.map((category,index) => (
+              <option key={index} value={category.rewardsCate_Id}>
+                {category.rewardsCate_NameEn}
+              </option>
+            ))}
+          </select>
         </div>
 
         <div className='form-control w-full'>
@@ -105,6 +127,8 @@ const CreateRewardForm = ({ onCreateReward, onSuccess, onClose }) => {
             required
           />
         </div>
+
+
 
         <div className="form-control w-full">
           <label className='label-text text-button-text'>Image</label>
@@ -127,7 +151,6 @@ const CreateRewardForm = ({ onCreateReward, onSuccess, onClose }) => {
           >
             Close
           </button>
-
 
           <button
             type="submit"

@@ -8,7 +8,7 @@ export const AuthProvider = ({ children }) => {
     const token = localStorage.getItem('token');
     const a_USER_ID = localStorage.getItem('a_USER_ID');
     const logoN_NAME = localStorage.getItem('logoN_NAME');
-    console.log('Loaded from localStorage:', { token, a_USER_ID, logoN_NAME });
+    // console.log('Loaded from localStorage:', { token, a_USER_ID, logoN_NAME });
 
     return token && a_USER_ID && logoN_NAME
       ? { token, a_USER_ID, logoN_NAME }
@@ -21,7 +21,7 @@ export const AuthProvider = ({ children }) => {
     localStorage.setItem('a_USER_ID', a_USER_ID);  // Store a_USER_ID in localStorage
     localStorage.setItem('logoN_NAME', logoN_NAME);  // Store logoN_NAME in localStorage
     setUser({ token, a_USER_ID, logoN_NAME });  // Update state with user data
-    console.log('User logged in:', { token, a_USER_ID, logoN_NAME });
+    // console.log('User logged in:', { token, a_USER_ID, logoN_NAME });
   };
 
   // ฟังก์ชัน logout
@@ -41,13 +41,13 @@ export const AuthProvider = ({ children }) => {
 
     if (token && a_USER_ID && logoN_NAME) {
       setUser({ token, a_USER_ID, logoN_NAME });
-      console.log('User data loaded from localStorage inside useEffect:', { token, a_USER_ID, logoN_NAME });
+      // console.log('User data loaded from localStorage inside useEffect:', { token, a_USER_ID, logoN_NAME });
     }
   }, []); // ใช้ empty dependency array เพื่อให้มันทำงานแค่ครั้งเดียวเมื่อ component mount
 
   useEffect(() => {
     if (user) {
-      console.log('User state has been updated:', user); // ตรวจสอบเมื่อ state user ถูกอัปเดต
+      // console.log('User state has been updated:', user); // ตรวจสอบเมื่อ state user ถูกอัปเดต
     }
   }, [user]); // จะทำงานทุกครั้งที่ state user เปลี่ยนแปลง
 

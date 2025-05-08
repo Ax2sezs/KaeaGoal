@@ -43,13 +43,13 @@ function Sidebar() {
       >
         {/* Logo Section */}
         <div className="hidden sm:flex items-center justify-center w-full bg-layer-item py-4 mb-5 mt-5">
-          <h1 className="text-2xl font-bold text-white">KAEGoal</h1>
+          <h1 className="text-2xl font-bold text-white">GAEGoal</h1>
           {/* <img src="./profile.png" className="w-15 h-12 mx-2" alt="KAEGoal Logo" /> */}
         </div>
 
         {/* Menu Items */}
         <ul
-          className={`flex sm:flex-col w-full justify-around px-3 sm:justify-start font-bold ${userDetails?.isAdmin === 9 ? 'gap-0' : 'gap-3'
+          className={`flex sm:flex-col w-full justify-around px-3 sm:justify-start font-bold ${userDetails?.isAdmin === 9||userDetails?.isAdmin===4 ? 'gap-0' : 'gap-3'
             }`}
         >
           {sidebarItems.map((item, index) => (

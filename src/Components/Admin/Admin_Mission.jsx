@@ -2,14 +2,15 @@ import React, { useState,useEffect } from "react";
 import QRMissionTable from "./QRMissionTable";
 import PhotoMissionTable from "./PhotoMIssionTable";
 import TextMissionTable from "./TextMissionTable";
+import VideoMissionTable from "./VideoMissionTable";
 import useFetchData from "../APIManage/useFetchData";
 import { useAuth } from "../APIManage/AuthContext";
 
 const Admin_Mission = () => {
     const { user } = useAuth();
-    const { allMission, alluserDetail, ApproveQR, ApprovePhoto, ApproveText, error, isLoading, 
-        approveMission, approvePhoto, approveText, addAllCoinPhoto, addAllCoinText, addAllCoinQR, 
-        fetchAllMissions,fetchAllUserDetails,fetchApprovePhoto,fetchApproveText,fetchApproveQR } = useFetchData(user?.token);
+    const { allMission, alluserDetail, ApproveQR, ApprovePhoto, ApproveText, ApproveVideo,error, isLoading, 
+        approveMission, approvePhoto, approveText, approveVideo, addAllCoinPhoto, addAllCoinText, addAllCoinQR, 
+        fetchAllMissions,fetchAllUserDetails,fetchApprovePhoto,fetchApproveText,fetchApproveQR,fetchApproveVideo } = useFetchData(user?.token);
 
     const [activeTab, setActiveTab] = useState("QR");
     const [selectedMission, setSelectedMission] = useState("");
@@ -22,14 +23,16 @@ const Admin_Mission = () => {
                 fetchApprovePhoto()
                 fetchApproveText()
                 fetchApproveQR()
+                fetchApproveVideo()
             }
-          }, [user?.token, fetchAllMissions,fetchAllUserDetails,fetchApprovePhoto,fetchApproveText,fetchApproveQR]);
+          }, [user?.token, fetchAllMissions,fetchAllUserDetails,fetchApprovePhoto,fetchApproveText,fetchApproveQR,fetchApproveVideo]);
 
     // เลือก Mission ตาม Tab ที่ active
     const getOptions = () => {
         if (activeTab === "QR") return ApproveQR;
         if (activeTab === "Photo") return ApprovePhoto;
         if (activeTab === "Text") return ApproveText;
+        if (activeTab === "Video") return ApproveVideo;
         return [];
     };
 
@@ -60,6 +63,9 @@ const Admin_Mission = () => {
                 <button className={`p-3 w-1/3 text-center ${activeTab === "Text" ? "border-b-2 border-warning font-bold text-button-text" : "text-gray-500"}`} onClick={() => setActiveTab("Text")}>
                     Text Missions
                 </button>
+                <button className={`p-3 w-1/3 text-center ${activeTab === "Video" ? "border-b-2 border-warning font-bold text-button-text" : "text-gray-500"}`} onClick={() => setActiveTab("Video")}>
+                    Video Missions
+                </button>
             </div>
 
             {/* 🔹 Tab Content */}
@@ -86,7 +92,7 @@ const Admin_Mission = () => {
                         error={error}
                         refetch={fetchApprovePhoto}
                     />
-                ) : (
+                ) : activeTab == "Text" ? (
                     <TextMissionTable
                         ApproveText={getFilteredMissions()}
                         approveText={approveText}
@@ -96,6 +102,16 @@ const Admin_Mission = () => {
                         isLoading={isLoading}
                         error={error}
                         refetch={fetchApproveText}
+                    />
+                ):(
+                    <VideoMissionTable
+                    ApproveVideo={getFilteredMissions()}
+                    approveVideo={approveVideo}
+                    allMission = {allMission}
+                    alluserDetail = {alluserDetail}
+                    isLoading = {isLoading}
+                    error = {error}
+                    refetch = {fetchApproveVideo}
                     />
                 )}
             </div>

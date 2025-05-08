@@ -123,7 +123,15 @@ function TextMissionTable({ alluserDetail, allMission, ApproveText, approveText,
 
     const handleAction = async (missionId, isApproved) => {
         try {
-            await approveText(missionId, isApproved);
+            let accepted_Desc = "Completed"
+            if(!isApproved){
+                accepted_Desc = prompt("Please enter the reason for rejection.")
+                if(accepted_Desc===null||accepted_Desc.trim()===""){
+                    alert("Rejection reason is requied")
+                    return
+                }
+            }
+            await approveText(missionId, isApproved,accepted_Desc);
             alert(isApproved ? "Mission approved successfully!" : "Mission rejected successfully!");
             refetch();
         } catch (err) {
@@ -174,6 +182,7 @@ function TextMissionTable({ alluserDetail, allMission, ApproveText, approveText,
                 <button className="btn btn-success btn-sm" onClick={handleApproveAll} disabled={selectedMissions.length === 0}>
                     Approve All
                 </button>
+                <h1>{filteredMissions.length}</h1>
             </div>
 
             {/* Table */}

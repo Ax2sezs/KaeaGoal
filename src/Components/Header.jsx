@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from './APIManage/AuthContext'; // Assuming you have the AuthContext for user data
 import useFetchData from './APIManage/useFetchData';  // Import the merged custom hook
-import LogoutIcon from '@mui/icons-material/Logout';
+import GroupsIcon from '@mui/icons-material/Groups'; 
 
 function Header() {
   const { user, logout, isLoading } = useAuth();
@@ -63,16 +63,35 @@ function Header() {
         <div className="avatar hover:scale-105 transition-transform duration-300 ease-in-out">
           <Link to="/profile">
             <div className="ring-heavy-color ring-offset-bg w-10 sm:w-11 h-10 sm:h-11 rounded-full ring ring-offset-2 overflow-hidden">
-              <img src={userDetails?.imageUrls||'profile.png'} alt="User Avatar" className="w-full h-full object-cover" />
+              <img src={userDetails?.imageUrls || 'profile.png'} alt="User Avatar" className="w-full h-full object-cover" />
             </div>
           </Link>
         </div>
-        <h1 className="text-lg sm:text-xl font-bold text-button-text md:block w-32 truncate">
-          {userDetails?.user_Name || 'Guest'}
-        </h1>
+        <div className='flex flex-col'>
+          <h1 className="text-sm sm:text-xl font-bold text-button-text md:block w-40 truncate">
+            {userDetails?.displayName || 'Guest'}
+          </h1>
+          <div>
+            <div className="flex items-center text-button-text gap-2 md:gap-6">
+              <div className="flex items-center">
+                <img src="./1.png" alt="Coin" className="w-5 md:w-6 sm:w-8" />
+                <h1 className="text-sm md:text-base ml-1">
+                  {coinDetails?.kaeaCoinBalance.toLocaleString() || 0}
+                </h1>
+              </div>
+              <div className="flex items-center">
+                <img src="./2.png" alt="Green Coin" className="w-5 md:w-6 sm:w-8" />
+                <h1 className="text-sm md:text-base ml-1">
+                  {coinDetails?.thankCoinConvert.toLocaleString() || 0}
+                </h1>
+              </div>
+
+            </div>
+          </div>
+        </div>
       </div>
       <div className="flex items-center text-button-text gap-2 md:gap-6">
-        <div className="flex items-center">
+        {/* <div className="flex items-center">
           <img src="./1.png" alt="Coin" className="w-5 md:w-6 sm:w-8" />
           <h1 className="text-sm md:text-base font-semibold ml-1">
             {coinDetails?.kaeaCoinBalance || 0}
@@ -83,10 +102,22 @@ function Header() {
           <h1 className="text-sm md:text-base font-semibold ml-1">
             {coinDetails?.thankCoinConvert || 0}
           </h1>
+        </div> */}
+        <div className=''>
+          <Link to='/feed'>
+            <button className='btn btn-sm btn-success btn-outline'>
+              <GroupsIcon /> Community</button>
+          </Link>
         </div>
-        <button onClick={handleLogout} className="btn bg-red-500 rounded-badge btn-sm border-hidden">
-          <LogoutIcon className='scale-75 text-bg'/>
-        </button>
+        {/* <div className='flex flex-row'>
+          <Link to='/feed'>
+            <button className='btn btn-success btn-outline rounded-badge btn-sm'><GroupsIcon /></button>
+          </Link>
+
+          <button onClick={handleLogout} className="btn btn-error rounded-badge btn-sm border-hidden">
+            <LogoutIcon className='scale-75 text-bg' />
+          </button>
+        </div> */}
       </div>
     </header>
   );

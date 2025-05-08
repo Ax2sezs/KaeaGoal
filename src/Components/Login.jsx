@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import useFetchData from './APIManage/useFetchData'; // Import the custom hook
+import VisibilityOutlinedIcon from '@mui/icons-material/VisibilityOutlined';
+import VisibilityOffOutlinedIcon from '@mui/icons-material/VisibilityOffOutlined';
 
 function Login() {
   const [logoN_NAME, setLogoN_NAME] = useState('');
@@ -8,7 +10,8 @@ function Login() {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [isChecked, setIsChecked] = useState(false); // ✅ เพิ่ม state สำหรับ checkbox
+  const [isChecked, setIsChecked] = useState(true); // ✅ เพิ่ม state สำหรับ checkbox
+  const [passwordVisible, setPasswordVisible] = useState(false);
   const navigate = useNavigate();
 
   const { login } = useFetchData(null);
@@ -38,6 +41,10 @@ function Login() {
     event.preventDefault();
     handleLogin();
   };
+  const togglePasswordVisibility = () => {
+    setPasswordVisible(!passwordVisible);
+  };
+
 
   return (
     <div
@@ -80,16 +87,29 @@ function Login() {
           </div>
 
           {/* Password Field */}
-          <div className="mb-6">
+          <div className="mb-6 relative">
             <label htmlFor="password" className="block text-sm font-semibold text-white">Password</label>
             <input
-              type="password"
+              type={passwordVisible ? 'text' : 'password'}
               id="password"
-              className="mt-2 p-3 w-full border-2 border-bg rounded-badge bg-transparent focus:outline-none focus:ring-2 focus:ring-bg placeholder:text-bg"
+              className="mt-2 p-3 w-full border-2 border-bg rounded-badge bg-transparent focus:outline-none focus:ring-2 focus:ring-bg placeholder:text-bg pr-10 text-bg"  // เพิ่ม pr-10 เพื่อให้มีพื้นที่สำหรับไอคอน
               placeholder="Enter your password"
               value={useR_PASSWORD}
               onChange={(e) => setUseR_PASSWORD(e.target.value)}
             />
+
+            {/* ปุ่มสำหรับแสดง/ซ่อนรหัสผ่าน */}
+            <button
+              type="button"
+              onClick={togglePasswordVisibility}
+              className="absolute right-3 top-10 transform text-white"
+            >
+              {passwordVisible ? (
+                <span role="img" aria-label="Hide Password"><VisibilityOffOutlinedIcon/></span>
+              ) : (
+                <span role="img" aria-label="Show Password"><VisibilityOutlinedIcon/></span>
+              )}
+            </button>
           </div>
 
           <div className='bg-bg rounded-badge px-2'>
@@ -101,12 +121,12 @@ function Login() {
 
           {/* Sign Up Link */}
           <div className="text-center flex gap-2">
-            <input type='checkbox' className='checkbox checkbox-success bg-bg' 
-            checked={isChecked}
-            onChange={(e) => setIsChecked(e.target.checked)}
+            <input type='checkbox' className='checkbox checkbox-success bg-bg'
+              checked={isChecked}
+              onChange={(e) => setIsChecked(e.target.checked)}
             />
             <p className='text-sm text-bg'>I accept</p>
-            <p className="text-sm text-bg cursor-pointer font-bold" onClick={() => document.getElementById('policy').showModal()}>
+            <p className="text-sm text-bg cursor-pointer font-bold underline" onClick={() => document.getElementById('policy').showModal()}>
               the terms and conditions.
             </p>
           </div>

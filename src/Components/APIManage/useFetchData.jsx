@@ -12,18 +12,29 @@ const useFetchData = (token) => {
   const [allMission, setAllMission] = useState([]);
   const [ApproveQR, setApproveQR] = useState([]);
   const [adminUserMissions, setAdminUserMissions] = useState([]);
+  const [getPublicMission, setGetPublicMission] = useState([]);
+
+  const [getMission, setGetMission] = useState([])
   const [ApprovePhoto, setApprovePhoto] = useState([]);
   const [ApproveText, setApproveText] = useState([]);
+  const [ApproveVideo, setApproveVideo] = useState([])
+
+  const [ApprovePhotoByName, setApprovePhotoByName] = useState([])
+  const [ApproveTextByName, setApproveTextByName] = useState([])
+  const [ApproveVideoByName, setApproveVideoByName] = useState([])
+
   const [Reward, setReward] = useState([]);
+  const [RewardCate, setRewardCate] = useState([])
   const [adminReward, setAdminReward] = useState([]);
   const [userReward, setUserReward] = useState([]);
   const [leaderboard, setLeaderboard] = useState([]);
-  const [toptenLeaderboard,setToptenLeaderboard] =useState([])
-  const [myranking,setMyranking] = useState([])
+  const [toptenLeaderboard, setToptenLeaderboard] = useState([])
+  const [myranking, setMyranking] = useState([])
   const [history, setHistory] = useState([]);
   const [filteredUserDetail, setFilteredUserDetail] = useState([])
-  const [filterByDept,setFilterByDept] = useState([])
-  const [department,setDepartments] = useState([])
+  const [filterByDept, setFilterByDept] = useState([])
+  const [department, setDepartments] = useState([])
+  const [exportExcel, setExportExcel] = useState([])
   const [success, setSuccess] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -275,6 +286,7 @@ const useFetchData = (token) => {
     } finally {
       setIsLoading(false);
     }
+    console.log(ApprovePhoto.length); // อาจได้ 105 แทน 106
   }, [token]);
 
   const fetchApproveText = useCallback(async () => {
@@ -304,6 +316,36 @@ const useFetchData = (token) => {
     } finally {
       setIsLoading(false);
     }
+  }, [token]);
+
+  const fetchApproveVideo = useCallback(async () => {
+    if (!token) {
+      setError('Token is missing or invalid');
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+      const ApproveVideo = await api.get('Mission/Get-All-Approve-Video-Mission', {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setApproveVideo(ApproveVideo.data || []);
+      setSuccess('Approve video missions fetched successfully!');
+    } catch (err) {
+      if (err.response?.status === 403) {
+        console.warn('Access forbidden for this user. Skipping error.');
+        setApproveVideo([]);
+      } else if (err.response?.status === 404) {
+        console.warn('Mission not found.');
+        setApproveVideo([]);
+      } else {
+        setError('Failed to fetch approve video missions');
+        console.error('API Error:', err.response?.data || err);
+      }
+    } finally {
+      setIsLoading(false);
+    }
+    console.log(ApproveVideo.length); // อาจได้ 105 แทน 106
   }, [token]);
 
   const fetchAdminUserMissions = useCallback(async () => {
@@ -347,6 +389,32 @@ const useFetchData = (token) => {
         headers: { Authorization: `Bearer ${token}` },
       });
       setReward(rewardResponse.data || []);
+      setSuccess('Rewards fetched successfully!');
+    } catch (err) {
+      if (err.response?.status === 404) {
+        console.warn('No rewards available.');
+        setReward([]);
+      } else {
+        setError('Failed to fetch rewards');
+        console.error('API Error:', err.response?.data || err);
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  }, [token]);
+
+  const fetchRewardCate = useCallback(async () => {
+    if (!token) {
+      setError('Token is missing or invalid');
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+      const rewardResponse = await api.get('/Reward/Get-All-RewardCategory', {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setRewardCate(rewardResponse.data || []);
       setSuccess('Rewards fetched successfully!');
     } catch (err) {
       if (err.response?.status === 404) {
@@ -488,21 +556,21 @@ const useFetchData = (token) => {
     }
   }, [token]);
 
-  const fetchFilterByDept = useCallback(async (site,departmentName, page = 1, pageSize = 50) => {
+  const fetchFilterByDept = useCallback(async (site, departmentName, page = 1, pageSize = 50) => {
     if (!token) {
       setError('Token is missing or invalid');
       return;
     }
-  
+
     try {
       setIsLoading(true);
       const responseFilter = await api.get('Auth/FilterByDepartment', {
         headers: { Authorization: `Bearer ${token}` },
         params: { site, department: departmentName, page, pageSize },
       });
-  
+
       console.log("API Response:", responseFilter);
-  
+
       // ตรวจสอบว่า responseFilter.data มีโครงสร้างที่ถูกต้องไหม
       if (Array.isArray(responseFilter.data)) {
         setFilterByDept(responseFilter.data); // ถ้า data เป็น array
@@ -511,7 +579,7 @@ const useFetchData = (token) => {
       } else {
         setFilterByDept([]); // ถ้าไม่พบข้อมูลที่ต้องการ
       }
-  
+
       setSuccess('Users fetched successfully!');
     } catch (err) {
       if (err.response?.status === 404) {
@@ -525,25 +593,23 @@ const useFetchData = (token) => {
       setIsLoading(false);
     }
   }, [token]);
-  
 
-  
   const fetchDept = useCallback(async (site) => {
     if (!token) {
       setError('Token is missing or invalid');
       return;
     }
-  
+
     try {
       setIsLoading(true);
       const responseDept = await api.get('Auth/GetDepartmentsBySite', {
         headers: { Authorization: `Bearer ${token}` },
         params: { site }, // ส่ง Site เป็นพารามิเตอร์
       });
-  
+
       // ตรวจสอบว่า response เดินมาถึงหรือไม่
       console.log("API Response:", responseDept);
-  
+
       setDepartments(responseDept.data || []); // ✅ ใช้ตัวแปร setDepartments แทน setFilterByDept
       setSuccess('Departments fetched successfully!');
     } catch (err) {
@@ -558,7 +624,7 @@ const useFetchData = (token) => {
       setIsLoading(false);
     }
   }, [token]);
-  
+
 
   const fetchHistory = useCallback(async () => {
     if (!token) {
@@ -586,34 +652,462 @@ const useFetchData = (token) => {
     }
   }, [token]);
 
+  const fetchExportExcel = useCallback(async (startDate, endDate) => {
+    if (!token) {
+      setError('Token is missing or invalid');
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+      const responseExportExcel = await api.get(
+        'Reward/Admin-Get-All-User-Reward/export',
+        {
+          headers: { Authorization: `Bearer ${token}` },
+          params: { startDate, endDate },
+          responseType: 'blob', // สำคัญ: เพื่อรับไฟล์แบบ binary
+        }
+      );
+
+      // สร้าง URL จาก blob
+      const blob = new Blob([responseExportExcel.data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+      const url = window.URL.createObjectURL(blob);
+
+      // สร้างลิงก์เพื่อดาวน์โหลดไฟล์
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `UserReward_${startDate}_to_${endDate}.xlsx`); // ตั้งชื่อไฟล์
+      document.body.appendChild(link);
+      link.click();
+
+      // ล้างลิงก์เมื่อเสร็จ
+      link.remove();
+      window.URL.revokeObjectURL(url);
+
+      setSuccess('Excel exported successfully!');
+    } catch (err) {
+      setError('Failed to export Excel');
+      console.error('Export Excel Error:', err.response?.data || err);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [token]);
+
+  const fetchByMission = useCallback(async (missionType) => {
+    if (!token) {
+      setError('Token is missing or invalid');
+      return;
+    }
+    localStorage.setItem('missionType', missionType)
+    try {
+      setIsLoading(true);
+
+      const response = await api.get('Mission/missions-by-type', {
+        params: { missionType },
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setGetMission(response.data || []);
+      setSuccess('Approve photo missions fetched successfully!');
+      return response.data || []; // ✅ คืนข้อมูลกลับ
+    } catch (err) {
+      if (err.response?.status === 403) {
+        console.warn('Access forbidden for this user. Skipping error.');
+        setGetMission([]);
+      } else if (err.response?.status === 404) {
+        console.warn('Mission not found.');
+        setGetMission([]);
+      } else {
+        setError('Failed to fetch approve photo missions');
+        console.error('API Error:', err.response?.data || err);
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  }, [token]);
+
+  const fetchPublicMissions = useCallback(async () => {
+    if (!token) {
+      setError('Token is missing or invalid');
+      return;
+    }
+    try {
+      setIsLoading(true);
+  
+      const response = await api.get('Mission/GetPublicMissionName', {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+  
+      const missions = response.data || [];
+      setGetPublicMission(missions); // ✅ ใช้ตัวใหม่
+      setSuccess('Public missions fetched successfully!');
+      return missions;
+    } catch (err) {
+      if (err.response?.status === 403) {
+        console.warn('Access forbidden for this user. Skipping error.');
+        setGetPublicMission([]); // ✅
+      } else if (err.response?.status === 404) {
+        console.warn('Public missions not found.');
+        setGetPublicMission([]); // ✅
+      } else {
+        setError('Failed to fetch public missions');
+        console.error('API Error:', err.response?.data || err);
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  }, [token]);
+  
+
+  const fetchApprovePhotoByMission = useCallback(async (missionId, page = 1, pageSize = 20, searchName = '') => {
+    if (!token) {
+      setError('Token is missing or invalid');
+      return;
+    }
+    // localStorage.setItem('missionId', missionId);
+    // localStorage.setItem('currentPage', page);
+
+    try {
+      setIsLoading(true);
+
+      const response = await api.get('Mission/photo-approves', {
+        params: {
+          missionId,
+          page,
+          pageSize,
+          searchName,
+        },
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const { data, totalPage, total } = response.data;
+
+      setApprovePhotoByName(data || []);
+      setSuccess('Approve photo missions fetched successfully!');
+      return { totalPage, total }
+    } catch (err) {
+      if (err.response?.status === 403) {
+        console.warn('Access forbidden for this user. Skipping error.');
+        setApprovePhotoByName([]);
+      } else if (err.response?.status === 404) {
+        console.warn('Mission not found.');
+        setApprovePhotoByName([]);
+      } else {
+        setError('Failed to fetch approve photo missions');
+        console.error('API Error:', err.response?.data || err);
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  }, [token]);
+  const fetchApproveTextByMission = useCallback(async (missionId, page = 1, pageSize = 20, searchName = '') => {
+    if (!token) {
+      setError('Token is missing or invalid');
+      return;
+    }
+    // localStorage.setItem('missionId', missionId);
+    // localStorage.setItem('currentPage', page);
+
+    try {
+      setIsLoading(true);
+
+      const response = await api.get('Mission/text-approves', {
+        params: {
+          missionId,
+          page,
+          pageSize,
+          searchName,
+        },
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const { data, totalPage, total } = response.data;
+
+      setApproveTextByName(data || []);
+      setSuccess('Approve text missions fetched successfully!');
+      return { totalPage, total }
+    } catch (err) {
+      if (err.response?.status === 403) {
+        console.warn('Access forbidden for this user. Skipping error.');
+        setApproveTextByName([]);
+      } else if (err.response?.status === 404) {
+        console.warn('Mission not found.');
+        setApproveTextByName([]);
+      } else {
+        setError('Failed to fetch approve text missions');
+        console.error('API Error:', err.response?.data || err);
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  }, [token]);
+
+  const fetchApproveVideoByMission = useCallback(async (missionId, page = 1, pageSize = 20, searchName = '') => {
+    if (!token) {
+      setError('Token is missing or invalid');
+      return;
+    }
+    // localStorage.setItem('missionId', missionId);
+    // localStorage.setItem('currentPage', page);
+
+    try {
+      setIsLoading(true);
+
+      const response = await api.get('Mission/video-approves', {
+        params: {
+          missionId,
+          page,
+          pageSize,
+          searchName,
+        },
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const { data, totalPage, total } = response.data;
+
+      setApproveVideoByName(data || []);
+      setSuccess('Approve video missions fetched successfully!');
+      return { totalPage, total }
+    } catch (err) {
+      if (err.response?.status === 403) {
+        console.warn('Access forbidden for this user. Skipping error.');
+        setApproveVideoByName([]);
+      } else if (err.response?.status === 404) {
+        console.warn('Mission not found.');
+        setApproveVideoByName([]);
+      } else {
+        setError('Failed to fetch approve Video missions');
+        console.error('API Error:', err.response?.data || err);
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  }, [token]);
+
+  const fetchUsersInMission = useCallback(async (missionId, type = 'photo') => {
+    if (!token) {
+      setError('Token is missing or invalid');
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+
+      const response = await api.get('Mission/select-user-in-mission', {
+        params: {
+          missionId,
+          type, // 'photo', 'video', or 'text'
+        },
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const users = response.data || [];
+      setSuccess('Users in mission fetched successfully!');
+      return users;
+    } catch (err) {
+      if (err.response?.status === 403) {
+        console.warn('Access forbidden for this user. Skipping error.');
+      } else if (err.response?.status === 404) {
+        console.warn('Mission not found.');
+      } else {
+        setError('Failed to fetch users in mission');
+        console.error('API Error:', err.response?.data || err);
+      }
+      return [];
+    } finally {
+      setIsLoading(false);
+    }
+  }, [token]);
+  const fetchMissionFeed = useCallback(
+    async (page = 1, pageSize = 20, type = null, missionName = null, displayName = null) => {
+      if (!token) {
+        setError('Token is missing or invalid');
+        return;
+      }
+
+      try {
+        setIsLoading(true);
+
+        // ลบ key ที่เป็น null ออกจาก params
+        const params = {
+          page,
+          pageSize,
+          ...(type ? { type } : {}),
+          ...(missionName ? { missionName } : {}),
+          ...(displayName ? { displayName } : {}),
+        };
+
+        const response = await api.get('Mission/feed', {
+          params,
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        const { data, totalPage, total } = response.data;
+
+        setSuccess('Mission feed fetched successfully!');
+        return { data, totalPage, total };
+      } catch (err) {
+        if (err.response?.status === 403) {
+          console.warn('Access forbidden for this user.');
+        } else if (err.response?.status === 404) {
+          console.warn('Feed not found.');
+        } else {
+          setError('Failed to fetch mission feed');
+          console.error('API Error:', err.response?.data || err);
+        }
+        return { data: [], totalPage: 0, total: 0 };
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [token]
+  );
+
+  const fetchLikesForMission = useCallback(async (userMissionId) => {
+    if (!token) {
+      setError('Token is missing or invalid');
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+
+      const response = await api.get('Mission/getLikesForMission', {
+        params: {
+          userMissionId,
+        },
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const likes = response.data || [];
+      setSuccess('Likes fetched successfully!');
+      return likes;
+    } catch (err) {
+      if (err.response?.status === 403) {
+        console.warn('Access forbidden for this user. Skipping error.');
+      } else if (err.response?.status === 404) {
+        console.warn('Mission not found.');
+      } else {
+        setError('Failed to fetch likes for mission');
+        console.error('API Error:', err.response?.data || err);
+      }
+      return [];
+    } finally {
+      setIsLoading(false);
+    }
+  }, [token]);
+
+  const fetchBanners = useCallback(async () => {
+    if (!token) {
+      setError('Token is missing or invalid');
+      return;
+    }
+  
+    try {
+      setIsLoading(true);
+  
+      const response = await api.get('Auth/Banner', {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+  
+      const banners = response.data || [];
+      setSuccess('Banners fetched successfully!');
+      return banners;
+    } catch (err) {
+      if (err.response?.status === 403) {
+        console.warn('Access forbidden for this user. Skipping error.');
+      } else if (err.response?.status === 404) {
+        console.warn('Banners not found.');
+      } else {
+        setError('Failed to fetch banners');
+        console.error('API Error:', err.response?.data || err);
+      }
+      return [];
+    } finally {
+      setIsLoading(false);
+    }
+  }, [token]);
+  
+  const deleteBanner = useCallback(async (id) => {
+    if (!token) {
+      setError('Token is missing or invalid');
+      return;
+    }
+  
+    try {
+      setIsLoading(true);
+  
+      const response = await api.delete(`Auth/deleteBanners`, {
+        params: {
+          id,
+        },
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+  
+      console.log('Banner deleted successfully:', response.data);
+      setSuccess('Banner deleted successfully');
+      return response.data;
+    } catch (err) {
+      if (err.response?.status === 403) {
+        console.warn('Access forbidden for this user. Skipping error.');
+      } else if (err.response?.status === 404) {
+        console.warn('Banner not found.');
+      } else {
+        setError('Failed to delete banner');
+        console.error('API Error:', err.response?.data || err);
+      }
+      return null;
+    } finally {
+      setIsLoading(false);
+    }
+  }, [token]);
+  
+
+
+
   const login = async (logoN_NAME, useR_PASSWORD) => {
     try {
       setIsLoading(true);
       setError('');
       setSuccess('');
-  
+
       // ส่งข้อมูล login ไปที่ API
       const response = await api.post('/Auth/login', { logoN_NAME, useR_PASSWORD });
-  
+
       // ดึง token จาก response
       const { token: { accessToken: token } } = response.data;
-  
+
       // เก็บ token ใน localStorage
       localStorage.setItem('token', token);
-  
+
       // ดึงข้อมูลผู้ใช้เพิ่มเติมจาก API /Auth/me (ใช้ token)
       const userResponse = await api.get('/Auth/me', {
         headers: { Authorization: `Bearer ${token}` },
       });
-  
+
       // ดึง a_USER_ID และ logoN_NAME จากการตอบกลับของ /Auth/me
       const { a_USER_ID, logoN_NAME: fetchedUserName } = userResponse.data;
-  
+
       // เก็บข้อมูลผู้ใช้ใน localStorage
       localStorage.setItem('a_USER_ID', a_USER_ID);
       localStorage.setItem('logoN_NAME', fetchedUserName);
-        setUserDetails(userResponse.data);
-  
+      setUserDetails(userResponse.data);
+
       // แสดง Success Message และนำทางไปหน้า Home
       setSuccess('Login successful!');
       setTimeout(() => {
@@ -621,7 +1115,7 @@ const useFetchData = (token) => {
         navigate('/home');
         window.location.reload();  // Refresh หน้าเมื่อ Login สำเร็จ
       }); // Delay of 1.5 seconds (adjust as needed)
-  
+
       return response.data; // คืนค่าข้อมูลเพื่อใช้งานต่อ
     } catch (err) {
       setError(
@@ -633,7 +1127,7 @@ const useFetchData = (token) => {
       setIsLoading(false); // Set loading state to false after the process is finished
     }
   };
-  
+
 
   const acceptMission = async (missionId, userId) => {
     if (!missionId || !userId) {
@@ -808,6 +1302,47 @@ const useFetchData = (token) => {
       throw err; // Rethrow error for higher-level handling
     }
   };
+  const executeVideoMission = async (missionId, userMissionId, videoFile) => {
+    console.log("Executing Video Mission with videoFile:", videoFile); // ตรวจสอบค่าที่ส่งเข้าไป
+    try {
+      const formData = new FormData();
+      formData.append("missionId", missionId);
+      formData.append("userMissionId", userMissionId);
+
+      // ตรวจสอบว่า videoFile มีค่าหรือไม่
+      if (!videoFile || videoFile.length === 0) {
+        throw new Error("No video file provided");
+      }
+
+      videoFile.forEach((file) => {
+        formData.append("videoFile", file); // ส่งไฟล์ที่เลือก
+      });
+
+      const response = await api.post(
+        "/Mission/Execute-Video-Mission",
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      console.log("🎥 Video uploaded successfully:", response.data);
+      setSuccess("🎉 Video mission executed successfully!");
+      return response.data;
+    } catch (err) {
+      console.error("🚫 Error uploading video:", err);
+      setError("❌ Failed to execute video mission");
+      if (err.response?.data) {
+        setError(err.response.data.message || "Failed to execute video mission");
+      }
+      throw err;
+    }
+  };
+
+
 
   const createMission = async (missionData) => {
     try {
@@ -819,12 +1354,26 @@ const useFetchData = (token) => {
       formData.append('MISSION_TYPE', missionData.MISSION_TYPE);
       formData.append('Coin_Reward', missionData.Coin_Reward);
       formData.append('Mission_Point', missionData.Mission_Point);
+      formData.append('MISSION_TypeCoin', missionData.MISSION_TypeCoin);
       formData.append('Start_Date', missionData.Start_Date);
       formData.append('Expire_Date', missionData.Expire_Date);
       formData.append('Description', missionData.Description);
-      formData.append('Accept_limit', missionData.Accept_limit)
+      formData.append('Accept_limit', missionData.Accept_limit);
       formData.append('Is_Limited', missionData.Is_Limited);
       formData.append('Participate_Type', missionData.Participate_Type);
+      formData.append('Is_Winners', missionData.Is_Winners);
+      formData.append('Is_Public', missionData.Is_Public)
+
+      // Append winner fields only if Is_Winners is true
+      if (missionData.Is_Winners) {
+        formData.append('WinnerSt', missionData.WinnerSt);
+        formData.append('WinnerNd', missionData.WinnerNd);
+        formData.append('WinnerRd', missionData.WinnerRd);
+        formData.append('WinnerStCoin', missionData.WinnerStCoin);
+        formData.append('WinnerNdCoin', missionData.WinnerNdCoin);
+        formData.append('WinnerRdCoin', missionData.WinnerRdCoin);
+      }
+
 
       // Append files (Images)
       missionData.Images.forEach((file) => {
@@ -854,6 +1403,68 @@ const useFetchData = (token) => {
       throw err;
     }
   };
+
+  const updateMission = async (missionId, missionData) => {
+    try {
+      const formData = new FormData();
+
+      // ✅ Append main fields
+      formData.append('MISSION_NAME', missionData.MISSION_NAME);
+      formData.append('MISSION_TYPE', missionData.MISSION_TYPE);
+      formData.append('Coin_Reward', missionData.Coin_Reward);
+      formData.append('Mission_Point', missionData.Mission_Point);
+      formData.append('MISSION_TypeCoin', missionData.MISSION_TypeCoin);
+      formData.append('Start_Date', missionData.Start_Date);
+      formData.append('Expire_Date', missionData.Expire_Date);
+      formData.append('Description', missionData.Description);
+      formData.append('Accept_limit', missionData.Accept_limit);
+      formData.append('Is_Limited', missionData.Is_Limited);
+      formData.append('Participate_Type', missionData.Participate_Type);
+      formData.append('Is_Winners', missionData.Is_Winners);
+      formData.append('Is_Public', missionData.Is_Public);
+
+      // ✅ Append Winner fields if Is_Winners is true
+      if (missionData.Is_Winners) {
+        formData.append('WinnerSt', missionData.WinnerSt);
+        formData.append('WinnerNd', missionData.WinnerNd);
+        formData.append('WinnerRd', missionData.WinnerRd);
+        formData.append('WinnerStCoin', missionData.WinnerStCoin);
+        formData.append('WinnerNdCoin', missionData.WinnerNdCoin);
+        formData.append('WinnerRdCoin', missionData.WinnerRdCoin);
+      }
+
+      // ✅ Append image files
+      if (missionData.Images && missionData.Images.length > 0) {
+        missionData.Images.forEach((file) => {
+          formData.append('Images', file);
+        });
+      }
+
+      // ✅ Append specific mission type fields
+      if (missionData.MISSION_TYPE === 'QR') {
+        formData.append('QRCode', missionData.QRCode);
+      } else if (missionData.MISSION_TYPE === 'Code') {
+        formData.append('Code_Mission_Code', missionData.Code_Mission_Code);
+      }
+
+      // ✅ Call API
+      const response = await api.put(`/Mission/Admin-Update-Mission/${missionId}`, formData, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+
+      setSuccess('Mission updated successfully!');
+      return response.data;
+    } catch (err) {
+      setError(err.response?.data?.message || 'Failed to update the mission.');
+      console.error('Update Mission Error:', err.response?.data || err);
+      throw err;
+    }
+  };
+
+
   const createReward = async (rewardData) => {
     console.log("Inside createReward, rewardData:", rewardData);  // Debugging line
     try {
@@ -863,6 +1474,7 @@ const useFetchData = (token) => {
       formData.append('REWARD_PRICE', rewardData.REWARD_PRICE);
       formData.append('QUANTITY', rewardData.QUANTITY);
       formData.append('DESCRIPTION', rewardData.DESCRIPTION);
+      formData.append('REWARDCate_Id', rewardData.REWARDCate_Id);
 
       // Append files if any
       rewardData.ImageFile.forEach((file) => {
@@ -886,6 +1498,40 @@ const useFetchData = (token) => {
     }
   };
 
+  const updateReward = async (rewardId, rewardData) => {
+    console.log("Inside updateReward, rewardData:", rewardData);
+
+    try {
+      const formData = new FormData();
+      formData.append('REWARD_NAME', rewardData.REWARD_NAME);
+      formData.append('REWARD_PRICE', rewardData.REWARD_PRICE);
+      formData.append('QUANTITY', rewardData.QUANTITY);
+      formData.append('DESCRIPTION', rewardData.DESCRIPTION);
+      formData.append('REWARDCate_Id', rewardData.REWARDCate_Id);
+
+      // เพิ่มรูปที่อัปโหลดใหม่
+      rewardData.ImageFile?.forEach((file) => {
+        formData.append('ImageFile', file);
+      });
+
+      const response = await api.put(`/Reward/rewards/${rewardId}`, formData, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+
+      console.log('API response:', response.data);
+      setSuccess('Reward updated successfully!');
+      return response.data;
+    } catch (err) {
+      setError(err.response?.data?.message || 'Failed to update the reward.');
+      console.error('Update Reward Error:', err.response?.data || err);
+      throw err;
+    }
+  };
+
+
   const createUser = async (userData) => {
     try {
       // Prepare the JSON body for the API request
@@ -894,6 +1540,8 @@ const useFetchData = (token) => {
         firstName: userData.firstName,
         lastName: userData.lastName,
         branchCode: userData.branchCode,
+        department: userData.department,
+        departmentCode: userData.departmentCode,
         branch: userData.branch,
         stateCode: userData.stateCode,
         deletionStateCode: userData.deletionStateCode,
@@ -944,12 +1592,12 @@ const useFetchData = (token) => {
     }
 
   };
-  const approvePhoto = async (useR_PHOTO_MISSION_ID, approve) => {
+  const approvePhoto = async (useR_PHOTO_MISSION_ID, approve, accepted_Desc) => {
     try {
-      console.log('Payload:', { useR_PHOTO_MISSION_ID, approve });
+      console.log('Payload:', { useR_PHOTO_MISSION_ID, approve, accepted_Desc });
       const response = await api.post(
         '/Mission/Admin-Approve-Photo-Mission',
-        { useR_PHOTO_MISSION_ID, approve },
+        { useR_PHOTO_MISSION_ID, approve, accepted_Desc },
         { headers: { Authorization: `Bearer ${token}` } }
       );
       console.log('API Response:', response.data);
@@ -962,9 +1610,9 @@ const useFetchData = (token) => {
     }
 
   };
-  const approveText = async (useR_TEXT_MISSION_ID, approve) => {
+  const approveText = async (useR_TEXT_MISSION_ID, approve, accepted_Desc) => {
     try {
-      console.log('Payload:', { useR_TEXT_MISSION_ID, approve });
+      console.log('Payload:', { useR_TEXT_MISSION_ID, approve, accepted_Desc });
 
       if (!useR_TEXT_MISSION_ID || typeof approve === 'undefined') {
         console.error('Invalid parameters:', { useR_TEXT_MISSION_ID, approve });
@@ -973,7 +1621,31 @@ const useFetchData = (token) => {
 
       const response = await api.post(
         '/Mission/Admin-Approve-Text-Mission',
-        { useR_TEXT_MISSION_ID, approve },
+        { useR_TEXT_MISSION_ID, approve, accepted_Desc },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      console.log('API Response:', response.data);
+      setSuccess('Mission approval processed successfully!');
+      return response.data; // Return the API response for further use
+    } catch (err) {
+      console.error('Approve Mission Error:', err.response?.data || err);
+      setError(err.response?.data?.message || 'Failed to process mission approval.');
+      throw err; // Re-throw for error handling in the calling component
+    }
+  };
+  const approveVideo = async (useR_VIDEO_MISSION_ID, approve, accepted_Desc) => {
+    try {
+      console.log('Payload:', { useR_VIDEO_MISSION_ID, approve, accepted_Desc });
+
+      if (!useR_VIDEO_MISSION_ID || typeof approve === 'undefined') {
+        console.error('Invalid parameters:', { useR_VIDEO_MISSION_ID, approve });
+        return;
+      }
+
+      const response = await api.post(
+        '/Mission/Admin-Approve-Video-Mission',
+        { useR_VIDEO_MISSION_ID, approve, accepted_Desc },
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
@@ -1007,15 +1679,15 @@ const useFetchData = (token) => {
     }
   };
 
-  const giveCoin = async (receiverId, amount) => {
+  const giveCoin = async (receiverId, amount, description) => {
     try {
       // Log the data you are sending for debugging
-      console.log('Giving ThankCoin to another user:', { receiverId, amount });
+      console.log('Giving ThankCoin to another user:', { receiverId, amount, description });
 
       // Make the API call to give the ThankCoin
       const response = await api.post(
         '/Coin/Give-ThankCoin',
-        { receiverId, amount },  // Send the receiver ID and amount in the request body
+        { receiverId, amount, description },  // Send the receiver ID and amount in the request body
         { headers: { Authorization: `Bearer ${token}` } }  // Include the token in the headers for authorization
       );
 
@@ -1057,6 +1729,28 @@ const useFetchData = (token) => {
   //     throw err; // ส่งต่อ error ให้ handle ใน component ที่เรียกใช้
   //   }
   // };
+
+  const addWinnerCoin = async (a_USER_ID, missioN_ID, rank) => {
+    try {
+      console.log("Adding Winner Coin Reward:", { a_USER_ID, missioN_ID, rank });
+
+      const response = await api.post(
+        "/Mission/Missioner-Add-Winners-Coin-Reward-All",
+        { a_USER_ID, missioN_ID, rank }, // JSON Body ที่ API ต้องการ
+        { headers: { Authorization: `Bearer ${token}` } } // ใช้ Token Authentication
+      );
+
+      console.log("Winner Coin Reward Added Successfully:", response.data);
+      setSuccess("Winner coin reward added successfully!");
+
+      return response.data; // คืนค่าให้ใช้ใน component อื่น ๆ
+    } catch (err) {
+      console.error("Add Winner Coin Photo Error:", err.response?.data || err);
+      setError(err.response?.data?.message || "Failed to add winner coin reward.");
+      throw err; // ส่งต่อ error ให้ handle ใน component ที่เรียกใช้
+    }
+  };
+
   const addAllCoinPhoto = async (mission_ID, amount) => {
     try {
       console.log("Coin Amount:", amount);
@@ -1169,6 +1863,150 @@ const useFetchData = (token) => {
     }
   };
 
+  const addKaeCoin = async (userId, amount, description) => {
+    try {
+      console.log("User ID:", userId);
+      console.log("Coin Amount:", amount);
+      console.log("Description:", description);
+
+      const response = await api.post(
+        `/Coin/Add-KAEACoin`, // URL ของ API
+        {
+          userId: userId, // ส่ง userId
+          amount: amount, // ส่ง amount
+          description: description, // ส่ง description
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`, // Token สำหรับการยืนยันตัวตน
+            "Content-Type": "application/json", // ใช้ Content-Type เป็น JSON
+          },
+        }
+      );
+
+      console.log("Thanks Coin Reward Added Successfully:", response.data);
+      setSuccess("Thanks Coin Given Successfully");
+      setError(null);
+      return response.data;
+    } catch (err) {
+      console.error("Error giving thanks coin:", err);
+      setError("Failed to give thanks coin");
+      throw err;
+    }
+  };
+
+  const addAllWinnerCoin = async (a_USER_ID, mission_ID, rank) => {
+    try {
+      const response = await api.post(
+        `Mission/Missioner-Add-Winners-Coin-Reward-All`,
+        {
+          a_USER_ID,
+          missioN_ID: mission_ID,
+          rank
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      console.log("Winner Coin Reward Added Successfully:", response.data);
+      setSuccess("Give Coin Reward to Winner Successful");
+      setError(null);
+      return response.data;
+    } catch (err) {
+      console.error("Error adding coin reward:", err);
+      setError("Failed to give coin reward");
+      throw err;
+    }
+  };
+
+  const setView = async (missionType, userMissionId, isView) => {
+    try {
+      const response = await api.post(
+        `Mission/Admin-Set-IsView`,
+        {
+          missionType,
+          userMissionId,
+          isView
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      console.log("Set View :", response.data);
+      setSuccess("Set View Success");
+      setError(null);
+      return response.data;
+    } catch (err) {
+      console.error("Error :", err);
+      setError("Failed");
+      throw err;
+    }
+  };
+
+  const Like = async (userMissionId, missionId, userId, type) => {
+    try {
+      const response = await api.post(
+        `Mission/Like`,
+        {
+          userMissionId,
+          missionId,
+          userId,
+          type,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      console.log("Like :", response.data);
+      setSuccess("Like Success");
+      setError(null);
+      return response.data;
+    } catch (err) {
+      console.error("Error :", err);
+      setError("Failed");
+      throw err;
+    }
+  };
+
+  const uploadBanner = async (photo) => {
+    try {
+      const formData = new FormData();
+      formData.append("photo", photo); // เพิ่มไฟล์ใน form data
+  
+      const response = await api.post(
+        `Auth/upload`,  // เปลี่ยนเป็น URL ที่ใช้สำหรับอัปโหลด banner
+        formData,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "multipart/form-data", // ระบุ Content-Type เป็น multipart/form-data
+          },
+        }
+      );
+  
+      console.log("Upload Banner :", response.data);
+      setSuccess("Upload Banner Success");
+      setError(null);
+      return response.data;
+    } catch (err) {
+      console.error("Error :", err);
+      setError("Failed");
+      throw err;
+    }
+  };
+  
 
   const rewardStatus = async (useR_REWARD_ID, status) => {
     try {
@@ -1367,44 +2205,52 @@ const useFetchData = (token) => {
     }
   };
 
-  const fetchFilteredUsers = useCallback(async (filterData) => {
+
+
+  const fetchFilteredUsers = useCallback(async (filterData, pageNumber = 1, pageSize = 50) => {
     if (!token) {
       setError('Token is missing or invalid');
       return;
     }
-  
     try {
       setIsLoading(true);
-      const response = await api.post('/Auth/get-filter-user', filterData, {
+
+      const payload = {
+        ...filterData,
+        pageNumber,
+        pageSize,
+      };
+
+      const response = await api.post('/Auth/get-filter-user', payload, {
         headers: { Authorization: `Bearer ${token}` },
       });
-  
+
       console.log("API Response:", response.data); // ดูว่า API ส่งอะไรมาบ้าง
-  
+
       if (Array.isArray(response.data.items)) {
         const filteredData = response.data.items.map(user => ({
           a_USER_ID: user.a_USER_ID,
           logoN_NAME: user.logoN_NAME,
-          firstName: user.firstName,
-          lastName: user.lastName,
           branchCode: user.branchCode,
-          branch: user.branch,
+          department: user.department,
           user_Name: user.user_Name,
+          displayName: user.displayName,
           user_Position: user.user_Position,
-          imageUrls: user.imageUrls, // เพิ่ม imageUrls ที่ได้จาก API
+          imageUrls: user.imageUrls,
         }));
-  
-        setFilteredUserDetail(filteredData); // เซ็ตข้อมูลที่กรองมา
+
+        setFilteredUserDetail(filteredData);
+
       } else {
         console.error("Invalid API response format:", response.data);
-        setFilteredUserDetail([]); // ถ้าข้อมูลผิด ให้ใช้ []
+        setFilteredUserDetail([]);
       }
-  
+
       setSuccess('Filtered user details fetched successfully!');
     } catch (err) {
       if (err.response?.status === 404) {
         console.warn('No matching users found.');
-        setFilteredUserDetail([]); // ถ้าไม่พบผู้ใช้ ให้ใช้ []
+        setFilteredUserDetail([]);
       } else {
         setError('Failed to fetch filtered user details');
         console.error('API Error:', err.response?.data || err);
@@ -1413,8 +2259,10 @@ const useFetchData = (token) => {
       setIsLoading(false);
     }
   }, [token]);
-  
-  
+
+  const clearFilteredUsers = () => {
+    setFilteredUserDetail([]);
+  };
 
   return {
     userDetails,
@@ -1430,7 +2278,9 @@ const useFetchData = (token) => {
     executeQRMission,
     executePhotoMission,
     executeTextMission,
+    executeVideoMission,
     createMission,
+    updateMission,
     approveMission,
     approveText,
     addAllCoinPhoto,
@@ -1438,12 +2288,17 @@ const useFetchData = (token) => {
     addAllCoinQR,
     convertCoin,
     approvePhoto,
+    approveVideo,
+    addWinnerCoin,
     giveCoin,
     addThankCoin,
+    addKaeCoin,
     createReward,
     acceptReward,
     rewardStatus,
     fetchFilteredUsers,
+    fetchPublicMissions,
+    getPublicMission,
     // refetch,
     editProfileImg,
     editDisplayName,
@@ -1451,14 +2306,19 @@ const useFetchData = (token) => {
     resetPassword,
     changePassword,
     createUser,
+    Like,
+    uploadBanner,
     completeMission,
     allMission,
     ApproveQR,
     ApprovePhoto,
     ApproveText,
+    ApproveVideo,
     adminUserMissions,
     alluserDetail,
     Reward,
+    updateReward,
+    RewardCate,
     adminReward,
     userReward,
     leaderboard,
@@ -1467,6 +2327,7 @@ const useFetchData = (token) => {
     history,
     filterByDept,
     department,
+    fetchRewardCate,
     fetchUserDetails,
     fetchCoinDetails,
     fetchAllMissions,
@@ -1476,6 +2337,7 @@ const useFetchData = (token) => {
     fetchCompleteMissions,
     fetchApproveQR,
     fetchApprovePhoto,
+    fetchApproveVideo,
     fetchApproveText,
     fetchAdminUserMissions,
     fetchRewards,
@@ -1484,11 +2346,27 @@ const useFetchData = (token) => {
     fetchLeaderboard,
     fetchHistory,
     filteredUserDetail,
+    clearFilteredUsers,
     fetchToptenLeaderboard,
     fetchMyLeaderboard,
     fetchFilterByDept,
     fetchDept,
-
+    fetchExportExcel,
+    getMission,
+    fetchByMission,
+    fetchApprovePhotoByMission,
+    fetchApproveTextByMission,
+    fetchApproveVideoByMission,
+    ApprovePhotoByName,
+    ApproveTextByName,
+    ApproveVideoByName,
+    addAllWinnerCoin,
+    fetchUsersInMission,
+    fetchMissionFeed,
+    fetchLikesForMission,
+    setView,
+    fetchBanners,
+    deleteBanner,
   };
 };
 

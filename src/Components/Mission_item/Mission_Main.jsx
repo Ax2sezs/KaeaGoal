@@ -44,39 +44,47 @@ function Mission_Main({ isTableLayout }) {
   // }, [error]);
 
   const sortedMissions = missions.sort((a, b) => {
+    const now = new Date();
+
     const isFullA = a?.current_Accept >= a?.accept_limit;
     const isFullB = b?.current_Accept >= b?.accept_limit;
     const isLimitedA = a?.is_Limited ? -1 : 1;
     const isLimitedB = b?.is_Limited ? -1 : 1;
-  
-    // ✅ ตรวจสอบว่า mission กำลังจะมา (ยังไม่ถึงวันที่กำหนด)
-    const isComingA = a?.start_Date && new Date(a.start_Date) > new Date();
-    const isComingB = b?.start_Date && new Date(b.start_Date) > new Date();
-  
-    // ✅ ตรวจสอบว่า mission หมดอายุ (วันหมดอายุ <= วันปัจจุบัน)
-    const isExpiredA = a?.end_Date && new Date(a.end_Date) <= new Date();
-    const isExpiredB = b?.end_Date && new Date(b.end_Date) <= new Date();
-  
+
+    const isComingA = a?.start_Date && new Date(a.start_Date) > now;
+    const isComingB = b?.start_Date && new Date(b.start_Date) > now;
+
+    const isExpiredA = a?.end_Date && new Date(a.end_Date) <= now;
+    const isExpiredB = b?.end_Date && new Date(b.end_Date) <= now;
+
     // ✅ ถ้า mission หมดอายุ ให้ไปอยู่หลังสุด
     if (isExpiredA !== isExpiredB) {
-      return isExpiredA ? 1 : -1; // isExpiredA ไปอยู่หลังสุด
+      return isExpiredA ? 1 : -1;
     }
-  
+
     // ✅ ถ้า mission กำลังจะมา ให้ไปอยู่ก่อน
     if (isComingA !== isComingB) {
-      return isComingA ? 1 : -1; // isComingA อยู่ก่อน
+      return isComingA ? 1 : -1;
     }
-  
+
     // ✅ ถ้าอันไหนเต็ม ให้ไปอยู่หลังสุด
     if (isFullA !== isFullB) {
       return isFullA - isFullB;
     }
-  
+
     // ✅ ถ้ายังไม่เต็ม ให้ Limited มาก่อน
-    return isLimitedA - isLimitedB;
+    if (isLimitedA !== isLimitedB) {
+      return isLimitedA - isLimitedB;
+    }
+
+    // ✅ ใหม่สุดขึ้นก่อน (start_Date มาก → อยู่บน)
+    const startA = new Date(a.start_Date || 0);
+    const startB = new Date(b.start_Date || 0);
+    return startB - startA;
   });
-  
-  
+
+
+
 
   const handleButtonClick = (index) => {
     setSelectedIndex(index);
@@ -118,9 +126,14 @@ function Mission_Main({ isTableLayout }) {
   return (
     <div>
       {sortedMissions.length === 0 ? (
-        <div className="text-center text-gray-500 mt-5">
-          <p>No Available Missions</p>
+        <div className="relative overflow-hidden h-28 mt-5">
+        <div className="flex items-center gap-3 absolute animate-sheepLoop mt-2">
+          <img src="sheep.gif" className="w-auto h-20 animate-bounce" />
         </div>
+        <p className="text-gray-500 text-xl font-semibold text-center">Coming Soon. . .</p>
+
+      </div>
+      
       ) : (
         // ✅ Grid Layout (Card View)
         !isTableLayout ? (
@@ -161,7 +174,7 @@ function Mission_Main({ isTableLayout }) {
                       <td className="px-3 py-2 text-left truncate">
                         <div className='flex flex-col'>
                           <span className="text-red-500 font-bold flex items-center gap-1">
-                            {mission.is_Limited && (
+                            {mission.is_Public && (
                               <>
                                 <WorkspacePremiumIcon />
                                 LIMITED!
@@ -199,7 +212,7 @@ function Mission_Main({ isTableLayout }) {
                           </div>
                         </div>
                         <span className='text-sm'>
-                          Exp: {mission?.expire_Date ? new Date(mission.expire_Date).toLocaleDateString() : 'No Date'}
+                          Exp: {mission?.expire_Date ? new Date(mission.expire_Date).toLocaleDateString('th-TH') : 'No Date'}
                         </span>
                       </td>
                     </tr>
@@ -245,6 +258,11 @@ function Mission_Main({ isTableLayout }) {
                   )}
                   Mission : {sortedMissions[selectedIndex]?.missioN_NAME}
                 </h3>
+                {sortedMissions[selectedIndex]?.is_Public && (
+                  <p className="text-sm text-red-500 font-medium">
+                    *This mission is public. The content you submit may be shared on the Community page.*
+                  </p>
+                )}
                 <p className="w-full max-h-32 overflow-auto break-words whitespace-pre-line">
                   <strong>Description : </strong>{sortedMissions[selectedIndex]?.description}
                 </p>
@@ -254,11 +272,11 @@ function Mission_Main({ isTableLayout }) {
               <div className="flex justify-between mt-4">
                 <div className="flex flex-col text-sm gap-2 text-green-500 sm:text-lg sm:flex-row sm:gap-5">
                   <div className="flex flex-row gap-3">
-                    <img src="./1.png" alt="Coin Icon" className="w-6 h-6" />
-                    {sortedMissions[selectedIndex]?.mission_Point || 0} Pts
+                    <img src={sortedMissions[selectedIndex]?.missioN_TypeCoin === 1 ? './3.png' : './1.png'} alt="Coin Icon" className="w-6 h-6" />
+                    {sortedMissions[selectedIndex]?.mission_Point.toLocaleString() || 0} Pts
                   </div>
                   <div className="flex flex-row gap-3">
-                    <GroupIcon /> {sortedMissions[selectedIndex]?.current_Accept}/{sortedMissions[selectedIndex]?.accept_limit}
+                    <GroupIcon /> {sortedMissions[selectedIndex]?.current_Accept.toLocaleString()}/{sortedMissions[selectedIndex]?.accept_limit.toLocaleString()}
                   </div>
                 </div>
 
@@ -279,16 +297,15 @@ function Mission_Main({ isTableLayout }) {
           )}
         </div>
       </dialog >
-
       <dialog id="success_modal" className="modal">
         <div className="modal-box bg-green-500 text-white text-center">
           <h1 className='text-bg'><CheckIcon fontSize='large' className='animate-bounce' /></h1>
-          <h3 className="text-xl font-bold">Mission Accepted</h3>
-          <p>You have successfully accept mission. . . </p>
-          <button
-            className="btn border-bg bg-bg rounded-badge text-green-500 mt-3 hover:bg-bg"
-            onClick={() => document.getElementById("success_modal").close()} // ปิด modal
+          <h3 className="text-xl font-bold">Mission Saved</h3>
+          <p>* Please Check In My Mission. . .</p>
 
+          <button
+            className="btn border-bg bg-bg rounded-badge border-hidden text-green-500 mt-3 hover:transition-transform hover:scale-105 hover:bg-bg"
+            onClick={() => document.getElementById("success_modal").close()} // ปิด modal
           >
             Close
           </button>
@@ -298,8 +315,9 @@ function Mission_Main({ isTableLayout }) {
         <div className="modal-box bg-red-500 text-white text-center">
           <h1 className='text-bg'><CloseOutlinedIcon fontSize='large' className='animate-bounce' /></h1>
           <h3 className="text-xl font-bold">Mission Full</h3>
+          <p>Fail to accept mission</p>
           <button
-            className="btn border-bg bg-bg rounded-badge text-red-500 mt-3 hover:bg-bg"
+            className="btn border-bg bg-bg rounded-badge text-red-500 mt-3 border-hidden hover:transition-transform hover:scale-105 hover:bg-bg"
             onClick={() => document.getElementById("error_modal").close()}  // ปิด modal
           >
             Close

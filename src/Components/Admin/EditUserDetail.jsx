@@ -4,7 +4,7 @@ import { useAuth } from "../APIManage/AuthContext";
 
 function EditUserDetail({ userData, onClose }) {
     const { user } = useAuth();
-    const { userDetails, editUserDetail, resetPassword, addThankCoin, success, error, isLoading, refetch } = useFetchData(user?.token);
+    const { userDetails, editUserDetail, resetPassword, addThankCoin, addKaeCoin,success, error, isLoading, refetch } = useFetchData(user?.token);
 
     const initialState = {
         a_USER_ID: userData?.a_USER_ID || "",
@@ -17,6 +17,7 @@ function EditUserDetail({ userData, onClose }) {
         useR_EMAIL: userData?.useR_EMAIL || "",
         user_Position: userData?.user_Position || "",
         isAdmin: userData?.isAdmin || 5, // Default value 5
+        isBkk: userData?.isBkk || 5,
         isshop: userData?.isshop || false,
         issup: userData?.issup || false,
         site: userData?.site || "", // This will be used for the select dropdown
@@ -25,25 +26,33 @@ function EditUserDetail({ userData, onClose }) {
     const [formData, setFormData] = useState(initialState);
     const [passwordResetSuccess, setPasswordResetSuccess] = useState(false); // State to track password reset success
     const [thanksCoinAmount, setThanksCoinAmount] = useState(0); // Amount ของ Coin ที่จะให้
+    const [kaeCoinDescription, setKaeCoinDescription] = useState(""); // คำอธิบายของ Coin
+    const [kaeCoinAmount, setKaeCoinAmount] = useState(0); // Amount ของ Coin ที่จะให้
     const [thanksCoinDescription, setThanksCoinDescription] = useState(""); // คำอธิบายของ Coin
     const [thanksCoinSuccess, setThanksCoinSuccess] = useState(false); // ใช้เก็บสถานะการให้ Coin สำเร็จ
-
+    const [kaeCoinSuccess, setKaeCoinSuccess] = useState(false); // ใช้เก็บสถานะการให้ Coin สำเร็จ
 
     const handleChange = (e) => {
         const { name, type, checked, value } = e.target;
 
-        if (name === "isAdmin" || name === "isMissioner") {
+        if (name === "isMissioner") {
             setFormData((prev) => {
-                let newIsAdmin = prev.isAdmin;
+                const newIsAdmin = checked ? 4 : 5;
+                const newIsBkk = checked ? prev.isBkk : 0; // ถ้า uncheck ให้ reset เป็น 0
 
-                if (name === "isAdmin") {
-                    newIsAdmin = checked ? 9 : prev.isMissioner ? 4 : 5;
-                } else if (name === "isMissioner") {
-                    newIsAdmin = checked ? 4 : prev.isAdmin === 9 ? 9 : 5;
-                }
-
-                return { ...prev, [name]: checked, isAdmin: newIsAdmin };
+                return {
+                    ...prev,
+                    isAdmin: newIsAdmin,
+                    isBkk: newIsBkk,
+                };
             });
+        } else if (name === "superAdmin") {
+            // handle แบบ custom สำหรับ superAdmin checkbox (ถ้ามี)
+            setFormData((prev) => ({
+                ...prev,
+                isAdmin: checked ? 9 : 5,
+                isBkk: checked ? 9 : 0,
+            }));
         } else {
             setFormData((prev) => ({
                 ...prev,
@@ -51,8 +60,6 @@ function EditUserDetail({ userData, onClose }) {
             }));
         }
     };
-
-
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -107,6 +114,20 @@ function EditUserDetail({ userData, onClose }) {
         }
     };
 
+    const handleGiveKaeCoin = async () => {
+        try {
+            const result = await addKaeCoin(userData.a_USER_ID, kaeCoinAmount, kaeCoinDescription);
+            if (result) {
+                setKaeCoinSuccess(true);
+                console.log("Thanks Coin Given Successfully:", result);
+                alert("Thanks Coin Given Successfully!");
+            }
+        } catch (err) {
+            console.error("Error giving thanks coin:", err);
+            setKaeCoinSuccess(false);
+        }
+    };
+
 
     return (
         <dialog open className="modal">
@@ -144,30 +165,56 @@ function EditUserDetail({ userData, onClose }) {
                     {userDetails?.isAdmin !== 4 && (
                         <>
                             <div className="flex items-center gap-2">
-                                <input
-                                    type="checkbox"
-                                    name="isAdmin"
-                                    checked={formData.isAdmin === 9} // Check if isAdmin is 9
-                                    onChange={handleChange}
-                                    className="checkbox"
-                                />
-                                <label>Is Admin</label>
+                                <div className="flex items-center gap-2">
+                                    <input
+                                        type="checkbox"
+                                        name="superAdmin"
+                                        checked={formData.isAdmin === 9 && formData.isBkk === 9}
+                                        onChange={(e) => {
+                                            const checked = e.target.checked;
+                                            setFormData((prev) => ({
+                                                ...prev,
+                                                isAdmin: checked ? 9 : 5, // หรือค่า default อื่นที่คุณใช้
+                                                isBkk: checked ? 9 : 0,   // default isBkk ถ้าไม่ใช่ super admin
+                                            }));
+                                        }}
+                                        className="checkbox"
+                                    />
+                                    <label className="text-red-500">* Is Super Admin</label>
+                                </div>
+
                             </div>
-                            <div className="flex items-center gap-2">
-                                <input
-                                    type="checkbox"
-                                    name="isMissioner"
-                                    checked={formData.isAdmin === 4} // Check if isAdmin is 4
-                                    onChange={handleChange}
-                                    className="checkbox"
-                                />
-                                <label>Is Missioner</label>
+                            <div className="flex flex-col items-center gap-2">
+                                <div className="flex gap-3">
+                                    <input
+                                        type="checkbox"
+                                        name="isMissioner"
+                                        checked={formData.isAdmin === 4} // Check if isAdmin is 4
+                                        onChange={handleChange}
+                                        className="checkbox"
+                                    />
+                                    <select
+                                        id="isBkk"
+                                        name="isBkk"
+                                        value={formData.isBkk}
+                                        onChange={handleChange}
+                                        className="select select-bordered select-sm bg-bg"
+                                        disabled={formData.isAdmin !== 4} // ถ้า isAdmin ไม่เท่ากับ 4 ให้ disabled
+                                    >
+                                        <option value="">-- Select Site --</option>
+                                        <option value="1">Admin AUOF</option>
+                                        <option value="2">Admin AUBR</option>
+                                        <option value="3">Admin AUFC</option>
+                                    </select>
+                                </div>
+
                             </div>
+
                         </>
                     )}
 
 
-                    {/* Checkboxes for other options */}
+                    {/* Checkboxes for other options
                     {[
                         { name: "isshop", label: "Is Shop" },
                         { name: "issup", label: "Is Supplier" },
@@ -182,21 +229,21 @@ function EditUserDetail({ userData, onClose }) {
                             />
                             <label>{label}</label>
                         </div>
-                    ))}
+                    ))} */}
 
                     {/* Select for Site */}
                     {/* <div className="flex flex-col">
                         <label className="font-medium">Site</label>
                         <select
                             name="site"
-                            value={formData.site}
+                            value={formData.branchCode}
                             onChange={handleChange}
                             className="input input-bordered w-full bg-bg text-button-text"
                         >
                             <option value="">Select Site</option>
-                            <option value="Office">Office</option>
-                            <option value="Factory">Factory</option>
-                            <option value="Branch">Branch</option>
+                            <option value="AUOF">AUOF - Office</option>
+                            <option value="AUFC">AUFC - Factory</option>
+                            <option value="AUBR">AUBR - Branch</option>
                         </select>
                     </div> */}
                     {/* New Fields for Thanks Coin */}
@@ -220,20 +267,44 @@ function EditUserDetail({ userData, onClose }) {
                             className="input input-bordered w-full bg-bg text-button-text"
                         />
                     </div>
+                    <div className="flex flex-col">
+                        <label className="font-medium">Give Gae Coin Amount</label>
+                        <input
+                            type="number"
+                            name="kaeCoinAmount"
+                            value={kaeCoinAmount}
+                            onChange={(e) => setKaeCoinAmount(e.target.value)}
+                            className="input input-bordered w-full bg-bg text-button-text"
+                        />
+                    </div>
+
+                    <div className="flex flex-col">
+                        <label className="font-medium">Description for Gae Coin</label>
+                        <textarea
+                            name="kaeCoinDescription"
+                            value={kaeCoinDescription}
+                            onChange={(e) => setKaeCoinDescription(e.target.value)}
+                            className="input input-bordered w-full bg-bg text-button-text"
+                        />
+                    </div>
                 </form>
 
                 <div className="modal-action justify-between">
 
-                    <div className="flex gap-5">
+                    <div className="flex gap-5 items-center">
                         {/* New Button to give Thanks Coin */}
-                        <button onClick={handleGiveThanksCoin} className="btn btn-success">
+                        <button onClick={handleGiveThanksCoin} className="btn btn-success btn-outline btn-sm">
                             Give Thanks Coin
                         </button>
+                        <button onClick={handleGiveKaeCoin} className="btn btn-warning btn-outline btn-sm">
+                            Give Kae Coin
+                        </button>
+                        <button onClick={handlePasswordReset} className="btn btn-error btn-outline btn-sm">
+                            Reset Password
+                        </button>
                     </div>
-                   
-                    <button onClick={handlePasswordReset} className="btn btn-secondary">
-                        Reset Password
-                    </button>
+
+
                     <div className="flex gap-5">
                         <button onClick={handleSubmit} className="btn btn-primary">
                             {isLoading ? "Updating..." : "Update"}

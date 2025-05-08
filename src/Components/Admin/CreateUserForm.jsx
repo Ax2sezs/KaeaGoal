@@ -4,13 +4,15 @@ import { useAuth } from '../APIManage/AuthContext';
 
 function CreateUserForm({ onClose }) {
   const { user } = useAuth();
-  const { createUser, success, error, isLoading, fetchAllMissions } = useFetchData(user?.token);
+  const { createUser, success, error, isLoading, fetchDept, department } = useFetchData(user?.token);
 
   const [formData, setFormData] = useState({
     logoN_NAME: '',
     firstName: '',
     lastName: '',
     branchCode: '',
+    department: '',
+    departmentCode: '',
     branch: '',
     stateCode: 0,
     deletionStateCode: 0,
@@ -25,6 +27,53 @@ function CreateUserForm({ onClose }) {
   });
 
   const [showSuccess, setShowSuccess] = useState(false);
+  const [branchCodeFilter, setBranchCodeFilter] = useState('');
+  const [departments, setDepartments] = useState([]);
+
+  useEffect(() => {
+    const fetchDepartments = async () => {
+      if (!branchCodeFilter) return; // ⛔ ห้ามเรียกถ้าไม่มีค่า
+
+      try {
+        const deptData = await fetchDept(branchCodeFilter); // ✅ ส่ง site เข้าไป
+        if (Array.isArray(deptData)) {
+          setDepartments(deptData);
+        } else {
+          console.error("Invalid department data:", deptData);
+          setDepartments([]);
+        }
+      } catch (err) {
+        console.error("Failed to fetch departments:", err);
+        setDepartments([]);
+      }
+    };
+
+    fetchDepartments();
+  }, [branchCodeFilter, fetchDept]); // ✅ run ทุกครั้งที่ branchCode เปลี่ยน
+
+
+  const handleBranchCodeChange = (e) => {
+    const value = e.target.value;
+    setBranchCodeFilter(value); // ✅ ใช้ trigger useEffect ด้านบน
+    setFormData((prev) => ({
+      ...prev,
+      branchCode: value,
+      departmentCode: '',
+      department: '',
+    }));
+  };
+
+
+  const handleDepartmentChange = (e) => {
+    const selectedCode = e.target.value;
+    const dept = department.find((d) => d.departmentCode === selectedCode && d.site === branchCodeFilter);
+    setFormData((prev) => ({
+      ...prev,
+      departmentCode: dept?.departmentCode || '',
+      department: dept?.departmentName || '',
+    }));
+  };
+
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -39,7 +88,6 @@ function CreateUserForm({ onClose }) {
     try {
       await createUser(formData);
       setShowSuccess(true);
-      fetchAllMissions()
       setTimeout(() => {
         setShowSuccess(false);
         onClose(); // Close modal after success
@@ -119,17 +167,57 @@ function CreateUserForm({ onClose }) {
           </div>
         </div>
 
-        <div className="form-control">
-          <label className="label">Branch Code</label>
-          <input
-            type="text"
-            name="branchCode"
-            value={formData.branchCode}
-            onChange={handleChange}
-            className="input input-bordered border-button-text bg-bg"
+        <div>
+          <label className="block mb-2 font-bold text-sm">* Site (Branch Code)</label>
+          <select
+            value={branchCodeFilter}
+            onChange={handleBranchCodeChange}
+            className="input input-bordered border-layer-item w-full bg-bg"
             required
-          />
+          >
+            <option value="">Select Site</option>
+            {["AUOF", "AUFC", "AUBR"].map((site) => (
+              <option key={site} value={site}>{site}</option>
+            ))}
+          </select>
         </div>
+
+        {/* Department */}
+        {branchCodeFilter && (
+          <div>
+            <label className="block mb-2 font-bold text-sm">* Department</label>
+            <select
+              value={formData.departmentCode}
+              onChange={handleDepartmentChange}
+              className="input input-bordered border-layer-item w-full bg-bg"
+              required
+            >
+              <option value="">Select Department</option>
+              {department &&
+                department
+                  .filter((dept) => dept.site === branchCodeFilter)
+                  .map((dept) => (
+                    <option key={dept.departmentCode} value={dept.departmentCode}>
+                      {dept.departmentName}
+                    </option>
+                  ))}
+            </select>
+
+            {/* Department Code shown after selection */}
+            {formData.departmentCode && (
+              <div className="mt-2">
+                <label className="block mb-2 font-bold text-sm">Department Code</label>
+                <input
+                  type="text"
+                  value={formData.departmentCode}
+                  readOnly
+                  className="input input-bordered border-layer-item w-full bg-gray-100 text-gray-700"
+                />
+              </div>
+            )}
+          </div>
+        )}
+
 
         <div className="form-control">
           <label className="label">Branch</label>
@@ -151,7 +239,6 @@ function CreateUserForm({ onClose }) {
             value={formData.useR_EMAIL}
             onChange={handleChange}
             className="input input-bordered border-button-text bg-bg"
-            required
           />
         </div>
 
@@ -181,20 +268,25 @@ function CreateUserForm({ onClose }) {
 
         {/* Toggle Switches */}
         <div className="flex justify-between items-center">
-          <label className="label cursor-pointer">
-            <span className="label-text mr-2">Admin</span>
-            <input
-              type="checkbox"
-              className="toggle toggle-primary "
-              checked={formData.isAdmin}
+          <div>
+            <label className="block mb-2 font-bold text-sm">* User Role</label>
+            <select
+              className="input input-bordered border-layer-item w-full bg-bg"
+              value={formData.isAdmin}
               onChange={(e) =>
                 setFormData((prev) => ({
                   ...prev,
-                  isAdmin: e.target.checked,
+                  isAdmin: parseInt(e.target.value, 10),
                 }))
               }
-            />
-          </label>
+            >
+              <option value="">Select Role</option>
+              <option value={9}>Super Admin</option>
+              <option value={4}>Admin</option>
+              <option value={5}>User</option>
+            </select>
+          </div>
+
 
           <label className="label cursor-pointer">
             <span className="label-text mr-2">Is Shop</span>

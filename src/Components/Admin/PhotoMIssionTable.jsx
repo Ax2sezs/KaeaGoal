@@ -10,7 +10,7 @@ import "swiper/css";
 import "swiper/css/navigation";
 import "swiper/css/pagination";
 import { Navigation, Pagination } from "swiper/modules";
-import heic2any from 'heic2any';
+// import heic2any from 'heic2any';
 
 const PhotoMissionTable = ({ alluserDetail, allMission, ApprovePhoto, approvePhoto, addAllCoinPhoto, isLoading, error, refetch }) => {
     const [photoMissions, setPhotoMissions] = useState([]);
@@ -23,45 +23,69 @@ const PhotoMissionTable = ({ alluserDetail, allMission, ApprovePhoto, approvePho
     const [selectedMissionName, setSelectedMissionName] = useState("all");
     const [isTableLayout, setIsTableLayout] = useState(false)
     const [convertedPhotos, setConvertedPhotos] = useState({});
+    const [selects, setSelects] = useState([{ user: "", rank: "" }]);
+    const users = ["User A", "User B", "User C"];
+    const ranks = ["อันดับ 1", "อันดับ 2", "อันดับ 3"];
 
-
-    useEffect(() => {
-        // แปลงไฟล์ HEIC ให้เป็นรูปภาพที่รองรับ
-        const convertPhotos = async () => {
-            const newConvertedPhotos = {};
-
-            for (const mission of filteredMissions) {
-                const photoUrls = mission.photo || [];
-                const convertedUrls = [];
-
-                for (const photoUrl of photoUrls) {
-                    if (photoUrl.endsWith('.heic')) {
-                        try {
-                            const response = await fetch(photoUrl);
-                            const blob = await response.blob();
-
-                            // แปลงไฟล์ HEIC เป็น JPEG
-                            const convertedImage = await heic2any({ blob, toType: 'image/jpeg' });
-
-                            const convertedUrl = URL.createObjectURL(convertedImage);
-                            convertedUrls.push(convertedUrl);
-                        } catch (err) {
-                            console.error(`Error converting HEIC file: ${err}`);
-                            convertedUrls.push(photoUrl); // หากแปลงไม่ได้, ใช้ URL เดิม
-                        }
-                    } else {
-                        convertedUrls.push(photoUrl); // หากไม่ใช่ HEIC, ใช้ URL เดิม
-                    }
-                }
-
-                newConvertedPhotos[mission.userPhotoMissionId] = convertedUrls;
-            }
-
-            setConvertedPhotos(newConvertedPhotos);
+    const addSelect = () => {
+        const nextRankNumber = selects.length + 1;
+        const newSelect = {
+            user: "",
+            rank: `อันดับ ${nextRankNumber}`,
         };
+        setSelects([...selects, newSelect]);
+    };
 
-        convertPhotos();
-    }, [filteredMissions]);
+    const removeSelect = () => {
+        if (selects.length > 1) {
+            setSelects(selects.slice(0, -1));
+        }
+    };
+
+    const handleSelectChange = (index, field, value) => {
+        const updated = [...selects];
+        updated[index][field] = value;
+        setSelects(updated);
+      };
+      
+    // useEffect(() => {
+    //     // แปลงไฟล์ HEIC ให้เป็นรูปภาพที่รองรับ
+    //     const convertPhotos = async () => {
+    //         const newConvertedPhotos = {};
+
+    //         for (const mission of filteredMissions) {
+    //             const photoUrls = mission.photo || [];
+    //             const convertedUrls = [];
+
+    //             for (const photoUrl of photoUrls) {
+    //                 if (photoUrl.endsWith('.heic')) {
+    //                     try {
+    //                         const response = await fetch(photoUrl);
+    //                         const blob = await response.blob();
+
+    //                         // แปลงไฟล์ HEIC เป็น JPEG
+    //                         const convertedImage = await heic2any({ blob, toType: 'image/jpeg' });
+
+    //                         const convertedUrl = URL.createObjectURL(convertedImage);
+    //                         convertedUrls.push(convertedUrl);
+    //                     } catch (err) {
+    //                         console.error(`Error converting HEIC file: ${err}`);
+    //                         convertedUrls.push(photoUrl); // หากแปลงไม่ได้, ใช้ URL เดิม
+    //                     }
+    //                 } else {
+    //                     convertedUrls.push(photoUrl); // หากไม่ใช่ HEIC, ใช้ URL เดิม
+    //                 }
+    //             }
+
+    //             newConvertedPhotos[mission.userPhotoMissionId] = convertedUrls;
+    //         }
+
+    //         setConvertedPhotos(newConvertedPhotos);
+    //     };
+
+    //     convertPhotos();
+
+    // }, [filteredMissions]);
 
     useEffect(() => {
         const mappedPhotoMissions = ApprovePhoto.map(mission => ({
@@ -69,16 +93,21 @@ const PhotoMissionTable = ({ alluserDetail, allMission, ApprovePhoto, approvePho
             userPhotoMissionId: mission.useR_PHOTO_MISSION_ID,
         }));
 
+        console.log("Mapped Photo Missions:", mappedPhotoMissions); // ดูว่า mappedPhotoMissions มี 106 หรือไม่
+
         mappedPhotoMissions.sort((a, b) => (a.approve === null ? -1 : 1) - (b.approve === null ? -1 : 1));
+
         setPhotoMissions(mappedPhotoMissions);
 
-        // ใช้ filter จากค่า selectedMissionName ที่เลือกไว้
         if (selectedMissionName === "all") {
             setFilteredMissions(mappedPhotoMissions);
         } else {
-            setFilteredMissions(mappedPhotoMissions.filter(m => m.missioN_ID === selectedMissionName));
+            const filtered = mappedPhotoMissions.filter(m => m.missioN_ID === selectedMissionName);
+            console.log("Filtered Missions:", filtered); // ดูว่าผลการกรองมี 105 หรือไม่
+            setFilteredMissions(filtered);
         }
-    }, [ApprovePhoto, selectedMissionName]); // ✅ เพิ่ม selectedMissionName เป็น dependency
+    }, [ApprovePhoto, selectedMissionName]);
+
 
 
     useEffect(() => {
@@ -115,7 +144,15 @@ const PhotoMissionTable = ({ alluserDetail, allMission, ApprovePhoto, approvePho
 
     const handleAction = async (missionId, isApproved) => {
         try {
-            await approvePhoto(missionId, isApproved);
+            let accepted_Desc = 'Completed'
+            if(!isApproved){
+                accepted_Desc = prompt("Please enter the reason for rejection.")
+                if(accepted_Desc===null||accepted_Desc.trim()===""){
+                    alert("Rejection Reason is required")
+                    return
+                }
+            }
+            await approvePhoto(missionId, isApproved,accepted_Desc);
             setFilteredMissions(filteredMissions.filter(m => m.userPhotoMissionId !== missionId));
             alert(isApproved ? "Mission approved successfully!" : "Mission rejected successfully!");
             refetch();
@@ -212,7 +249,7 @@ const PhotoMissionTable = ({ alluserDetail, allMission, ApprovePhoto, approvePho
                 return;
             }
 
-            await Promise.all(unapprovedMissions.map(mission => approvePhoto(mission.userPhotoMissionId, true)));
+            await Promise.all(unapprovedMissions.map(mission => approvePhoto(mission.userPhotoMissionId, true,'Complete')));
             alert("All selected missions approved successfully!");
             refetch();
             setSelectedMissions([]);
@@ -254,12 +291,63 @@ const PhotoMissionTable = ({ alluserDetail, allMission, ApprovePhoto, approvePho
                     placeholder="Amount"
                     readOnly
                 />
+                <button className="btn btn-warning btn-sm" onClick={() => document.getElementById('winner_modal').showModal()}>Add Coin To Winner</button>
                 <button className="btn btn-primary btn-sm" onClick={handleAddAllCoin} disabled={selectedMissions.length === 0} >
                     Add Coin
                 </button>
                 <button className="btn btn-success btn-sm" onClick={handleApproveAll} disabled={selectedMissions.length === 0}>
                     Approve All
                 </button>
+                <h1>{filteredMissions.length}</h1>
+                {/* Open the modal using document.getElementById('ID').showModal() method */}
+                <dialog id="winner_modal" className="modal">
+                    <div className="modal-box bg-bg text-button-text">
+                        <h3 className="font-bold text-lg">🏆 เลือกผู้ชนะ</h3>
+
+                        {selects.map((select, index) => (
+                            <div key={index} className="flex gap-2 items-center mt-2">
+                                {/* Select User */}
+                                <select
+                                    className="select select-warning w-1/2 bg-bg"
+                                    value={select.user}
+                                    onChange={(e) => handleSelectChange(index, "user", e.target.value)}
+                                >
+                                    <option disabled value="">Select user</option>
+                                    <option>User A</option>
+                                    <option>User B</option>
+                                    <option>User C</option>
+                                </select>
+
+                                {/* Select Rank */}
+                                <select
+                                    className="select select-info w-1/2 bg-bg"
+                                    value={select.rank}
+                                    onChange={(e) => handleSelectChange(index, "rank", e.target.value)}
+                                >
+                                    <option>อันดับ 1</option>
+                                    <option>อันดับ 2</option>
+                                    <option>อันดับ 3</option>
+                                    <option>อันดับ 4</option>
+                                </select>
+                            </div>
+                        ))}
+
+
+                        <div className="flex gap-2 mt-4">
+                            <button onClick={addSelect} className="btn btn-primary btn-sm">เพิ่มผู้ชนะ</button>
+                            <button onClick={removeSelect} className="btn btn-secondary btn-sm">ลบรายการ</button>
+                        </div>
+
+                        <div className="modal-action">
+                            <form method="dialog">
+                                <button className="btn btn-error btn-sm">ปิด</button>
+                            </form>
+                        </div>
+                    </div>
+                </dialog>
+
+
+
                 {/* <div className="stats shadow">
                     <div className="stat place-items-center">
                         <div className="stat-title">Downloads</div>
@@ -503,7 +591,7 @@ const PhotoMissionTable = ({ alluserDetail, allMission, ApprovePhoto, approvePho
                                         <td className="border p-2">{new Date(mission.uploadeD_AT).toLocaleString()}</td>
                                         <td className="border p-2">
                                             <div className="grid grid-cols-4 gap-2">
-                                            {(convertedPhotos[mission.userPhotoMissionId] || mission.photo)?.map((imgUrl, index) => (
+                                                {(convertedPhotos[mission.userPhotoMissionId] || mission.photo)?.map((imgUrl, index) => (
                                                     <img
                                                         key={index}
                                                         src={imgUrl}
@@ -565,7 +653,7 @@ const PhotoMissionTable = ({ alluserDetail, allMission, ApprovePhoto, approvePho
                                 </div>
 
                                 <Swiper modules={[Navigation, Pagination]} spaceBetween={10} slidesPerView={1} navigation pagination={{ clickable: true }} className="w-full h-60">
-                                {(convertedPhotos[mission.userPhotoMissionId] || mission.photo)?.map((imgUrl, index) => (
+                                    {(convertedPhotos[mission.userPhotoMissionId] || mission.photo)?.map((imgUrl, index) => (
                                         <SwiperSlide key={index}>
                                             <img
                                                 src={imgUrl}

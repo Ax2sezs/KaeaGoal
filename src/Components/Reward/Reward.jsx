@@ -37,13 +37,13 @@ const RewardCard = ({ item, onClick }) => {
             {item?.reward_Name || 'N/A'}
           </h2>
           <div className="flex flex-row justify-between">
-            <p className="text-lg text-button-text flex items-center gap-1">
+            {/* <p className="text-sm text-button-text flex items-center gap-1">
               <ShoppingCartOutlinedIcon className="" />
-              {item?.reward_quantity || '0'}
-            </p>
+              {item?.reward_quantity || '0'}/{item.reward_Total}
+            </p> */}
             <div className="flex flex-row gap-1">
-              <img src="./1.png" alt="Coin Icon" className="w-6 h-6" />
-              <p className="text-lg text-green-500 font-bold">{item?.reward_price || 'N/A'}</p>
+              <img src="./1.png" alt="Coin Icon" className="w-5 h-5" />
+              <p className="text-sm text-green-500 font-bold">{item?.reward_price.toLocaleString() || 'N/A'}</p>
             </div>
           </div>
         </div>
@@ -61,6 +61,8 @@ function Reward() {
   const [modalMessage, setModalMessage] = useState('');
   const [isSuccess, setIsSuccess] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState("All");
+
   useEffect(() => {
     if (user?.token) {
       fetchRewards();
@@ -74,6 +76,8 @@ function Reward() {
   //     window.location.reload();
   //   }
   // }, [user]);
+
+  const categories = ["All", ...new Set(Reward.map(item => item.rewardsCate_NameEn))];
 
   const handleOpenModal = (reward) => {
     setSelectedReward(reward);
@@ -119,6 +123,21 @@ function Reward() {
 
   return (
     <div className="bg-bg w-full min-h-screen rounded-2xl mb-16 sm:mb-0">
+      <div className="w-full overflow-x-auto whitespace-nowrap px-2 py-2 border-b-2">
+        <div className="inline-flex gap-3 w-0 bg-black my-2">
+          {categories.map((category, index) => (
+            <button
+              key={index}
+              className={`px-4 py-2 rounded-badge border whitespace-nowrap
+          ${selectedCategory === category ? 'bg-layer-item text-white' : 'border-layer-item bg-white text-gray-700'}
+          hover:bg-layer-item hover:text-white transition`}
+              onClick={() => setSelectedCategory(category)}
+            >
+              {category}
+            </button>
+          ))}
+        </div>
+      </div>
       {isLoading ? (
         <div className="text-center text-gray-500">
           <span className="loading loading-dots loading-lg"></span>
@@ -127,17 +146,16 @@ function Reward() {
         <p className='text-center'>No rewards found</p>
       ) : (
         <div className="grid grid-cols-2 lg:grid-cols-2 xl:grid-cols-4 gap-5 items-center p-3 h-auto bg-bg rounded-xl">
-          {Reward.sort((a, b) => {
-            // หาก reward_quantity เป็น 0 ให้อยู่ท้ายสุด
-            if (a.reward_quantity === 0 && b.reward_quantity !== 0) return 1; // a ให้อยู่ท้ายสุด
-            if (a.reward_quantity !== 0 && b.reward_quantity === 0) return -1; // b ให้อยู่ท้ายสุด
-
-            // หาก reward_quantity ไม่เป็น 0 เปรียบเทียบ reward_price
-            return (a.reward_price || 0) - (b.reward_price || 0); // จัดเรียงตาม reward_price
-          }).map((item, index) => (
-            <RewardCard key={index} item={item} onClick={() => handleOpenModal(item)} />
-          ))}
-
+          {Reward
+            .filter(item => selectedCategory === "All" || item.rewardsCate_NameEn === selectedCategory)
+            .sort((a, b) => {
+              if (a.reward_quantity === 0 && b.reward_quantity !== 0) return 1;
+              if (a.reward_quantity !== 0 && b.reward_quantity === 0) return -1;
+              return (a.reward_price || 0) - (b.reward_price || 0);
+            })
+            .map((item, index) => (
+              <RewardCard key={index} item={item} onClick={() => handleOpenModal(item)} />
+            ))}
         </div>
       )}
 
@@ -178,7 +196,7 @@ function Reward() {
           <div className="flex justify-between mt-4">
             <div className="flex flex-row gap-3 text-green-500">
               <img src="./1.png" alt="Coin Icon" className="w-6 h-6" />
-              {selectedReward?.reward_price || 0} Pts
+              {selectedReward?.reward_price.toLocaleString() || 0} Pts
             </div>
             <div>
               <button className="btn btn-success rounded-badge text-bg mr-2" onClick={handleAcceptReward} disabled={isButtonDisabled}>Confirm</button>
@@ -194,7 +212,7 @@ function Reward() {
           <h1 className='text-bg'><CloseOutlinedIcon fontSize='large' className='animate-bounce' /></h1>
           <h3 className="text-xl font-bold">Not enough coin</h3>
           <button
-            className="btn border-bg bg-bg rounded-badge text-red-500 mt-3 hover:bg-bg"
+            className="btn border-bg bg-bg rounded-badge text-red-500 mt-3 border-hidden hover:transition-transform hover:scale-105 hover:bg-bg"
             onClick={() => document.getElementById("error_modal_reward").close()}
           >
             Close
@@ -206,10 +224,10 @@ function Reward() {
       <dialog id="success_modal_reward" className="modal">
         <div className="modal-box bg-green-500 text-white text-center">
           <h1 className='text-bg'><CheckIcon fontSize='large' className='animate-bounce' /></h1>
-          <h3 className="text-xl font-bold">{selectedReward?.reward_Name}. Redeemed Successfully!</h3>
+          <h3 className="text-xl font-bold">Redeemed Successfully !</h3>
           <p>You have successfully redeemed...</p>
           <button
-            className="btn border-bg bg-bg rounded-badge text-green-500 mt-3 hover:bg-bg"
+            className="btn border-bg bg-bg rounded-badge text-green-500 mt-3 border-hidden hover:transition-transform hover:scale-105 hover:bg-bg"
             onClick={() => document.getElementById("success_modal_reward").close()}
           >
             Close

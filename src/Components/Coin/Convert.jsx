@@ -108,10 +108,10 @@ const Convert = () => {
   return (
     <div>
       <div className="bg-bg w-full rounded-2xl p-3 sm:p-10">
-        <div className="flex flex-col justify-center items-center gap-10">
+        <div className="flex flex-col justify-center items-center gap-6">
           <div className="flex flex-col">
             <div className="flex flex-row justify-center items-center gap-2">
-              <p className="text-4xl text-green-500 font-bold">{coinDetails.thankCoinConvert}</p>
+              <p className="text-4xl text-green-500 font-bold">{coinDetails.thankCoinConvert.toLocaleString()}</p>
               <img src="./2.png" className="w-10 h-10" />
             </div>
             <div className='flex flex-row gap-3 mt-5'>
@@ -129,13 +129,13 @@ const Convert = () => {
           </div>
           <div className="flex flex-row items-center justify-between w-full gap-5">
             <img src="./2.png" alt="Green Coin" className="w-16 h-16 sm:w-24 sm:h-24" />
-            <p className="text-xl sm:text-lg text-green-500 font-bold mt-3">{currentThankCoinBalance}</p>
+            <p className="text-xl sm:text-lg text-green-500 font-bold mt-3">{currentThankCoinBalance.toLocaleString()}</p>
             <p className="text-xl sm:text-lg text-green-500 font-bold mt-3">Thank Coin</p>
           </div>
           <div className="divider"><ExpandMoreOutlinedIcon /></div>
           <div className="flex flex-row items-center justify-between w-full">
             <img src="./1.png" alt="Yellow Coin" className="w-16 h-16 sm:w-24 sm:h-24" />
-            <p className="text-xl sm:text-lg text-yellow-500 font-bold mt-3">{kaeaCoinAmount}</p>
+            <p className="text-xl sm:text-lg text-yellow-500 font-bold mt-3">{kaeaCoinAmount.toLocaleString()}</p>
             <p className="text-xl sm:text-lg text-yellow-500 font-bold mt-3">Kaea Coin</p>
           </div>
 

@@ -38,7 +38,16 @@ function History() {
                   <span className="text-xs font-bold text-gray-900 lg:text-sm">
                     {item.transaction_Type}
                   </span>
-                  <span className="text-xs text-gray-600">{item.description}</span>
+                  <span className="text-xs text-gray-600 w-44 break-words sm:w-full">
+                    {item.description.split(':').map((line, index) => (
+                      <>
+                        {line.trim()}
+                        {index < item.description.split(':').length - 1 && ':'}
+                        <br />
+                      </>
+                    ))}
+                  </span>
+
                 </div>
 
                 {/* Date and Points */}
@@ -46,8 +55,8 @@ function History() {
                   <div className="flex flex-col justify-end text-xs text-gray-700">
                     {item.transaction_Date ? (
                       <div className="flex flex-row justify-end gap-1">
-                        <span>{new Date(item.transaction_Date).toLocaleDateString()}</span>
-                        <span>{new Date(item.transaction_Date).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</span>
+                        <span>{new Date(item.transaction_Date).toLocaleDateString('th-TH')}</span>
+                        <span>{new Date(item.transaction_Date).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", hour12: false })}</span>
                       </div>
                     ) : (
                       <span>No Date</span>
@@ -58,10 +67,10 @@ function History() {
                   <span
                     className={`relative flex flex-row ${Number(item.amount) < 0 ? 'text-red-500' : 'text-green-500'} font-bold gap-2`}
                   >
-                    {Number(item.amount)}
+                    {Number(item.amount).toLocaleString()}
 
                     <img
-                      src={item.transaction_Type === 'Receive from Admin' ? coinIcons[3] : coinIcons[item.coin_Type] || coinIcons[2]}
+                      src={item.transaction_Type === 'Receive from Admin' || item.transaction_Type === 'Receive from Mission' || item.transaction_Type === 'Give' ? coinIcons[3] : coinIcons[item.coin_Type] || coinIcons[2]}
                       alt="coin-icon"
                       className="w-5 h-5"
                     />

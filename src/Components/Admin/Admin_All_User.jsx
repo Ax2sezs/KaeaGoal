@@ -64,7 +64,7 @@ function AdminAllUser() {
     });
   };
 
-  if (isLoading) return <p>Loading...</p>;
+  if (isLoading) return <div className="text-center text-gray-500"><span className="loading loading-dots loading-lg"></span></div>;
   if (error) return <p>Error loading users.</p>;
 
   return (
@@ -116,8 +116,8 @@ function AdminAllUser() {
                 <th className="border p-2">First Name</th>
                 <th className="border p-2">Last Name</th>
                 <th className="border p-2">Branch</th>
-                <th className="border p-2">Position</th>
-                <th className="border p-2">isMissioner</th>
+                <th className="border p-2">Department</th>
+                <th className="border p-2">Role</th>
                 <th className="border p-2">Actions</th>
               </tr>
             </thead>
@@ -129,7 +129,7 @@ function AdminAllUser() {
                     <td className="border p-2">{user.firstName}</td>
                     <td className="border p-2">{user.lastName}</td>
                     <td className="border p-2">{user.branchCode}</td>
-                    <td className="border p-2">{user.user_Position}</td>
+                    <td className="border p-2">{user.department}</td>
                     <td className="border p-2">
                       {user.isAdmin === 9 ? "Super Admin" : user.isAdmin === 4 ? "Admin" : "User"}
                     </td>

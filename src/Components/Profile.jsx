@@ -13,7 +13,7 @@ import MyReward from './Reward/MyReward';
 
 function Profile() {
     const [activeTab, setActiveTab] = useState('history');
-    const { user } = useAuth();
+    const { user,logout } = useAuth();
     const { userDetails, editProfileImg, editDisplayName, changePassword, isLoading, error, success, fetchUserDetails } = useFetchData(user?.token);
     const [selectedFile, setSelectedFile] = useState(null);
     const [preview, setPreview] = useState(null);
@@ -23,6 +23,11 @@ function Profile() {
     const [confirmPassword, setConfirmPassword] = useState("");
     const [successMessage, setSuccessMessage] = useState("");
     const [loading, setLoading] = useState(false)
+
+    const handleLogout = () => {
+        logout();
+        navigate('/');  // Navigate to home after logout
+      };
 
     const tabs = [
         { id: 'history', label: 'History', component: <History /> },
@@ -110,12 +115,20 @@ function Profile() {
         <div className="bg-bg w-full min-h-screen rounded-2xl p-3 mb-16 sm:mb-0">
             <div className="flex flex-row justify-between">
                 <h1 className="text-2xl text-layer-item font-bold">Profile.</h1>
+                <div className=''>
                 <button
                     className="btn btn-sm bg-layer-item border-hidden text-white rounded-badge hover:bg-heavy-color"
                     onClick={() => document.getElementById('changePasswordModal').showModal()}
                 >
                     <KeyIcon />
                 </button>
+                <button
+                    className="btn btn-sm btn-error border-hidden text-white rounded-badge"
+                    onClick={handleLogout}
+                >
+                    <LogoutIcon />
+                </button>
+                </div>
             </div>
 
             {isLoading ? (
@@ -144,10 +157,13 @@ function Profile() {
 
                     <div className="flex flex-col w-full mt-16 justify-center items-center">
                         <h1 className="text-xl md:text-3xl text-heavy-color text-center">
-                            {userDetails?.user_Name}
+                            {userDetails?.displayName}
+                        </h1>
+                            <h1 className="text-xl md:text-3xl text-heavy-color text-center">
+                            {userDetails?.firstName} {userDetails?.lastName}
                         </h1>
                         <h1 className="text-lg md:text-lg text-heavy-color text-center">
-                            {userDetails?.branchCode} {userDetails?.branch}
+                            {userDetails?.branchCode} {userDetails?.department}
                         </h1>
                     </div>
                 </>
@@ -200,14 +216,14 @@ function Profile() {
                         />
 
                         {/* Input ใส่ชื่อใหม่ */}
-                        {/* <input
+                        <input
                             type="text"
                             placeholder="Enter new name"
                             value={newDisplayName}
                             onChange={(e) => setNewDisplayName(e.target.value)}
                             className="text-button-text input input-bordered border-layer-item rounded-badge w-full max-w-xs mb-4 bg-bg 
                 focus:border-heavy-color focus:ring-2 focus:ring-heavy-color transition-all duration-300 mt-5"
-                        /> */}
+                        />
                         {/* ปุ่มบันทึก */}
                         <div className='flex flex-row gap-5 mt-10'>
                             <button

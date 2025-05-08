@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from "react";
-import { Html5QrcodeScanner,Html5Qrcode } from "html5-qrcode";
+import { Html5QrcodeScanner, Html5Qrcode } from "html5-qrcode";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Navigation, Pagination } from "swiper/modules";
 import CheckIcon from '@mui/icons-material/Check';
@@ -14,6 +14,7 @@ const ModalMyMission = ({
   onSubmitCode,
   onSubmitQRCode,
   onSubmitPhoto,
+  onSubmitVideo,
   onSubmitText,
   onClose,
   modalError,
@@ -26,8 +27,10 @@ const ModalMyMission = ({
   const [isScannerActive, setIsScannerActive] = useState(true);
   const [selectedImage, setSelectedImage] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [requiredText,setRequiredText] = useState("")
+  const [requiredText, setRequiredText] = useState("")
+  const [videoFile, setVideoFile] = useState([]);
   const dialogRef = useRef(null);
+  
 
   useEffect(() => {
     if (dialogRef.current) {
@@ -93,7 +96,7 @@ const ModalMyMission = ({
   //     }
   //   };
   // }, [isScannerActive]);
-  
+
 
   const handleMissionCodeSubmit = async (e) => {
     e.preventDefault();
@@ -125,7 +128,7 @@ const ModalMyMission = ({
   };
 
   const handleImageSubmit = async () => {
-    if (imageFiles.length === 0){
+    if (imageFiles.length === 0) {
       setRequiredText('Please Select Image')
     };
 
@@ -139,14 +142,33 @@ const ModalMyMission = ({
       setIsSubmitting(false); // Reset submitting state
     }
   };
+
+  const handleVideoSubmit = async () => {
+    if (videoFile.length === 0) {  // ใช้ videoFiles แทน imageFiles
+      setRequiredText('Please Select a Video');  // แสดงข้อความเตือนเมื่อไม่เลือกไฟล์
+      return;
+    }
+
+    setIsSubmitting(true); // ตั้งค่าสถานะกำลังส่งข้อมูล
+    try {
+      await onSubmitVideo(videoFile);  // ฟังก์ชันที่จะส่งไฟล์วิดีโอไป
+      // Handle success, maybe show a success message
+    } catch (error) {
+      console.error("Submission error:", error);
+    } finally {
+      setIsSubmitting(false); // รีเซ็ตสถานะการส่งข้อมูล
+    }
+  };
+
+
   const handleTextSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (!inputText.trim()) {
       console.log('Input text is empty');
       return; // ถ้าเป็นค่าว่างหรือมีแค่ช่องว่าง จะไม่ทำอะไร
     }
-  
+
     setIsSubmitting(true); // ตั้งสถานะการกำลังส่งเป็น true
     try {
       await onSubmitText(inputText); // เรียกฟังก์ชัน onSubmitText ที่ส่งข้อความ
@@ -156,7 +178,7 @@ const ModalMyMission = ({
     } finally {
       setIsSubmitting(false); // รีเซ็ตสถานะการกำลังส่ง
     }
-  };  
+  };
 
   const handleClose = () => {
     if (dialogRef.current) {
@@ -197,7 +219,7 @@ const ModalMyMission = ({
           <div className="flex flex-col">
             <h3 className="text-xl">Mission: {mission?.mission_Name}</h3>
             <p className="w-full max-h-32 overflow-auto break-words whitespace-pre-line">
-            <strong>Description: </strong>{mission?.description}</p>
+              <strong>Description: </strong>{mission?.description}</p>
           </div>
         </div>
         {missionType === "QR" ? (
@@ -270,12 +292,34 @@ const ModalMyMission = ({
                 id="inputText"
                 value={inputText}
                 onChange={(e) => setInputText(e.target.value)}
-                className="textarea textarea-warning w-full mt-2 bg-bg border-layer-item rounded-2xl focus:border-heavy-color"
+                className="textarea textarea-warning w-full mt-2 h-44 bg-bg border-layer-item rounded-2xl focus:border-heavy-color"
                 required
-                maxLength={255}
+                maxLength={4000}
               />
             </div>
           </form>
+        ) : missionType === "Video" ? (
+          <div className="mb-4">
+            <label htmlFor="uploadVideo" className="block text-sm font-bold">
+              Upload Video (Max: 1)
+            </label>
+            <input
+              type="file"
+              id="uploadVideo"
+              accept="video/*"
+              onChange={(e) => {
+                const files = Array.from(e.target.files);
+                if (files.length > 1) {
+                  alert("You can upload only 1 video.");
+                  // เอาแค่ไฟล์แรก
+                  files.splice(1); // ตัดไฟล์ทั้งหมดที่เกินจากตัวแรก
+                }
+                setVideoFile(files); // อัพเดต state ด้วยไฟล์ที่เลือก
+              }}
+              className="file-input file-input-bordered w-full mt-2 bg-bg"
+            />
+          </div>
+
         ) : (
           <form onSubmit={handleMissionCodeSubmit}>
             <div className="mb-4">
@@ -296,6 +340,7 @@ const ModalMyMission = ({
             </div>
           </form>
         )}
+
 
         {modalError && <p className="text-red-500 mt-2">{modalError}</p>}
         {modalSuccess && <p className="text-green-500 mt-2">{modalSuccess}</p>}
@@ -335,18 +380,21 @@ const ModalMyMission = ({
                 : missionType === "Photo"
                   ? handleImageSubmit
                   : missionType === "Text"
-                    ? handleTextSubmit  // เรียกใช้ handleTextSubmit สำหรับ missionType เป็น "Text"
-                    : handleMissionCodeSubmit
+                    ? handleTextSubmit // เรียกใช้ handleTextSubmit สำหรับ missionType เป็น "Text"
+                    : missionType === "Video" // เพิ่มเงื่อนไขสำหรับ Video
+                      ? handleVideoSubmit  // เรียกใช้ handleVideoSubmit สำหรับ missionType เป็น "Video"
+                      : handleMissionCodeSubmit
             }
+
             disabled={isSubmitting}
             className="btn rounded-badge btn-success text-white"
-            // disabled={
-            //   isSubmitting || // ถ้ากำลังส่งข้อมูลจะไม่สามารถกดได้
-            //   (missionType === "QR" && !qrCode) ||  // สำหรับ QR ต้องมี qrCode
-            //   (missionType === "Photo" && imageFiles.length === 0) || // สำหรับ Photo ต้องเลือกไฟล์ภาพ
-            //   (missionType !== "QR" && missionType !== "Photo" && !missionCode) || // สำหรับ Mission Code ต้องกรอกโค้ด
-            //   (missionType === "Text" && !inputText.trim()) // สำหรับ Text ต้องกรอกข้อความที่ไม่ใช่ช่องว่าง
-            // }
+          // disabled={
+          //   isSubmitting || // ถ้ากำลังส่งข้อมูลจะไม่สามารถกดได้
+          //   (missionType === "QR" && !qrCode) ||  // สำหรับ QR ต้องมี qrCode
+          //   (missionType === "Photo" && imageFiles.length === 0) || // สำหรับ Photo ต้องเลือกไฟล์ภาพ
+          //   (missionType !== "QR" && missionType !== "Photo" && !missionCode) || // สำหรับ Mission Code ต้องกรอกโค้ด
+          //   (missionType === "Text" && !inputText.trim()) // สำหรับ Text ต้องกรอกข้อความที่ไม่ใช่ช่องว่าง
+          // }
           >
             {isSubmitting ? "Sending..." : "Submit"}
           </button>

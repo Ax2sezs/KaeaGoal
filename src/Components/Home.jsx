@@ -1,147 +1,85 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { AcUnit, QrCode2, CropFree, SwapHoriz, LocalShipping, ReceiptLong } from '@mui/icons-material';
-import { useNavigate } from 'react-router-dom';
-import HistoryIcon from '@mui/icons-material/History';
+import React, { useState, useEffect } from 'react';
+import { AcUnit, SwapHoriz, LocalShipping, ReceiptLong } from '@mui/icons-material';
 import { useAuth } from './APIManage/AuthContext';
 import useFetchData from './APIManage/useFetchData';
 import Mission_Main from './Mission_item/Mission_Main';
 import Reward from './Reward/Reward';
 import My_Leaderboard from './My_Leaderboard';
+import { Swiper, SwiperSlide } from "swiper/react";
+import "swiper/css";
+import "swiper/css/navigation";
+import "swiper/css/pagination";
+import { Navigation, Pagination, Autoplay } from "swiper/modules";
 
 function Home() {
     const { user } = useAuth();
-    const { missions=[], error, isLoading , fetchAllMissions} = useFetchData(user?.token);
-    const [activeIndex, setActiveIndex] = useState(0);
-    const navigate = useNavigate();
-      useEffect(() => {
-            if (user?.token) {
-                fetchAllMissions();
-            }
-        }, [user?.token, fetchAllMissions]);
+    const { fetchBanners, isLoading } = useFetchData(user?.token);
+    const [banners, setBanners] = useState([]);
 
-    // Filter only missions with images
-    const missionsWithImages = missions.filter((mission) => mission.missionImages?.[0]);
-
+    // Fetch banners data
     useEffect(() => {
-        if (missionsWithImages.length > 0) {
-            const interval = setInterval(() => {
-                setActiveIndex((prevIndex) => (prevIndex + 1) % missionsWithImages.length);
-            }, 3000);
+        const loadBanners = async () => {
+            try {
+                const fetchedBanners = await fetchBanners();
+                // กรองเฉพาะ banners ที่มี filePath เท่านั้น
+                const validBanners = fetchedBanners.filter(banner => banner.filePath);
+                setBanners(validBanners);
+            } catch (err) {
+                console.error('Failed to fetch banners', err);
+            }
+        };
 
-            return () => clearInterval(interval);
-        }
-    }, [missionsWithImages]);
-
-
-    // Functions for navigation
-    const goToSlide = (index) => setActiveIndex(index);
-
-    const handleButtonClick = (route) => {
-        navigate(route);
-    };
-
-    const sidebarItems = [
-        { label: 'Home', icon: <AcUnit />, route: '/home' },
-        { label: 'Mission', icon: <ReceiptLong />, route: '/mission' },
-        // { label: 'Wheel', icon: <CropFree />, route: '/wheel' },
-        { label: 'Transfer', icon: <SwapHoriz />, route: '/kaecoin' },
-        { label: 'My Reward', icon: <LocalShipping />, route: '/myreward' },
-    ];
+        loadBanners();
+    }, [fetchBanners]);
 
     return (
-        <div className="min-h-screen w-full bg-bg rounded-2xl overflow-hidden">
+        <div className="h-full w-full bg-bg rounded-2xl overflow-hidden">
             <div className="p-3">
-                <div className="w-full max-h-full flex items-center justify-center bg-gray-300 rounded-2xl mb-5">
-                    <img
-                        src='./Urban Farming.jpg'
-                        alt='No Mission'
-                        className="w-full h-full object-cover rounded-2xl sm:w-full sm:h-[400px]"
-                    />                            
+                {/* Banner Section */}
+                {banners.length === 0 ? (
+                    <div className="w-full max-h-full flex items-center justify-center bg-gray-300 rounded-2xl mb-5 ">
+                        <img
+                            src="./Wallpaper1.jpg" // ใช้ path นี้ถ้าไม่พบ Banner
+                            alt="No Banner"
+                            className="w-full sm:h-[400px] object-cover rounded-2xl"
+                        />
                     </div>
-
-                {/* <div className="carousel w-full overflow-hidden relative rounded-2xl">
-                    <div
-                        className="carousel-inner flex transition-transform duration-500 ease-in-out"
-                        style={{
-                            transform: `translateX(-${activeIndex * 100}%)`,
-                        }}
-                    >
-                        {missionsWithImages.length > 0 ? (
-                            missionsWithImages.map((mission, index) => (
-                                <div className="carousel-item max-h-[400px] flex-shrink-0">
+                ) : (
+                    <div className="grid grid-cols-1 w-full max-h-full mb-5">
+                        <Swiper
+                            modules={[Navigation, Pagination, Autoplay]}
+                            loop={true}
+                            autoplay={{ delay: 3000, disableOnInteraction: false }}
+                            navigation={true}
+                            pagination={{ clickable: true }}
+                            className="rounded-2xl w-full h-60 sm:h-[400px]"
+                            observer={true}
+                            observeParents={true}
+                            style={{
+                                "--swiper-navigation-color": "white",  // เปลี่ยนสีลูกศร
+                                "--swiper-pagination-color": "white",  // เปลี่ยนสี pagination dots
+                                "--swiper-pagination-bullet-active-color": "white", // เปลี่ยนสี dot เมื่อ active
+                            }}
+                        >
+                            {banners.map((banner, index) => (
+                                <SwiperSlide key={index}>
                                     <img
-                                        src={mission.missionImages[0]}
-                                        alt={`Slide ${index + 1}`}
+                                        src={banner.filePath}
+                                        alt={`Banner ${index + 1}`}
                                         className="w-full h-full object-cover rounded-2xl"
                                     />
-                                </div>
-
-                            ))
-                        ) : (
-                            <div className="w-full max-h-full flex items-center justify-center bg-gray-300 rounded-2xl">
-                                <img
-                                    src='./wallpaper001.jpg'
-                                    alt='No Mission'
-                                    className="w-full h-full object-cover rounded-2xl"
-                                />                            </div>
-                        )}
+                                </SwiperSlide>
+                            ))}
+                        </Swiper>
                     </div>
-                </div>
-                
-                <div className="flex w-full justify-center gap-2 py-2">
-                    {missionsWithImages.map((_, index) => (
-                        <div
-                            key={index}
-                            onClick={() => goToSlide(index)}
-                            className={`w-4 h-4 rounded-full border transition-all cursor-pointer ${activeIndex === index
-                                ? 'bg-layer-item border-bg'
-                                : 'bg-layer-background border-white hover:bg-bg hover:border-bg'
-                                }`}
-                        ></div>
-                    ))}
-                </div> */}
-                {/* Sidebar */}
-                {/* <div className="flex flex-row justify-around my-3">
-                    {sidebarItems.map((item, index) => (
-                        <button
-                            key={index}
-                            onClick={() => handleButtonClick(item.route)}
-                            className="flex flex-col items-center text-center group focus:outline-none"
-                        >
-                            <div className="w-11 h-11 rounded-2xl bg-layer-item hover:bg-heavy-color flex items-center justify-center text-white transition-all">
-                                {item.icon}
-                            </div>
-                            <span className="text-xs mt-2 transition-all">
-                                {item.label}
-                            </span>
-                        </button>
-                    ))}
-                </div> */}
+                )}
 
-                <div className='flex flex-row bg-transparent w-full h-24 rounded-2xl border-dashed border-4 p-2 items-center'>
-                    {/* <div className='flex justify-center items-center rounded-2xl bg-button-text opacity-50 text-bg w-16 h-16 mr-4'>
-                        <HistoryIcon />
-                    </div>
-                    <div className='grid grid-cols-3 gap-2 justify-center'>
-                        <div className='w-11'>
-                            <img src='src/assets/1.png' className='w-10 h-10' />
-                        </div>
-                        <div className='w-20'>
-                            <div className='text-green-500'>
-                                Received
-                            </div>
-                            <div className='text-xs'>
-                                Mission : ABC
-                            </div>
-                        </div>
-                        <div className='w-20 text-green-500'>+ 50 Pts</div>
-                    </div> */}
+                {/* Other sections (Leaderboard, Missions, etc.) */}
+                <div className="flex flex-row bg-transparent w-full h-24 rounded-2xl border-dashed border-4 p-2 items-center">
                     <My_Leaderboard />
-
                 </div>
 
-                {/* New Mission Section */}
-                <div className=" w-full h-auto rounded-2xl mt-4">
+                <div className="w-full h-auto rounded-2xl mt-4">
                     <span className='text-2xl text-layer-item font-bold'>NEW MISSION !</span>
                     {isLoading ? (
                         <div className="text-center text-gray-500">
@@ -152,17 +90,16 @@ function Home() {
                     )}
                 </div>
 
-                {/* Big Deal Section */}
-                <div className="bg-layer-background w-full h-auto rounded-2xl p-3 mt-4">
-                    <span className='text-2xl text-layer-item font-bold'>BIG DEAL !</span>
-                    {isLoading ? (
-                        <div className="text-center text-gray-500">
-                            <span className="loading loading-dots loading-lg"></span>
-                        </div>
-                    ) : (
-                        <Reward />
-                    )}
-                </div>
+                <hr className="my-5" />
+
+                <span className='text-2xl text-layer-item font-bold'>BIG DEAL !</span>
+                {isLoading ? (
+                    <div className="text-center text-gray-500">
+                        <span className="loading loading-dots loading-lg"></span>
+                    </div>
+                ) : (
+                    <Reward />
+                )}
             </div>
         </div>
     );

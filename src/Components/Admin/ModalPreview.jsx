@@ -54,15 +54,17 @@ const ModalPreview = ({ isOpen, onClose, mission }) => {
                             <p className='text-lg text-button-text'>Type: {mission.missioN_TYPE}</p>
 
                             <div className="text-button-text text-sm">
-                                Expire: {new Date(mission.expire_Date).toLocaleDateString()}
+                                Expire: {new Date(mission.expire_Date).toLocaleDateString('th-TH')}
                             </div>
                         </div>
                     </div>
                 </div>
-
+                <div className='mt-5 text-button-text'>
+                    <p className='text-wrap'>Description : {mission.description}</p>
+                </div>
                 {/* Modal Close Button */}
                 <div className="modal-action">
-                    <button className="btn btn-primary" onClick={onClose}>
+                    <button className="btn btn-error rounded-badge" onClick={onClose}>
                         Close
                     </button>
                 </div>

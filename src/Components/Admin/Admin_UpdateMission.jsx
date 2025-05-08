@@ -1,12 +1,13 @@
-import React, { useState,useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import CreateMissionForm from './CreateMissionForm';
 import useFetchData from '../APIManage/useFetchData';
 import { useAuth } from '../APIManage/AuthContext';  // Assuming this is your custom hook/context
 import ModalPreview from './ModalPreview'; // Import the new ModalPreview component
+import EditMission from './EditMission';
 
 const Admin_UpdateMission = () => {
   const { user } = useAuth();
-  const { allMission = [], error, isLoading,fetchAllMissions } = useFetchData(user?.token);
+  const { allMission = [], error, isLoading, fetchAllMissions } = useFetchData(user?.token);
   const sortedMissions = [...allMission].sort((a, b) => new Date(b.start_Date) - new Date(a.start_Date));
 
   // State to handle modal visibility and selected mission details
@@ -19,17 +20,24 @@ const Admin_UpdateMission = () => {
   const [searchName, setSearchName] = useState('');
   const [searchType, setSearchType] = useState('');
   const [searchDate, setSearchDate] = useState('');
+  const [editMissionData, setEditMissionData] = useState(null);
 
-  const filteredMissions = sortedMissions.filter((mission) => 
+  const handleEditMission = (mission) => {
+    setEditMissionData(mission);
+    document.getElementById('edit_mission_modal').showModal();
+  };
+
+
+  const filteredMissions = sortedMissions.filter((mission) =>
     mission.missioN_NAME.toLowerCase().includes(searchName.toLowerCase()) &&
     mission.missioN_TYPE.toLowerCase().includes(searchType.toLowerCase()) &&
     (!searchDate || new Date(mission.start_Date).toISOString().split('T')[0] === searchDate)
   );
-   useEffect(() => {
-              if (user?.token) {
-                  fetchAllMissions()
-              }
-            }, [user?.token, fetchAllMissions]);
+  useEffect(() => {
+    if (user?.token) {
+      fetchAllMissions()
+    }
+  }, [user?.token, fetchAllMissions]);
 
   const openModal = (mission) => {
     setSelectedMission(mission);
@@ -56,36 +64,47 @@ const Admin_UpdateMission = () => {
 
       <div className="admin-mission-container">
         <h2 className="text-2xl font-bold mb-6 text-button-text">Admin Missions</h2>
-        <h2>ALL MISSION : {allMission.length}</h2>
+        <div className='text-button-text flex gap-5 text-lg'>
+          <h2>ALL MISSION : {allMission.length}</h2>
+          <h2>Code : {allMission.filter(m => m.missioN_TYPE === "Code").length}</h2>
+          <h2>Photo : {allMission.filter(m => m.missioN_TYPE === "Photo").length}</h2>
+          <h2>Text : {allMission.filter(m => m.missioN_TYPE === "Text").length}</h2>
+          {/* <h2>QR : {allMission.filter(m => m.missioN_TYPE === "QR").length}</h2> */}
+        </div>
         {/* Filter Section */}
-      <div className="mb-4 flex flex-wrap gap-4">
-        <input
-          type="text"
-          placeholder="Search Mission Name"
-          className="input input-bordered w-full max-w-xs bg-bg"
-          value={searchName}
-          onChange={(e) => setSearchName(e.target.value)}
-        />
-        <input
-          type="text"
-          placeholder="Search Mission Type"
-          className="input input-bordered w-full max-w-xs bg-bg"
-          value={searchType}
-          onChange={(e) => setSearchType(e.target.value)}
-        />
-        <input
-          type="date"
-          className="input input-bordered w-full max-w-xs"
-          value={searchDate}
-          onChange={(e) => setSearchDate(e.target.value)}
-        />
-      </div>
+        <div className="mb-4 flex flex-wrap gap-4 text-button-text">
+          <input
+            type="text"
+            placeholder="Search Mission Name"
+            className="input input-bordered w-full max-w-xs border-button-text bg-bg"
+            value={searchName}
+            onChange={(e) => setSearchName(e.target.value)}
+          />
+          <select
+            className="select select-bordered bg-bg border-button-text w-full max-w-xs"
+            value={searchType}
+            onChange={(e) => setSearchType(e.target.value)}
+          >
+            <option value="">All Types</option>
+            <option value="Code">Code</option>
+            <option value="Photo">Photo</option>
+            <option value="Text">Text</option>
+            {/* <option value="QR">QR</option> */}
+          </select>
+
+          <input
+            type="date"
+            className="input input-bordered w-full max-w-xs bg-button-text text-bg border-button-text"
+            value={searchDate}
+            onChange={(e) => setSearchDate(e.target.value)}
+          />
+        </div>
 
         {/* Missions Table */}
         <div className="mission-list overflow-x-auto">
           {isLoading ? (
-            <div className="text-center text-gray-500">    
-            <span className="loading loading-dots loading-lg bg-bg"></span>
+            <div className="text-center text-gray-500">
+              <span className="loading loading-dots loading-lg bg-bg"></span>
             </div>
           ) : error ? (
             <p className="text-red-500">{error}</p>
@@ -96,47 +115,52 @@ const Admin_UpdateMission = () => {
               <thead>
                 <tr className="bg-gray-100">
                   <th className="border border-gray-300 p-2 w-32">Mission Name</th>
-                  <th className="border border-gray-300 p-2 w-32">Mission Type</th>
+                  {/* <th className="border border-gray-300 p-2 w-16">Type</th> */}
+                  <th className="border border-gray-300 p-2 w-16">Site</th>
                   <th className="border border-gray-300 p-2 w-32">Coin Reward</th>
-                  <th className="border border-gray-300 p-2 w-32">Mission Points</th>
+                  {/* <th className="border border-gray-300 p-2 w-32">Mission Points</th> */}
                   <th className="border border-gray-300 p-2 w-32">Start Date</th>
                   <th className="border border-gray-300 p-2 w-32">Expire Date</th>
-                  <th className="border border-gray-300 p-2 w-32">Description</th>
-                  <th className="border border-gray-300 p-2 w-32">Current</th>
-                  <th className="border border-gray-300 p-2 w-32">Limit</th>
-                  <th className="border border-gray-300 p-2 w-32">is Limited</th>
-                  <th className="border border-gray-300 p-2 w-32">Code Mission / QR Code</th>
-                  <th className="border border-gray-300 p-2 w-32">Preview</th>
+                  {/* <th className="border border-gray-300 p-2 w-32">Description</th> */}
+                  {/* <th className="border border-gray-300 p-2 w-32">Current</th>
+                  <th className="border border-gray-300 p-2 w-32">Limit</th> */}
+                  <th className="border border-gray-300 p-2 w-32">Participants</th>
+                  <th className="border border-gray-300 p-2 w-32">is Public</th>
+                  {/* <th className="border border-gray-300 p-2 w-32">Code Mission</th> */}
+                  <th className="border border-gray-300 p-2 w-32"></th>
                 </tr>
               </thead>
               <tbody>
                 {filteredMissions.map((mission) => (
                   <tr key={mission.missioN_ID} className="hover:bg-gray-50">
                     <td className="border border-gray-300 p-2 w-32">{mission.missioN_NAME}</td>
-                    <td className="border border-gray-300 p-2 w-32">{mission.missioN_TYPE}</td>
+                    {/* <td className="border border-gray-300 p-2 w-16">{mission.missioN_TYPE}</td> */}
+                    <td className="border border-gray-300 p-2 w-16">{mission.participate_Type}</td>
                     <td className="border border-gray-300 p-2 w-32">{mission.coin_Reward}</td>
-                    <td className="border border-gray-300 p-2 w-32">{mission.mission_Point}</td>
-                    <td className="border border-gray-300 p-2 w-32">{new Date(mission.start_Date).toLocaleString()}</td>
-                    <td className="border border-gray-300 p-2 w-32">{new Date(mission.expire_Date).toLocaleString()}</td>
+                    {/* <td className="border border-gray-300 p-2 w-32">{mission.mission_Point}</td> */}
+                    {/* <td className="border border-gray-300 p-2 w-32">{new Date(mission.start_Date).toLocaleString('TH-th')}</td>
+                    <td className="border border-gray-300 p-2 w-32">{new Date(mission.expire_Date).toLocaleString('TH-th')}</td> */}
+
+                    <td className="border border-gray-300 p-2 w-32">{new Date(mission.start_Date).toLocaleDateString('th-TH', { day: 'numeric', month: 'numeric', year: 'numeric' })
+                  }</td>
+                    <td className="border border-gray-300 p-2 w-32">{new Date(mission.expire_Date).toLocaleDateString('th-TH', { day: 'numeric', month: 'numeric', year: 'numeric' })
+                  }</td>
 
                     {/* Description Column with Truncation */}
-                    <td className="border border-gray-300 p-2 w-32">
+                    {/* <td className="border border-gray-300 p-2 w-32">
                       <div className="truncate max-w-60">
                         {mission.description}
                       </div>
-                    </td>
+                    </td> */}
 
-                    <td className="border border-gray-300 p-2 w-32">{mission.current_Accept}</td>
-                    <td className="border border-gray-300 p-2 w-32">{mission.accept_limit}</td>
-
-
-
+                    {/* <td className="border border-gray-300 p-2 w-32">{mission.current_Accept.toLocaleString()}</td> */}
+                    <td className="border border-gray-300 p-2 w-32 text-center">{mission.current_Accept.toLocaleString()} / {mission.accept_limit.toLocaleString()}</td>
                     <td className="border border-gray-300 p-2 w-32">
-                      {mission.is_Limited ? 'Limited' : '-'}
+                      {mission.is_Public ? 'Public' : '-'}
                     </td>
 
                     {/* Combined QR and Code Mission Column */}
-                    <td className="border border-gray-300 p-2 w-32">
+                    {/* <td className="border border-gray-300 p-2 w-32">
                       <div>
                         {mission.codeMission && (
                           <p><strong>Code:</strong> {mission.codeMission}</p>
@@ -150,16 +174,24 @@ const Admin_UpdateMission = () => {
                           />
                         )}
                       </div>
-                    </td>
+                    </td> */}
 
                     {/* Preview Column with only the Preview Button */}
                     <td className="border border-gray-300 p-2 w-32">
-                      <button
-                        className="btn bg-bg rounded-badge w-full text-button-text"
+                      {/* <button
+                        className="btn btn-info btn-outline rounded-badge w-full text-button-text"
                         onClick={() => openModal(mission)} // Open modal on button click
                       >
                         Preview
+                      </button> */}
+                      <div className='flex w-full justify-center'>
+                      <button
+                        className="btn btn-success btn-sm text-bg w-1/2"
+                        onClick={() => handleEditMission(mission)}
+                      >
+                        Edit
                       </button>
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -208,12 +240,21 @@ const Admin_UpdateMission = () => {
 
         {/* Modal for creating a mission */}
         <dialog id="create_mission_modal" className="modal">
-          <div className="modal-box bg-bg text-button-text">
+          <div className="modal-box bg-white text-gray-800 rounded-xl shadow-xl p-6 max-w-2xl">
             <h3 className="font-bold text-lg">Create Mission</h3>
             <CreateMissionForm onClose={() => document.getElementById('create_mission_modal').close()}
               onSuccess={fetchAllMissions} // Pass the success callback
             />
             <div className="modal-action"></div>
+          </div>
+        </dialog>
+        <dialog id="edit_mission_modal" className="modal">
+          <div className="modal-box bg-white text-gray-800 rounded-xl shadow-xl p-6 max-w-2xl">
+            <EditMission
+              initialData={editMissionData}
+              onClose={() => document.getElementById('edit_mission_modal').close()}
+              onSuccess={fetchAllMissions}
+            />
           </div>
         </dialog>
       </div>
